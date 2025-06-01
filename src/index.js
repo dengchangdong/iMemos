@@ -126,6 +126,39 @@ app.get('/', async (c) => {
       const memoContainer = document.getElementById('memo-container')
       const loadingIndicator = document.getElementById('loading')
 
+      // 渲染单个 memo
+      function renderMemo(memo) {
+        return \`
+          <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+              \${new Date(memo.createdTs * 1000).toLocaleString('zh-CN')}
+            </div>
+            <div class="text-lg leading-relaxed">
+              \${memo.content}
+            </div>
+            \${memo.resourceList && memo.resourceList.length > 0 ? \`
+              <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                \${memo.resourceList.map(resource => \`
+                  <div class="relative aspect-square overflow-hidden rounded-lg cursor-zoom-in" onclick="showImageModal('\${resource.externalLink}')">
+                    <img 
+                      src="\${resource.externalLink}" 
+                      alt="\${resource.filename}"
+                      class="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                    />
+                  </div>
+                \`).join('')}
+              </div>
+            \` : ''}
+            <div class="mt-4 text-sm text-zinc-500">
+              <a href="/post/\${memo.name}" class="hover:text-zinc-700 dark:hover:text-zinc-300">
+                查看详情
+              </a>
+            </div>
+          </article>
+        \`
+      }
+
       // 加载 memos
       async function loadMemos() {
         if (isLoading || !hasMore) return
@@ -153,7 +186,7 @@ app.get('/', async (c) => {
           }
           
           memos.forEach(memo => {
-            memoContainer.insertAdjacentHTML('beforeend', \`${renderMemo.toString()}\`(memo))
+            memoContainer.insertAdjacentHTML('beforeend', renderMemo(memo))
           })
           
           currentPage++

@@ -196,13 +196,29 @@ export function renderBaseHtml(c, title, content) {
         ${renderStyles()}
       </head>
       <body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 min-h-screen flex flex-col">
-        ${renderHeader(c.env.SITE_NAME, c.env.NAV_LINKS)}
+        <header class="border-b border-zinc-200 dark:border-zinc-800">
+          <div class="container mx-auto px-4 py-4 max-w-4xl">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+              <h1 class="text-2xl font-bold mb-4 md:mb-0">
+                <a href="/" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">
+                  ${c.env.SITE_NAME}
+                </a>
+              </h1>
+            </div>
+          </div>
+        </header>
         
         <main class="flex-grow">
           ${content}
         </main>
 
-        ${renderFooter(c.env.FOOTER_TEXT)}
+        <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
+          <div class="container mx-auto px-4 py-6 max-w-4xl">
+            <div class="text-center text-zinc-600 dark:text-zinc-400">
+              © 2024 Memos Themes. All rights reserved.
+            </div>
+          </div>
+        </footer>
         ${renderImageModal()}
         ${renderScripts()}
       </body>
