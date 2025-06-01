@@ -77,7 +77,10 @@ function renderBaseHtml(title, content) {
   let navLinksHtml = ''
   if (c.env.NAV_LINKS) {
     try {
-      const navLinks = JSON.parse(c.env.NAV_LINKS)
+      const navLinks = c.env.NAV_LINKS.split(',').map(link => {
+        const [text, url] = link.split(':')
+        return { text, url }
+      })
       navLinksHtml = navLinks.map(link => `
         <a href="${link.url}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
           ${link.text}
