@@ -5,14 +5,7 @@ import { renderBaseHtml, renderMemo } from './template'
 const app = new Hono()
 
 // 添加 CORS 中间件
-app.use('*', cors({
-  origin: '*',
-  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
-  exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
-  maxAge: 600,
-  credentials: true,
-}))
+app.use('*', cors())
 
 // 错误处理中间件
 app.use('*', async (c, next) => {
