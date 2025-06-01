@@ -1,13 +1,13 @@
 name = "memos-themes"
 main = "src/index.js"
-compatibility_date = "2024-02-20"
+compatibility_date = "2024-02-01"
 
 [vars]
-API_HOST = "https://open.memos.dengchangdong.com"
+SITE_NAME = "Memos Themes"
+NAV_LINKS = "首页:/,关于:/about"
+FOOTER_TEXT = "© 2024 Memos Themes. All rights reserved."
 PAGE_LIMIT = "10"
-SITE_NAME = "我的 Memos"
-NAV_LINKS = "首页:/,关于:/about,归档:/archive"
-FOOTER_TEXT = "© 2024 我的 Memos. All rights reserved."
+API_HOST = "https://open.memos.dengchangdong.com"  # 请替换为您的实际 API 地址
 
 [site]
 bucket = "./public" 
