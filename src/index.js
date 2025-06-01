@@ -25,39 +25,44 @@ function formatTime(timestamp) {
   const now = new Date()
   const date = new Date(timestamp)
   const diff = now - date
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
-  const hours = Math.floor(diff / (1000 * 60 * 60))
   const minutes = Math.floor(diff / (1000 * 60))
-
-  if (days > 3) {
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  
+  // 1分钟以内
+  if (minutes < 1) {
+    return '刚刚'
+  }
+  
+  // 1小时以内
+  if (minutes < 60) {
+    return `${minutes} 分钟前`
+  }
+  
+  // 当天发布的且24小时以内
+  if (hours < 24 && date.getDate() === now.getDate()) {
+    return `${hours} 小时前`
+  }
+  
+  // 非当天发布但是是当年发布的
+  if (date.getFullYear() === now.getFullYear()) {
     return date.toLocaleString('zh-CN', {
-      year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
       hour12: false
     }).replace(/\//g, '-')
   }
-
-  if (days === 1) {
-    return `昨天 ${date.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}`
-  }
-
-  if (days > 1) {
-    return `${days} 天前`
-  }
-
-  if (hours > 0) {
-    return `${hours} 小时前`
-  }
-
-  if (minutes > 0) {
-    return `${minutes} 分钟前`
-  }
-
-  return '刚刚'
+  
+  // 非当年发布的
+  return date.toLocaleString('zh-CN', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  }).replace(/\//g, '-')
 }
 
 // 解析内容中的标签
