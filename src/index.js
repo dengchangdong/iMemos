@@ -15,9 +15,14 @@ app.use('*', async (c, next) => {
 // 渲染单个 memo
 function renderMemo(memo) {
   try {
-    const date = new Date(memo.createTime).toLocaleString('zh-CN')
+    // 处理不同的时间格式
+    const date = memo.createTime 
+      ? new Date(memo.createTime).toLocaleString('zh-CN')
+      : new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
+    
     const content = memo.content || ''
-    const resources = memo.resources || []
+    // 处理不同的资源列表字段名
+    const resources = memo.resources || memo.resourceList || []
     
     let resourcesHtml = ''
     if (resources.length > 0) {
