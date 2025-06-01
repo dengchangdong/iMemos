@@ -2,6 +2,14 @@ import { Hono } from 'hono'
 
 const app = new Hono()
 
+// 常量配置
+const DEFAULT_FOOTER_TEXT = '© 2024 Memos Themes. All rights reserved.'
+const DEFAULT_PAGE_LIMIT = '10'
+const DEFAULT_HEADERS = {
+  'Accept': 'application/json',
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+}
+
 // 错误处理中间件
 app.use('*', async (c, next) => {
   try {
@@ -12,6 +20,25 @@ app.use('*', async (c, next) => {
   }
 })
 
+// 解析内容中的标签
+function parseTags(content) {
+  const tagRegex = /#([^#\s]+)/g;
+  let parsedContent = content;
+  const tags = [];
+  let match;
+
+  while ((match = tagRegex.exec(content)) !== null) {
+    const tag = match[1];
+    tags.push(tag);
+    parsedContent = parsedContent.replace(
+      `#${tag}`,
+      `<a href="/tag/${tag}" class="text-blue-600 dark:text-blue-400 hover:underline">#${tag}</a>`
+    );
+  }
+
+  return { parsedContent, tags };
+}
+
 // 渲染单个 memo
 function renderMemo(memo, isHomePage = false) {
   try {
@@ -20,6 +47,7 @@ function renderMemo(memo, isHomePage = false) {
       : new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
     
     const content = memo.content || ''
+    const { parsedContent } = parseTags(content)
     const resources = memo.resources || memo.resourceList || []
     
     let resourcesHtml = ''
@@ -56,7 +84,7 @@ function renderMemo(memo, isHomePage = false) {
         <div class="p-6 sm:p-8">
           ${timeHtml}
           <div class="mt-4 prose dark:prose-invert max-w-none">
-            <p class="text-gray-800 dark:text-gray-200 leading-relaxed">${content}</p>
+            <p class="text-gray-800 dark:text-gray-200 leading-relaxed">${parsedContent}</p>
           </div>
           ${resourcesHtml}
         </div>
@@ -71,6 +99,40 @@ function renderMemo(memo, isHomePage = false) {
       </div>
     `
   }
+}
+
+// 渲染错误页面
+function renderErrorPage(error, c) {
+  return renderBaseHtml(
+    '错误', 
+    `
+    <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+      <h2 class="text-lg font-semibold mb-2">加载失败</h2>
+      <p class="text-sm">${error.message}</p>
+      <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+        <i class="ti ti-arrow-left mr-1"></i>
+        返回首页
+      </a>
+    </div>
+    `,
+    c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
+    c.env.NAV_LINKS
+  )
+}
+
+// 获取 memos 数据
+async function fetchMemos(c, tag = '') {
+  const limit = c.env.PAGE_LIMIT || DEFAULT_PAGE_LIMIT
+  const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`
+  console.log('请求 API:', apiUrl)
+
+  const response = await fetch(apiUrl, { headers: DEFAULT_HEADERS })
+
+  if (!response.ok) {
+    throw new Error(`API 请求失败: ${response.status}`)
+  }
+
+  return response.json()
 }
 
 // 渲染基础 HTML
@@ -150,6 +212,76 @@ function renderBaseHtml(title, content, footerText, navLinks) {
 
           .dark .prose {
             color: #E5E7EB;
+          }
+
+          .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
+          }
+
+          .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            margin: auto;
+            position: relative;
+          }
+
+          .image-modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+          }
+
+          .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+          }
+
+          .image-modal-prev,
+          .image-modal-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 1rem;
+            user-select: none;
+          }
+
+          .image-modal-prev {
+            left: -60px;
+          }
+
+          .image-modal-next {
+            right: -60px;
+          }
+
+          @media (max-width: 768px) {
+            .image-modal-prev {
+              left: 10px;
+            }
+            .image-modal-next {
+              right: 10px;
+            }
           }
 
           .theme-btn {
@@ -235,76 +367,6 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           .dark .back-to-top:hover {
             background: rgba(17, 24, 39, 0.9);
           }
-
-          .image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-          }
-
-          .image-modal.active {
-            display: flex;
-            opacity: 1;
-          }
-
-          .image-modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            margin: auto;
-            position: relative;
-          }
-
-          .image-modal-content img {
-            max-width: 100%;
-            max-height: 90vh;
-            object-fit: contain;
-          }
-
-          .image-modal-close {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-          }
-
-          .image-modal-prev,
-          .image-modal-next {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 1rem;
-            user-select: none;
-          }
-
-          .image-modal-prev {
-            left: -60px;
-          }
-
-          .image-modal-next {
-            right: -60px;
-          }
-
-          @media (max-width: 768px) {
-            .image-modal-prev {
-              left: 10px;
-            }
-            .image-modal-next {
-              right: 10px;
-            }
-          }
         </style>
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
@@ -353,20 +415,6 @@ function renderBaseHtml(title, content, footerText, navLinks) {
         <button class="back-to-top" id="backToTop" aria-label="返回顶部">
           <i class="ti ti-arrow-up text-xl"></i>
         </button>
-
-        <!-- 图片预览模态框 -->
-        <div class="image-modal" id="imageModal">
-          <div class="image-modal-content">
-            <span class="image-modal-close">&times;</span>
-            <img src="" alt="预览图片">
-            <div class="image-modal-prev">
-              <i class="ti ti-chevron-left text-4xl"></i>
-            </div>
-            <div class="image-modal-next">
-              <i class="ti ti-chevron-right text-4xl"></i>
-            </div>
-          </div>
-        </div>
 
         <script>
           // 主题切换
@@ -508,22 +556,7 @@ function renderBaseHtml(title, content, footerText, navLinks) {
 // 主页路由
 app.get('/', async (c) => {
   try {
-    const limit = c.env.PAGE_LIMIT || '10'
-    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=${limit}&offset=0`
-    console.log('请求 API:', apiUrl)
-
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-      }
-    })
-
-    if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`)
-    }
-
-    const memos = await response.json()
+    const memos = await fetchMemos(c)
     console.log('获取到 memos 数量:', memos.length)
 
     const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
@@ -531,7 +564,7 @@ app.get('/', async (c) => {
     return new Response(renderBaseHtml(
       c.env.SITE_NAME, 
       memosHtml, 
-      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS
     ), {
       headers: {
@@ -540,21 +573,7 @@ app.get('/', async (c) => {
     })
   } catch (error) {
     console.error('渲染页面失败:', error)
-    return new Response(renderBaseHtml(
-      '错误', 
-      `
-      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
-        <h2 class="text-lg font-semibold mb-2">加载失败</h2>
-        <p class="text-sm">${error.message}</p>
-        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-          <i class="ti ti-arrow-left mr-1"></i>
-          返回首页
-        </a>
-      </div>
-      `,
-      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
-      c.env.NAV_LINKS
-    ), {
+    return new Response(renderErrorPage(error, c), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
@@ -569,12 +588,7 @@ app.get('/post/:name', async (c) => {
     const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`
     console.log('请求 API:', apiUrl)
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-      }
-    })
+    const response = await fetch(apiUrl, { headers: DEFAULT_HEADERS })
 
     if (!response.ok) {
       throw new Error(`API 请求失败: ${response.status}`)
@@ -595,7 +609,7 @@ app.get('/post/:name', async (c) => {
           </a>
         </div>
         `,
-        c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+        c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
         c.env.NAV_LINKS
       ), {
         headers: {
@@ -610,7 +624,7 @@ app.get('/post/:name', async (c) => {
     return new Response(renderBaseHtml(
       c.env.SITE_NAME, 
       memoHtml, 
-      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS
     ), {
       headers: {
@@ -619,21 +633,36 @@ app.get('/post/:name', async (c) => {
     })
   } catch (error) {
     console.error('渲染页面失败:', error)
+    return new Response(renderErrorPage(error, c), {
+      headers: {
+        'Content-Type': 'text/html;charset=UTF-8'
+      }
+    })
+  }
+})
+
+// 标签页面路由
+app.get('/tag/:tag', async (c) => {
+  try {
+    const tag = c.req.param('tag')
+    const memos = await fetchMemos(c, tag)
+    console.log('获取到 memos 数量:', memos.length)
+
+    const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
+
     return new Response(renderBaseHtml(
-      c.env.SITE_NAME, 
-      `
-      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
-        <h2 class="text-lg font-semibold mb-2">加载失败</h2>
-        <p class="text-sm">${error.message}</p>
-        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-          <i class="ti ti-arrow-left mr-1"></i>
-          返回首页
-        </a>
-      </div>
-      `,
-      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      `#${tag} - ${c.env.SITE_NAME}`, 
+      memosHtml, 
+      c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS
     ), {
+      headers: {
+        'Content-Type': 'text/html;charset=UTF-8'
+      }
+    })
+  } catch (error) {
+    console.error('渲染页面失败:', error)
+    return new Response(renderErrorPage(error, c), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
