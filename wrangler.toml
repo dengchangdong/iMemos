@@ -1,13 +1,16 @@
 name = "memos-themes"
 main = "src/index.js"
-compatibility_date = "2024-02-01"
+compatibility_date = "2024-02-20"
 
 [vars]
-SITE_NAME = "归零杂记"
+SITE_NAME = "Memos Themes"
 NAV_LINKS = "首页:/,关于:/about"
 FOOTER_TEXT = "© 2024 Memos Themes. All rights reserved."
 PAGE_LIMIT = "10"
-API_HOST = "https://open.memos.dengchangdong.com"  # 请替换为您的实际 API 地址 
+API_HOST = "https://open.memos.dengchangdong.com"
 
 [observability.logs]
 enabled = false
+
+[triggers]
+crons = []
