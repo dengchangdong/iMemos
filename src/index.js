@@ -44,7 +44,11 @@ function renderMemo(memo) {
     return `
       <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
         <div class="p-6 sm:p-8">
-          <time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">${date}</time>
+          <time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
+            <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+              ${date}
+            </a>
+          </time>
           <div class="mt-4 prose dark:prose-invert max-w-none">
             <p class="text-gray-800 dark:text-gray-200 leading-relaxed">${content}</p>
           </div>
@@ -132,23 +136,8 @@ function renderBaseHtml(title, content) {
             margin-bottom: 1.25em;
           }
 
-          .prose p:first-of-type::first-letter {
-            font-family: 'Noto Serif SC', serif;
-            font-size: 3.5em;
-            font-weight: 700;
-            float: left;
-            line-height: 1;
-            margin-right: 0.1em;
-            margin-top: 0.1em;
-            color: #4B5563;
-          }
-
           .dark .prose {
             color: #E5E7EB;
-          }
-
-          .dark .prose p:first-of-type::first-letter {
-            color: #9CA3AF;
           }
 
           .image-modal {
@@ -220,32 +209,129 @@ function renderBaseHtml(title, content) {
               right: 10px;
             }
           }
+
+          .theme-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: transparent;
+            border: 2px solid currentColor;
+            cursor: pointer;
+            transition: all 0.3s ease;
+          }
+
+          .theme-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
+          }
+
+          .dark .theme-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+          }
+
+          .theme-btn i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.25rem;
+            transition: all 0.3s ease;
+          }
+
+          .theme-btn[data-theme="system"] i {
+            opacity: 1;
+          }
+
+          .theme-btn[data-theme="light"] i,
+          .theme-btn[data-theme="dark"] i {
+            opacity: 0;
+          }
+
+          .theme-btn.active[data-theme="system"] i {
+            opacity: 1;
+          }
+
+          .theme-btn.active[data-theme="light"] i,
+          .theme-btn.active[data-theme="dark"] i {
+            opacity: 1;
+          }
+
+          .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(8px);
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            color: #374151;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            z-index: 40;
+          }
+
+          .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+          }
+
+          .back-to-top:hover {
+            background: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+          }
+
+          .dark .back-to-top {
+            background: rgba(17, 24, 39, 0.8);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #E5E7EB;
+          }
+
+          .dark .back-to-top:hover {
+            background: rgba(17, 24, 39, 0.9);
+          }
         </style>
       </head>
-      <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <header class="flex items-center justify-between mb-12">
-            <h1 class="text-3xl font-bold tracking-tight">
-              <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                ${title}
-              </a>
-            </h1>
-            <div class="flex items-center space-x-2">
-              <button class="theme-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" data-theme="system">
-                <i class="ti ti-device-desktop text-xl"></i>
+      <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+        <div class="flex-grow">
+          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <header class="flex items-center justify-between mb-12">
+              <h1 class="text-3xl font-bold tracking-tight">
+                <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                  ${title}
+                </a>
+              </h1>
+              <button class="theme-btn" data-theme="system">
+                <i class="ti ti-device-desktop"></i>
+                <i class="ti ti-sun"></i>
+                <i class="ti ti-moon"></i>
               </button>
-              <button class="theme-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" data-theme="light">
-                <i class="ti ti-sun text-xl"></i>
-              </button>
-              <button class="theme-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" data-theme="dark">
-                <i class="ti ti-moon text-xl"></i>
-              </button>
-            </div>
-          </header>
-          <main class="space-y-8">
-            ${content}
-          </main>
+            </header>
+            <main class="space-y-8">
+              ${content}
+            </main>
+          </div>
         </div>
+
+        <footer class="mt-12 border-t border-gray-200 dark:border-gray-800">
+          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="text-center text-sm text-gray-500 dark:text-gray-400">
+              <p>© ${new Date().getFullYear()} ${title}. All rights reserved.</p>
+              <p class="mt-2">Powered by <a href="https://github.com/your-repo" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">Memos Themes</a></p>
+            </div>
+          </div>
+        </footer>
+
+        <!-- 返回顶部按钮 -->
+        <button class="back-to-top" id="backToTop" aria-label="返回顶部">
+          <i class="ti ti-arrow-up text-xl"></i>
+        </button>
 
         <!-- 图片预览模态框 -->
         <div class="image-modal" id="imageModal">
@@ -263,30 +349,35 @@ function renderBaseHtml(title, content) {
 
         <script>
           // 主题切换
-          const themeBtns = document.querySelectorAll('.theme-btn');
+          const themeBtn = document.querySelector('.theme-btn');
           const html = document.documentElement;
           
           // 从 localStorage 获取保存的主题
           const savedTheme = localStorage.getItem('theme') || 'system';
           setTheme(savedTheme);
           
-          themeBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-              const theme = btn.dataset.theme;
-              setTheme(theme);
-              localStorage.setItem('theme', theme);
-            });
+          themeBtn.addEventListener('click', () => {
+            const currentTheme = themeBtn.dataset.theme;
+            let nextTheme;
+            
+            switch(currentTheme) {
+              case 'system':
+                nextTheme = 'light';
+                break;
+              case 'light':
+                nextTheme = 'dark';
+                break;
+              case 'dark':
+                nextTheme = 'system';
+                break;
+            }
+            
+            setTheme(nextTheme);
+            localStorage.setItem('theme', nextTheme);
           });
           
           function setTheme(theme) {
-            // 移除所有主题按钮的 active 类
-            themeBtns.forEach(btn => btn.classList.remove('active'));
-            
-            // 为当前主题按钮添加 active 类
-            const activeBtn = document.querySelector(\`[data-theme="\${theme}"]\`);
-            if (activeBtn) {
-              activeBtn.classList.add('active');
-            }
+            themeBtn.dataset.theme = theme;
             
             if (theme === 'system') {
               // 移除 data-theme 属性，使用系统主题
@@ -303,6 +394,24 @@ function renderBaseHtml(title, content) {
               html.setAttribute('data-theme', theme);
             }
           }
+
+          // 返回顶部
+          const backToTop = document.getElementById('backToTop');
+          
+          window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+              backToTop.classList.add('visible');
+            } else {
+              backToTop.classList.remove('visible');
+            }
+          });
+          
+          backToTop.addEventListener('click', () => {
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+          });
 
           // 图片预览
           const modal = document.getElementById('imageModal');
@@ -405,12 +514,6 @@ app.get('/', async (c) => {
       return `
         <div class="group">
           ${memoHtml}
-          <div class="mt-4 text-right">
-            <a href="/post/${memo.name}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">
-              <span>查看详情</span>
-              <i class="ti ti-arrow-right ml-1"></i>
-            </a>
-          </div>
         </div>
       `
     }).join('')
@@ -459,7 +562,7 @@ app.get('/post/:name', async (c) => {
 
     const data = await response.json()
     if (!data || !data.memo) {
-      return new Response(renderBaseHtml('未找到内容', `
+      return new Response(renderBaseHtml(c.env.SITE_NAME, `
         <div class="text-center py-12">
           <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
           <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
@@ -478,16 +581,15 @@ app.get('/post/:name', async (c) => {
 
     const memo = data.memo
     const memoHtml = renderMemo(memo)
-    const title = memo.content ? (memo.content.substring(0, 50) + (memo.content.length > 50 ? '...' : '')) : '无标题'
 
-    return new Response(renderBaseHtml(title, memoHtml), {
+    return new Response(renderBaseHtml(c.env.SITE_NAME, memoHtml), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
     })
   } catch (error) {
     console.error('渲染页面失败:', error)
-    return new Response(renderBaseHtml('加载失败', `
+    return new Response(renderBaseHtml(c.env.SITE_NAME, `
       <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
         <h2 class="text-lg font-semibold mb-2">加载失败</h2>
         <p class="text-sm">${error.message}</p>
