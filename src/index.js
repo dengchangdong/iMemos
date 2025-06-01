@@ -25,14 +25,16 @@ function renderMemo(memo) {
     let resourcesHtml = ''
     if (resources.length > 0) {
       resourcesHtml = `
-        <div class="image-grid">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
           ${resources.map(resource => `
-            <div class="image-container">
+            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
               />
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
             </div>
           `).join('')}
         </div>
@@ -40,18 +42,22 @@ function renderMemo(memo) {
     }
     
     return `
-      <div class="memo-card">
-        <div class="memo-date">${date}</div>
-        <div class="memo-content">${content}</div>
-        ${resourcesHtml}
-      </div>
+      <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+        <div class="p-6 sm:p-8">
+          <time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">${date}</time>
+          <div class="mt-4 prose dark:prose-invert max-w-none">
+            <p class="text-gray-800 dark:text-gray-200 leading-relaxed">${content}</p>
+          </div>
+          ${resourcesHtml}
+        </div>
+      </article>
     `
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return `
-      <div class="error-container">
-        <div class="error-title">渲染失败</div>
-        <div class="error-message">${error.message}</div>
+      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
+        <p class="font-medium">渲染失败</p>
+        <p class="text-sm mt-1">${error.message}</p>
       </div>
     `
   }
@@ -61,201 +67,90 @@ function renderMemo(memo) {
 function renderBaseHtml(title, content) {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="zh-CN" class="scroll-smooth">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${title}</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            darkMode: 'class',
+            theme: {
+              extend: {
+                fontFamily: {
+                  sans: ['Inter var', 'system-ui', 'sans-serif'],
+                  serif: ['Noto Serif SC', 'serif'],
+                },
+                typography: {
+                  DEFAULT: {
+                    css: {
+                      maxWidth: 'none',
+                      color: 'inherit',
+                      a: {
+                        color: 'inherit',
+                        textDecoration: 'none',
+                        fontWeight: '500',
+                      },
+                      strong: {
+                        color: 'inherit',
+                      },
+                      code: {
+                        color: 'inherit',
+                      },
+                      h1: {
+                        color: 'inherit',
+                      },
+                      h2: {
+                        color: 'inherit',
+                      },
+                      h3: {
+                        color: 'inherit',
+                      },
+                      h4: {
+                        color: 'inherit',
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }
+        </script>
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap">
         <style>
-          :root {
-            --primary-color: #0066cc;
-            --text-color: #333;
-            --bg-color: #fff;
-            --card-bg: #fff;
-            --border-color: #eee;
-            --hover-color: #f8f9fa;
+          @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
+
+          .prose {
+            max-width: 65ch;
+            color: #374151;
           }
 
-          [data-theme="dark"] {
-            --primary-color: #3b82f6;
-            --text-color: #e5e7eb;
-            --bg-color: #111827;
-            --card-bg: #1f2937;
-            --border-color: #374151;
-            --hover-color: #2d3748;
+          .prose p {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
           }
 
-          body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            background: var(--bg-color);
-            color: var(--text-color);
-            transition: background-color 0.3s ease, color 0.3s ease;
-          }
-
-          .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem 1rem;
-          }
-
-          header {
-            margin-bottom: 3rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-
-          .theme-switcher {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-          }
-
-          .theme-btn {
-            padding: 0.5rem;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            color: var(--text-color);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          }
-
-          .theme-btn:hover {
-            background: var(--hover-color);
-          }
-
-          .theme-btn.active {
-            background: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-          }
-
-          h1 {
-            margin: 0;
-            font-size: 2rem;
+          .prose p:first-of-type::first-letter {
+            font-family: 'Noto Serif SC', serif;
+            font-size: 3.5em;
             font-weight: 700;
+            float: left;
+            line-height: 1;
+            margin-right: 0.1em;
+            margin-top: 0.1em;
+            color: #4B5563;
           }
 
-          a {
-            color: var(--primary-color);
-            text-decoration: none;
-            transition: color 0.2s ease;
+          .dark .prose {
+            color: #E5E7EB;
           }
 
-          a:hover {
-            color: var(--primary-color);
-            text-decoration: underline;
+          .dark .prose p:first-of-type::first-letter {
+            color: #9CA3AF;
           }
 
-          .memo-card {
-            margin-bottom: 2rem;
-            padding: 1.5rem;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-          }
-
-          .memo-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-          }
-
-          .memo-date {
-            color: #666;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-          }
-
-          .memo-content {
-            font-size: 1rem;
-            line-height: 1.7;
-            margin-bottom: 1rem;
-          }
-
-          .memo-link {
-            display: inline-block;
-            color: #666;
-            font-size: 0.875rem;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            background: var(--hover-color);
-            transition: background-color 0.2s ease;
-          }
-
-          .memo-link:hover {
-            background: var(--border-color);
-            text-decoration: none;
-          }
-
-          .image-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-          }
-
-          .image-container {
-            position: relative;
-            padding-bottom: 100%;
-            overflow: hidden;
-            border-radius: 8px;
-            background: var(--hover-color);
-            cursor: pointer;
-          }
-
-          .image-container img {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-          }
-
-          .image-container:hover img {
-            transform: scale(1.05);
-          }
-
-          .error-container {
-            text-align: center;
-            padding: 3rem 1rem;
-          }
-
-          .error-title {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: #dc2626;
-          }
-
-          .error-message {
-            color: #666;
-            margin-bottom: 1.5rem;
-          }
-
-          .back-link {
-            display: inline-block;
-            padding: 0.75rem 1.5rem;
-            background: var(--primary-color);
-            color: white;
-            border-radius: 6px;
-            transition: background-color 0.2s ease;
-          }
-
-          .back-link:hover {
-            background: var(--primary-color);
-            opacity: 0.9;
-            text-decoration: none;
-          }
-
-          /* 图片预览模态框 */
           .image-modal {
             display: none;
             position: fixed;
@@ -264,7 +159,7 @@ function renderBaseHtml(title, content) {
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
+            z-index: 50;
             opacity: 0;
             transition: opacity 0.3s ease;
           }
@@ -327,17 +222,27 @@ function renderBaseHtml(title, content) {
           }
         </style>
       </head>
-      <body>
-        <div class="container">
-          <header>
-            <h1><a href="/">${title}</a></h1>
-            <div class="theme-switcher">
-              <button class="theme-btn" data-theme="system">🌓</button>
-              <button class="theme-btn" data-theme="light">☀️</button>
-              <button class="theme-btn" data-theme="dark">🌙</button>
+      <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <header class="flex items-center justify-between mb-12">
+            <h1 class="text-3xl font-bold tracking-tight">
+              <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                ${title}
+              </a>
+            </h1>
+            <div class="flex items-center space-x-2">
+              <button class="theme-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" data-theme="system">
+                <i class="ti ti-device-desktop text-xl"></i>
+              </button>
+              <button class="theme-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" data-theme="light">
+                <i class="ti ti-sun text-xl"></i>
+              </button>
+              <button class="theme-btn p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" data-theme="dark">
+                <i class="ti ti-moon text-xl"></i>
+              </button>
             </div>
           </header>
-          <main>
+          <main class="space-y-8">
             ${content}
           </main>
         </div>
@@ -347,8 +252,12 @@ function renderBaseHtml(title, content) {
           <div class="image-modal-content">
             <span class="image-modal-close">&times;</span>
             <img src="" alt="预览图片">
-            <div class="image-modal-prev">❮</div>
-            <div class="image-modal-next">❯</div>
+            <div class="image-modal-prev">
+              <i class="ti ti-chevron-left text-4xl"></i>
+            </div>
+            <div class="image-modal-next">
+              <i class="ti ti-chevron-right text-4xl"></i>
+            </div>
           </div>
         </div>
 
@@ -407,12 +316,12 @@ function renderBaseHtml(title, content) {
           
           // 为所有图片添加点击事件
           document.addEventListener('click', (e) => {
-            const imageContainer = e.target.closest('.image-container');
+            const imageContainer = e.target.closest('.group');
             if (imageContainer) {
               const img = imageContainer.querySelector('img');
               if (img) {
                 // 获取当前页面所有图片
-                images = Array.from(document.querySelectorAll('.image-container img')).map(img => img.src);
+                images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
                 currentImageIndex = images.indexOf(img.src);
                 openModal(img.src);
               }
@@ -494,10 +403,13 @@ app.get('/', async (c) => {
     const memosHtml = memos.map(memo => {
       const memoHtml = renderMemo(memo)
       return `
-        <div style="margin-bottom: 2rem;">
+        <div class="group">
           ${memoHtml}
-          <div style="text-align: right;">
-            <a href="/post/${memo.name}" class="memo-link">查看详情</a>
+          <div class="mt-4 text-right">
+            <a href="/post/${memo.name}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors">
+              <span>查看详情</span>
+              <i class="ti ti-arrow-right ml-1"></i>
+            </a>
           </div>
         </div>
       `
@@ -511,10 +423,13 @@ app.get('/', async (c) => {
   } catch (error) {
     console.error('渲染页面失败:', error)
     return new Response(renderBaseHtml('错误', `
-      <div class="error-container">
-        <div class="error-title">加载失败</div>
-        <div class="error-message">${error.message}</div>
-        <a href="/" class="back-link">返回首页</a>
+      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">加载失败</h2>
+        <p class="text-sm">${error.message}</p>
+        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+          <i class="ti ti-arrow-left mr-1"></i>
+          返回首页
+        </a>
       </div>
     `), {
       headers: {
@@ -545,10 +460,14 @@ app.get('/post/:name', async (c) => {
     const data = await response.json()
     if (!data || !data.memo) {
       return new Response(renderBaseHtml('未找到内容', `
-        <div class="error-container">
-          <div class="error-title">未找到内容</div>
-          <div class="error-message">您访问的内容不存在或已被删除</div>
-          <a href="/" class="back-link">返回首页</a>
+        <div class="text-center py-12">
+          <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
+          <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
+          <p class="text-gray-500 dark:text-gray-400 mb-6">您访问的内容不存在或已被删除</p>
+          <a href="/" class="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+            <i class="ti ti-arrow-left mr-1"></i>
+            返回首页
+          </a>
         </div>
       `), {
         headers: {
@@ -569,10 +488,13 @@ app.get('/post/:name', async (c) => {
   } catch (error) {
     console.error('渲染页面失败:', error)
     return new Response(renderBaseHtml('加载失败', `
-      <div class="error-container">
-        <div class="error-title">加载失败</div>
-        <div class="error-message">${error.message}</div>
-        <a href="/" class="back-link">返回首页</a>
+      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">加载失败</h2>
+        <p class="text-sm">${error.message}</p>
+        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+          <i class="ti ti-arrow-left mr-1"></i>
+          返回首页
+        </a>
       </div>
     `), {
       headers: {
