@@ -33,7 +33,7 @@ function renderMemo(memo, isHomePage = false) {
                 alt="${resource.filename || '图片'}"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                 loading="lazy"
-                onclick="openImageModal(this)"
+                data-preview="true"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
             </div>
@@ -308,7 +308,7 @@ function renderBaseHtml(title, content, footerText, navLinks) {
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
         <div class="flex-grow">
-          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <header class="mb-12">
               <div class="flex items-center justify-between">
                 <h1 class="text-3xl font-bold tracking-tight">
@@ -341,7 +341,7 @@ function renderBaseHtml(title, content, footerText, navLinks) {
         </div>
 
         <footer class="mt-12">
-          <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-sm text-gray-500 dark:text-gray-400">
               <p>${footerText}</p>
             </div>
@@ -442,18 +442,26 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           let currentImageIndex = 0;
           let images = [];
           
-          // 打开图片模态框
-          window.openImageModal = function(img) {
-            // 获取当前页面所有图片
-            images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
-            currentImageIndex = images.indexOf(img.src);
+          // 初始化图片预览功能
+          function initImagePreview() {
+            // 获取所有可预览的图片
+            const previewImages = document.querySelectorAll('img[data-preview="true"]');
+            images = Array.from(previewImages).map(img => img.src);
             
-            if (currentImageIndex !== -1) {
-              modalImg.src = img.src;
-              modal.classList.add('active');
-              document.body.style.overflow = 'hidden';
-            }
-          };
+            // 为每个图片添加点击事件
+            previewImages.forEach((img, index) => {
+              img.addEventListener('click', () => {
+                currentImageIndex = index;
+                openModal(img.src);
+              });
+            });
+          }
+          
+          function openModal(src) {
+            modalImg.src = src;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+          }
           
           function closeModal() {
             modal.classList.remove('active');
@@ -494,6 +502,9 @@ function renderBaseHtml(title, content, footerText, navLinks) {
                 break;
             }
           });
+
+          // 页面加载完成后初始化图片预览
+          document.addEventListener('DOMContentLoaded', initImagePreview);
         </script>
       </body>
     </html>
