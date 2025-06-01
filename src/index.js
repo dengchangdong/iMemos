@@ -1,11 +1,7 @@
 import { Hono } from 'hono'
-import { serveStatic } from 'hono/cloudflare-workers'
 import { renderBaseHtml, renderMemo } from './template'
 
 const app = new Hono()
-
-// 静态文件服务
-app.use('/static/*', serveStatic({ root: './' }))
 
 // API 路由
 app.get('/api/memos', async (c) => {
