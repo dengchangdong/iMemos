@@ -33,7 +33,7 @@ function renderMemo(memo, isHomePage = false) {
                 alt="${resource.filename || '图片'}"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                 loading="lazy"
-                data-preview="true"
+                onclick="showImage('${resource.externalLink || ''}')"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
             </div>
@@ -442,42 +442,37 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           let currentImageIndex = 0;
           let images = [];
           
-          // 初始化图片预览功能
-          function initImagePreview() {
-            // 获取所有可预览的图片
-            const previewImages = document.querySelectorAll('img[data-preview="true"]');
-            images = Array.from(previewImages).map(img => img.src);
+          // 显示图片
+          window.showImage = function(src) {
+            // 获取所有图片
+            images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
+            currentImageIndex = images.indexOf(src);
             
-            // 为每个图片添加点击事件
-            previewImages.forEach((img, index) => {
-              img.addEventListener('click', () => {
-                currentImageIndex = index;
-                openModal(img.src);
-              });
-            });
-          }
-          
-          function openModal(src) {
-            modalImg.src = src;
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
-          }
+            if (currentImageIndex !== -1) {
+              modalImg.src = src;
+              modal.classList.add('active');
+              document.body.style.overflow = 'hidden';
+            }
+          };
           
           function closeModal() {
             modal.classList.remove('active');
             document.body.style.overflow = '';
           }
           
-          function showImage(index) {
-            if (index < 0) index = images.length - 1;
-            if (index >= images.length) index = 0;
-            currentImageIndex = index;
+          function showNextImage() {
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            modalImg.src = images[currentImageIndex];
+          }
+          
+          function showPrevImage() {
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
             modalImg.src = images[currentImageIndex];
           }
           
           closeBtn.addEventListener('click', closeModal);
-          prevBtn.addEventListener('click', () => showImage(currentImageIndex - 1));
-          nextBtn.addEventListener('click', () => showImage(currentImageIndex + 1));
+          prevBtn.addEventListener('click', showPrevImage);
+          nextBtn.addEventListener('click', showNextImage);
           
           // 点击模态框背景关闭
           modal.addEventListener('click', (e) => {
@@ -495,16 +490,13 @@ function renderBaseHtml(title, content, footerText, navLinks) {
                 closeModal();
                 break;
               case 'ArrowLeft':
-                showImage(currentImageIndex - 1);
+                showPrevImage();
                 break;
               case 'ArrowRight':
-                showImage(currentImageIndex + 1);
+                showNextImage();
                 break;
             }
           });
-
-          // 页面加载完成后初始化图片预览
-          document.addEventListener('DOMContentLoaded', initImagePreview);
         </script>
       </body>
     </html>
