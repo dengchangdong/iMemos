@@ -93,10 +93,14 @@ function renderMemo(memo, isHomePage = false) {
     
     let resourcesHtml = ''
     if (resources.length > 0) {
+      const gridCols = resources.length === 1 ? 'grid-cols-1' : 
+                      resources.length === 2 ? 'grid-cols-2' : 
+                      'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
+      
       resourcesHtml = `
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+        <div class="grid ${gridCols} gap-4 mt-6">
           ${resources.map(resource => `
-            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer" onclick="showImage(this.querySelector('img'))">
+            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer border border-gray-200 dark:border-gray-700" onclick="showImage(this.querySelector('img'))">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
@@ -504,15 +508,15 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             modalImg.className = 'max-w-full max-h-[90vh] object-contain';
             
             const closeBtn = document.createElement('button');
-            closeBtn.className = 'absolute top-4 right-4 text-white text-2xl cursor-pointer';
-            closeBtn.innerHTML = '&times;';
+            closeBtn.className = 'absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-10 h-10 flex items-center justify-center transition-colors';
+            closeBtn.innerHTML = '<i class="ti ti-x"></i>';
             
             const prevBtn = document.createElement('button');
-            prevBtn.className = 'absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer';
+            prevBtn.className = 'absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
             prevBtn.innerHTML = '<i class="ti ti-chevron-left"></i>';
             
             const nextBtn = document.createElement('button');
-            nextBtn.className = 'absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer';
+            nextBtn.className = 'absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
             nextBtn.innerHTML = '<i class="ti ti-chevron-right"></i>';
             
             modalContent.appendChild(modalImg);
