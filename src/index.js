@@ -92,6 +92,22 @@ function parseTags(content) {
   return { parsedContent, tags };
 }
 
+// 解析普通链接
+function parseLinks(content) {
+  // 匹配 http 或 https 链接
+  const urlPattern = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
+  return content.replace(urlPattern, (url) => {
+    // 检查是否是特殊链接（YouTube、Bilibili、GitHub、网易云音乐）
+    for (const pattern of Object.values(LINK_PATTERNS)) {
+      if (pattern.test(url)) {
+        return url; // 如果是特殊链接，保持原样，让 parseSpecialLinks 处理
+      }
+    }
+    // 普通链接转换为可点击的链接
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">${url}</a>`;
+  });
+}
+
 // 解析特殊链接
 function parseSpecialLinks(content) {
   let parsedContent = content
@@ -170,7 +186,8 @@ function renderMemo(memo, isHomePage = false) {
     
     const content = memo.content || ''
     const { parsedContent: contentWithTags } = parseTags(content)
-    const parsedContent = parseSpecialLinks(contentWithTags)
+    const contentWithLinks = parseLinks(contentWithTags)
+    const parsedContent = parseSpecialLinks(contentWithLinks)
     const resources = memo.resources || memo.resourceList || []
     
     let resourcesHtml = ''
