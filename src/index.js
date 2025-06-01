@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { renderBaseHtml, renderMemo } from './template'
+import { html } from 'hono/html'
 
 const app = new Hono()
 
@@ -11,8 +11,7 @@ app.use('*', async (c, next) => {
     console.error('全局错误:', err)
     return c.json({
       error: '服务器错误',
-      message: err.message,
-      stack: err.stack
+      message: err.message
     }, 500)
   }
 })
@@ -108,120 +107,199 @@ app.get('/api/memo/:name', async (c) => {
 
 // 主页路由
 app.get('/', async (c) => {
-  const content = `
-    <div class="container mx-auto px-4 py-8 max-w-4xl">
-      <div id="memo-container" class="prose dark:prose-invert max-w-none">
-        <!-- Memos will be loaded here -->
+  try {
+    const content = `
+      <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div id="memo-container" class="prose dark:prose-invert max-w-none">
+          <!-- Memos will be loaded here -->
+        </div>
+        
+        <div id="loading" class="hidden flex justify-center items-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-500"></div>
+        </div>
       </div>
-      
-      <div id="loading" class="hidden flex justify-center items-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-500"></div>
-      </div>
-    </div>
 
-    <script>
-      let currentPage = 1
-      let isLoading = false
-      let hasMore = true
-      const memoContainer = document.getElementById('memo-container')
-      const loadingIndicator = document.getElementById('loading')
+      <script>
+        let currentPage = 1
+        let isLoading = false
+        let hasMore = true
+        const memoContainer = document.getElementById('memo-container')
+        const loadingIndicator = document.getElementById('loading')
 
-      // 渲染单个 memo
-      function renderMemo(memo) {
-        return \`
-          <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-            <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
-              \${new Date(memo.createdTs * 1000).toLocaleString('zh-CN')}
-            </div>
-            <div class="text-lg leading-relaxed">
-              \${memo.content}
-            </div>
-            \${memo.resourceList && memo.resourceList.length > 0 ? \`
-              <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                \${memo.resourceList.map(resource => \`
-                  <div class="relative aspect-square overflow-hidden rounded-lg cursor-zoom-in" onclick="showImageModal('\${resource.externalLink}')">
-                    <img 
-                      src="\${resource.externalLink}" 
-                      alt="\${resource.filename}"
-                      class="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                    />
-                  </div>
-                \`).join('')}
+        // 渲染单个 memo
+        function renderMemo(memo) {
+          try {
+            const date = new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
+            const content = memo.content || ''
+            const resources = memo.resourceList || []
+            
+            let resourcesHtml = ''
+            if (resources.length > 0) {
+              resourcesHtml = \`
+                <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                  \${resources.map(resource => \`
+                    <div class="relative aspect-square overflow-hidden rounded-lg">
+                      <img 
+                        src="\${resource.externalLink || ''}" 
+                        alt="\${resource.filename || '图片'}"
+                        class="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                      />
+                    </div>
+                  \`).join('')}
+                </div>
+              \`
+            }
+
+            return \`
+              <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm">
+                <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+                  \${date}
+                </div>
+                <div class="text-lg leading-relaxed">
+                  \${content}
+                </div>
+                \${resourcesHtml}
+              </article>
+            \`
+          } catch (error) {
+            console.error('渲染 memo 失败:', error)
+            return \`
+              <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                渲染失败: \${error.message}
               </div>
-            \` : ''}
-            <div class="mt-4 text-sm text-zinc-500">
-              <a href="/post/\${memo.name}" class="hover:text-zinc-700 dark:hover:text-zinc-300">
-                查看详情
-              </a>
-            </div>
-          </article>
-        \`
-      }
+            \`
+          }
+        }
 
-      // 加载 memos
-      async function loadMemos() {
-        if (isLoading || !hasMore) return
-        
-        isLoading = true
-        loadingIndicator.classList.remove('hidden')
-        
-        try {
-          const response = await fetch(\`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=10&offset=\${(currentPage - 1) * 10}\`, {
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+        // 加载 memos
+        async function loadMemos() {
+          if (isLoading || !hasMore) return
+          
+          isLoading = true
+          loadingIndicator.classList.remove('hidden')
+          
+          try {
+            const response = await fetch(\`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=10&offset=\${(currentPage - 1) * 10}\`, {
+              headers: {
+                'Accept': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+              }
+            })
+
+            if (!response.ok) {
+              throw new Error(\`请求失败: \${response.status}\`)
+            }
+            
+            const memos = await response.json()
+            
+            if (!Array.isArray(memos) || memos.length === 0) {
+              hasMore = false
+              return
+            }
+            
+            memos.forEach(memo => {
+              try {
+                memoContainer.insertAdjacentHTML('beforeend', renderMemo(memo))
+              } catch (error) {
+                console.error('插入 memo 失败:', error)
+              }
+            })
+            
+            currentPage++
+          } catch (error) {
+            console.error('加载失败:', error)
+            memoContainer.insertAdjacentHTML('beforeend', \`
+              <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                加载失败: \${error.message}
+              </div>
+            \`)
+          } finally {
+            isLoading = false
+            loadingIndicator.classList.add('hidden')
+          }
+        }
+
+        // 监听滚动事件
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              loadMemos()
             }
           })
-          if (!response.ok) {
-            const errorData = await response.json()
-            throw new Error(errorData.message || \`请求失败: \${response.status}\`)
-          }
-          
-          const memos = await response.json()
-          
-          if (memos.length === 0) {
-            hasMore = false
-            return
-          }
-          
-          memos.forEach(memo => {
-            memoContainer.insertAdjacentHTML('beforeend', renderMemo(memo))
-          })
-          
-          currentPage++
-        } catch (error) {
-          console.error('加载失败:', error)
-          memoContainer.insertAdjacentHTML('beforeend', \`
-            <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-              加载失败: \${error.message}
-            </div>
-          \`)
-        } finally {
-          isLoading = false
-          loadingIndicator.classList.add('hidden')
-        }
-      }
-
-      // 监听滚动事件
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            loadMemos()
-          }
+        }, {
+          rootMargin: '100px'
         })
-      }, {
-        rootMargin: '100px'
-      })
 
-      observer.observe(loadingIndicator)
+        observer.observe(loadingIndicator)
 
-      // 初始加载
-      loadMemos()
-    </script>
-  `
+        // 初始加载
+        loadMemos()
+      </script>
+    `
 
-  return renderBaseHtml(c, c.env.SITE_NAME, content)
+    return html`
+      <!DOCTYPE html>
+      <html lang="zh-CN">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>${c.env.SITE_NAME}</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+          <script>
+            tailwind.config = {
+              darkMode: 'class',
+              theme: {
+                extend: {
+                  colors: {
+                    zinc: {
+                      50: '#fafafa',
+                      100: '#f4f4f5',
+                      200: '#e4e4e7',
+                      300: '#d4d4d8',
+                      400: '#a1a1aa',
+                      500: '#71717a',
+                      600: '#52525b',
+                      700: '#3f3f46',
+                      800: '#27272a',
+                      900: '#18181b',
+                      950: '#09090b',
+                    }
+                  }
+                }
+              }
+            }
+          </script>
+        </head>
+        <body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 min-h-screen">
+          <header class="border-b border-zinc-200 dark:border-zinc-800">
+            <div class="container mx-auto px-4 py-4 max-w-4xl">
+              <h1 class="text-2xl font-bold">
+                <a href="/" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">
+                  ${c.env.SITE_NAME}
+                </a>
+              </h1>
+            </div>
+          </header>
+          
+          <main>
+            ${content}
+          </main>
+
+          <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
+            <div class="container mx-auto px-4 py-6 max-w-4xl">
+              <div class="text-center text-zinc-600 dark:text-zinc-400">
+                © 2024 Memos Themes. All rights reserved.
+              </div>
+            </div>
+          </footer>
+        </body>
+      </html>
+    `
+  } catch (error) {
+    console.error('渲染页面失败:', error)
+    return c.text('服务器错误', 500)
+  }
 })
 
 // 单页路由
