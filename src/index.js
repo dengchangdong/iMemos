@@ -152,7 +152,9 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   let navItems = [];
   try {
     if (navLinks) {
-      const linksObj = JSON.parse(navLinks);
+      // 将单引号替换为双引号，以符合 JSON 格式
+      const jsonStr = navLinks.replace(/'/g, '"');
+      const linksObj = JSON.parse(jsonStr);
       navItems = Object.entries(linksObj).map(([text, url]) => ({ text, url }));
     }
   } catch (error) {
