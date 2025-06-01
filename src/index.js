@@ -1,11 +1,7 @@
 import { Hono } from 'hono'
-import { cors } from 'hono/cors'
 import { renderBaseHtml, renderMemo } from './template'
 
 const app = new Hono()
-
-// 添加 CORS 中间件
-app.use('*', cors())
 
 // 错误处理中间件
 app.use('*', async (c, next) => {
@@ -36,7 +32,7 @@ app.get('/api/memos', async (c) => {
     const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Memos-Themes/1.0'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
       }
     })
     
@@ -50,6 +46,12 @@ app.get('/api/memos', async (c) => {
     
     const memos = await response.json()
     console.log('获取到 memos 数量:', memos.length)
+    
+    // 设置响应头
+    c.header('Access-Control-Allow-Origin', '*')
+    c.header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+    c.header('Access-Control-Allow-Headers', 'Content-Type')
+    
     return c.json(memos)
   } catch (error) {
     console.error('API 错误:', error)
@@ -67,13 +69,13 @@ app.get('/api/memo/:name', async (c) => {
   console.log('请求单个 memo:', name)
 
   try {
-    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`
+    const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`
     console.log('请求 API:', apiUrl)
 
     const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Memos-Themes/1.0'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
       }
     })
     
@@ -85,9 +87,15 @@ app.get('/api/memo/:name', async (c) => {
       throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
     }
     
-    const memos = await response.json()
-    console.log('获取到 memo:', memos[0] ? '成功' : '未找到')
-    return c.json(memos[0] || null)
+    const memo = await response.json()
+    console.log('获取到 memo:', memo ? '成功' : '未找到')
+    
+    // 设置响应头
+    c.header('Access-Control-Allow-Origin', '*')
+    c.header('Access-Control-Allow-Methods', 'GET, OPTIONS')
+    c.header('Access-Control-Allow-Headers', 'Content-Type')
+    
+    return c.json(memo)
   } catch (error) {
     console.error('API 错误:', error)
     return c.json({
@@ -126,7 +134,12 @@ app.get('/', async (c) => {
         loadingIndicator.classList.remove('hidden')
         
         try {
-          const response = await fetch(\`/api/memos?page=\${currentPage}\`)
+          const response = await fetch(\`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=10&offset=\${(currentPage - 1) * 10}\`, {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+            }
+          })
           if (!response.ok) {
             const errorData = await response.json()
             throw new Error(errorData.message || \`请求失败: \${response.status}\`)
@@ -184,13 +197,13 @@ app.get('/post/:name', async (c) => {
   console.log('请求单页:', name)
   
   try {
-    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`
+    const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`
     console.log('请求 API:', apiUrl)
 
     const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
-        'User-Agent': 'Memos-Themes/1.0'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
       }
     })
     
@@ -202,8 +215,7 @@ app.get('/post/:name', async (c) => {
       throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
     }
     
-    const memos = await response.json()
-    const memo = memos[0]
+    const memo = await response.json()
     console.log('获取到 memo:', memo ? '成功' : '未找到')
 
     if (!memo) {
