@@ -13,7 +13,7 @@ app.use('*', async (c, next) => {
 })
 
 // 渲染单个 memo
-function renderMemo(memo) {
+function renderMemo(memo, isHomePage = false) {
   try {
     const date = memo.createTime 
       ? new Date(memo.createTime).toLocaleString('zh-CN')
@@ -41,12 +41,18 @@ function renderMemo(memo) {
       `
     }
     
+    const timeHtml = isHomePage 
+      ? `<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
+           <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
+             ${date}
+           </a>
+         </time>`
+      : `<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">${date}</time>`
+    
     return `
       <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
         <div class="p-6 sm:p-8">
-          <time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
-            ${date}
-          </time>
+          ${timeHtml}
           <div class="mt-4 prose dark:prose-invert max-w-none">
             <p class="text-gray-800 dark:text-gray-200 leading-relaxed">${content}</p>
           </div>
@@ -214,7 +220,6 @@ function renderBaseHtml(title, content) {
             height: 40px;
             border-radius: 50%;
             background: transparent;
-            border: 2px solid currentColor;
             cursor: pointer;
             transition: all 0.3s ease;
           }
@@ -372,20 +377,19 @@ function renderBaseHtml(title, content) {
             themeBtn.dataset.theme = theme;
             
             if (theme === 'system') {
-              // 移除 data-theme 属性，使用系统主题
-              html.removeAttribute('data-theme');
-              // 监听系统主题变化
-              if (window.matchMedia) {
-                const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                darkModeMediaQuery.addListener((e) => {
-                  html.removeAttribute('data-theme');
-                });
-              }
+              const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+              html.classList.toggle('dark', prefersDark);
             } else {
-              // 设置指定的主题
-              html.setAttribute('data-theme', theme);
+              html.classList.toggle('dark', theme === 'dark');
             }
           }
+
+          // 监听系统主题变化
+          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (themeBtn.dataset.theme === 'system') {
+              html.classList.toggle('dark', e.matches);
+            }
+          });
 
           // 返回顶部
           const backToTop = document.getElementById('backToTop');
@@ -502,7 +506,7 @@ app.get('/', async (c) => {
     console.log('获取到 memos 数量:', memos.length)
 
     const memosHtml = memos.map(memo => {
-      const memoHtml = renderMemo(memo)
+      const memoHtml = renderMemo(memo, true)
       return `
         <div class="group">
           ${memoHtml}
@@ -572,7 +576,7 @@ app.get('/post/:name', async (c) => {
     }
 
     const memo = data.memo
-    const memoHtml = renderMemo(memo)
+    const memoHtml = renderMemo(memo, false)
 
     return new Response(renderBaseHtml(c.env.SITE_NAME, memoHtml), {
       headers: {
