@@ -14,52 +14,94 @@ app.use('*', cors({
   credentials: true,
 }))
 
+// 错误处理中间件
+app.use('*', async (c, next) => {
+  try {
+    await next()
+  } catch (err) {
+    console.error('全局错误:', err)
+    return c.json({
+      error: '服务器错误',
+      message: err.message,
+      stack: err.stack
+    }, 500)
+  }
+})
+
 // API 路由
 app.get('/api/memos', async (c) => {
   const page = parseInt(c.req.query('page') || '1')
   const limit = parseInt(c.env.PAGE_LIMIT || '10')
   const offset = (page - 1) * limit
 
+  console.log('请求参数:', { page, limit, offset, apiHost: c.env.API_HOST })
+
   try {
-    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=${limit}&offset=${offset}`, {
+    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=${limit}&offset=${offset}`
+    console.log('请求 API:', apiUrl)
+
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Memos-Themes/1.0'
       }
     })
     
+    console.log('API 响应状态:', response.status)
+    
     if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`)
+      const errorText = await response.text()
+      console.error('API 错误响应:', errorText)
+      throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
     }
     
     const memos = await response.json()
+    console.log('获取到 memos 数量:', memos.length)
     return c.json(memos)
   } catch (error) {
     console.error('API 错误:', error)
-    return c.json({ error: '加载失败', details: error.message }, 500)
+    return c.json({
+      error: '加载失败',
+      message: error.message,
+      stack: error.stack
+    }, 500)
   }
 })
 
 // 获取单个 memo
 app.get('/api/memo/:name', async (c) => {
   const name = c.req.param('name')
+  console.log('请求单个 memo:', name)
+
   try {
-    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`, {
+    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`
+    console.log('请求 API:', apiUrl)
+
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Memos-Themes/1.0'
       }
     })
     
+    console.log('API 响应状态:', response.status)
+    
     if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`)
+      const errorText = await response.text()
+      console.error('API 错误响应:', errorText)
+      throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
     }
     
     const memos = await response.json()
+    console.log('获取到 memo:', memos[0] ? '成功' : '未找到')
     return c.json(memos[0] || null)
   } catch (error) {
     console.error('API 错误:', error)
-    return c.json({ error: '加载失败', details: error.message }, 500)
+    return c.json({
+      error: '加载失败',
+      message: error.message,
+      stack: error.stack
+    }, 500)
   }
 })
 
@@ -93,7 +135,8 @@ app.get('/', async (c) => {
         try {
           const response = await fetch(\`/api/memos?page=\${currentPage}\`)
           if (!response.ok) {
-            throw new Error(\`请求失败: \${response.status}\`)
+            const errorData = await response.json()
+            throw new Error(errorData.message || \`请求失败: \${response.status}\`)
           }
           
           const memos = await response.json()
@@ -145,21 +188,30 @@ app.get('/', async (c) => {
 // 单页路由
 app.get('/post/:name', async (c) => {
   const name = c.req.param('name')
+  console.log('请求单页:', name)
   
   try {
-    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`, {
+    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`
+    console.log('请求 API:', apiUrl)
+
+    const response = await fetch(apiUrl, {
       headers: {
         'Accept': 'application/json',
         'User-Agent': 'Memos-Themes/1.0'
       }
     })
     
+    console.log('API 响应状态:', response.status)
+    
     if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`)
+      const errorText = await response.text()
+      console.error('API 错误响应:', errorText)
+      throw new Error(`API 请求失败: ${response.status} - ${errorText}`)
     }
     
     const memos = await response.json()
     const memo = memos[0]
+    console.log('获取到 memo:', memo ? '成功' : '未找到')
 
     if (!memo) {
       const content = `
