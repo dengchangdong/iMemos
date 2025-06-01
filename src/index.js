@@ -1,7 +1,18 @@
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { renderBaseHtml, renderMemo } from './template'
 
 const app = new Hono()
+
+// 添加 CORS 中间件
+app.use('*', cors({
+  origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization'],
+  exposeHeaders: ['Content-Length', 'X-Kuma-Revision'],
+  maxAge: 600,
+  credentials: true,
+}))
 
 // API 路由
 app.get('/api/memos', async (c) => {
@@ -10,11 +21,22 @@ app.get('/api/memos', async (c) => {
   const offset = (page - 1) * limit
 
   try {
-    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=${limit}&offset=${offset}`)
+    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=${limit}&offset=${offset}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Memos-Themes/1.0'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`API 请求失败: ${response.status}`)
+    }
+    
     const memos = await response.json()
     return c.json(memos)
   } catch (error) {
-    return c.json({ error: '加载失败' }, 500)
+    console.error('API 错误:', error)
+    return c.json({ error: '加载失败', details: error.message }, 500)
   }
 })
 
@@ -22,11 +44,22 @@ app.get('/api/memos', async (c) => {
 app.get('/api/memo/:name', async (c) => {
   const name = c.req.param('name')
   try {
-    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`)
+    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Memos-Themes/1.0'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`API 请求失败: ${response.status}`)
+    }
+    
     const memos = await response.json()
     return c.json(memos[0] || null)
   } catch (error) {
-    return c.json({ error: '加载失败' }, 500)
+    console.error('API 错误:', error)
+    return c.json({ error: '加载失败', details: error.message }, 500)
   }
 })
 
@@ -59,6 +92,10 @@ app.get('/', async (c) => {
         
         try {
           const response = await fetch(\`/api/memos?page=\${currentPage}\`)
+          if (!response.ok) {
+            throw new Error(\`请求失败: \${response.status}\`)
+          }
+          
           const memos = await response.json()
           
           if (memos.length === 0) {
@@ -73,6 +110,11 @@ app.get('/', async (c) => {
           currentPage++
         } catch (error) {
           console.error('加载失败:', error)
+          memoContainer.insertAdjacentHTML('beforeend', \`
+            <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+              加载失败: \${error.message}
+            </div>
+          \`)
         } finally {
           isLoading = false
           loadingIndicator.classList.add('hidden')
@@ -105,7 +147,17 @@ app.get('/post/:name', async (c) => {
   const name = c.req.param('name')
   
   try {
-    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`)
+    const response = await fetch(`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&name=${name}`, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Memos-Themes/1.0'
+      }
+    })
+    
+    if (!response.ok) {
+      throw new Error(`API 请求失败: ${response.status}`)
+    }
+    
     const memos = await response.json()
     const memo = memos[0]
 
@@ -133,10 +185,12 @@ app.get('/post/:name', async (c) => {
 
     return renderBaseHtml(c, memo.content.substring(0, 50), content)
   } catch (error) {
+    console.error('API 错误:', error)
     const content = `
       <div class="flex-grow flex items-center justify-center">
         <div class="text-center">
           <h1 class="text-2xl font-bold mb-4">加载失败</h1>
+          <p class="text-red-500 mb-4">${error.message}</p>
           <a href="/" class="text-blue-500 hover:text-blue-600">返回首页</a>
         </div>
       </div>
