@@ -27,11 +27,11 @@ function renderMemo(memo, isHomePage = false) {
       resourcesHtml = `
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
           ${resources.map(resource => `
-            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer">
+            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
-                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                 loading="lazy"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
@@ -305,27 +305,29 @@ function renderBaseHtml(title, content, footerText, navLinks) {
         <div class="flex-grow">
           <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <header class="mb-12">
-              <div class="flex items-center justify-between mb-6">
+              <div class="flex items-center justify-between">
                 <h1 class="text-3xl font-bold tracking-tight">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     ${title}
                   </a>
                 </h1>
-                <button class="theme-btn" data-theme="system">
-                  <i class="ti ti-device-desktop"></i>
-                  <i class="ti ti-sun"></i>
-                  <i class="ti ti-moon"></i>
-                </button>
+                <div class="flex items-center space-x-6">
+                  ${navItems.length > 0 ? `
+                    <nav class="flex items-center space-x-6">
+                      ${navItems.map(item => `
+                        <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                          ${item.text}
+                        </a>
+                      `).join('')}
+                    </nav>
+                  ` : ''}
+                  <button class="theme-btn" data-theme="system">
+                    <i class="ti ti-device-desktop"></i>
+                    <i class="ti ti-sun"></i>
+                    <i class="ti ti-moon"></i>
+                  </button>
+                </div>
               </div>
-              ${navItems.length > 0 ? `
-                <nav class="flex items-center space-x-6 border-t border-gray-200 dark:border-gray-800 pt-4">
-                  ${navItems.map(item => `
-                    <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                      ${item.text}
-                    </a>
-                  `).join('')}
-                </nav>
-              ` : ''}
             </header>
             <main class="space-y-8">
               ${content}
@@ -437,15 +439,11 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           
           // 为所有图片添加点击事件
           document.addEventListener('click', (e) => {
-            const imageContainer = e.target.closest('.group');
-            if (imageContainer) {
-              const img = imageContainer.querySelector('img');
-              if (img) {
-                // 获取当前页面所有图片
-                images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
-                currentImageIndex = images.indexOf(img.src);
-                openModal(img.src);
-              }
+            if (e.target.tagName === 'IMG' && e.target.closest('.group')) {
+              // 获取当前页面所有图片
+              images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
+              currentImageIndex = images.indexOf(e.target.src);
+              openModal(e.target.src);
             }
           });
           
@@ -521,14 +519,7 @@ app.get('/', async (c) => {
     const memos = await response.json()
     console.log('获取到 memos 数量:', memos.length)
 
-    const memosHtml = memos.map(memo => {
-      const memoHtml = renderMemo(memo, true)
-      return `
-        <div class="group">
-          ${memoHtml}
-        </div>
-      `
-    }).join('')
+    const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
 
     return new Response(renderBaseHtml(
       c.env.SITE_NAME, 
