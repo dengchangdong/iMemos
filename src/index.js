@@ -320,7 +320,6 @@ function renderBaseHtml(title, content) {
           <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-sm text-gray-500 dark:text-gray-400">
               <p>© ${new Date().getFullYear()} ${title}. All rights reserved.</p>
-              ${c.env.FOOTER_TEXT ? `<p class="mt-2">${c.env.FOOTER_TEXT}</p>` : ''}
             </div>
           </div>
         </footer>
