@@ -73,24 +73,6 @@ function renderMemo(memo, isHomePage = false) {
 
 // 渲染基础 HTML
 function renderBaseHtml(title, content) {
-  // 解析导航链接
-  let navLinksHtml = ''
-  if (c.env.NAV_LINKS) {
-    try {
-      const navLinks = c.env.NAV_LINKS.split(',').map(link => {
-        const [text, url] = link.split(':')
-        return { text, url }
-      })
-      navLinksHtml = navLinks.map(link => `
-        <a href="${link.url}" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
-          ${link.text}
-        </a>
-      `).join('')
-    } catch (error) {
-      console.error('解析导航链接失败:', error)
-    }
-  }
-
   return `
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
@@ -317,18 +299,11 @@ function renderBaseHtml(title, content) {
         <div class="flex-grow">
           <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <header class="flex items-center justify-between mb-12">
-              <div class="flex items-center space-x-8">
-                <h1 class="text-3xl font-bold tracking-tight">
-                  <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                    ${title}
-                  </a>
-                </h1>
-                ${navLinksHtml ? `
-                  <nav class="hidden sm:flex items-center space-x-6">
-                    ${navLinksHtml}
-                  </nav>
-                ` : ''}
-              </div>
+              <h1 class="text-3xl font-bold tracking-tight">
+                <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                  ${title}
+                </a>
+              </h1>
               <button class="theme-btn" data-theme="system">
                 <i class="ti ti-device-desktop"></i>
                 <i class="ti ti-sun"></i>
