@@ -9,10 +9,7 @@ app.use('*', async (c, next) => {
     await next()
   } catch (err) {
     console.error('全局错误:', err)
-    return c.json({
-      error: '服务器错误',
-      message: err.message
-    }, 500)
+    return c.text('服务器错误', 500)
   }
 })
 
@@ -108,135 +105,67 @@ app.get('/api/memo/:name', async (c) => {
 // 主页路由
 app.get('/', async (c) => {
   try {
-    const content = `
-      <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <div id="memo-container" class="prose dark:prose-invert max-w-none">
-          <!-- Memos will be loaded here -->
-        </div>
+    const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=10&offset=0`
+    console.log('请求 API:', apiUrl)
+
+    const response = await fetch(apiUrl, {
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+      }
+    })
+
+    if (!response.ok) {
+      throw new Error(`API 请求失败: ${response.status}`)
+    }
+
+    const memos = await response.json()
+    console.log('获取到 memos 数量:', memos.length)
+
+    const memosHtml = memos.map(memo => {
+      try {
+        const date = new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
+        const content = memo.content || ''
+        const resources = memo.resourceList || []
         
-        <div id="loading" class="hidden flex justify-center items-center py-8">
-          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-zinc-500"></div>
-        </div>
-      </div>
-
-      <script>
-        let currentPage = 1
-        let isLoading = false
-        let hasMore = true
-        const memoContainer = document.getElementById('memo-container')
-        const loadingIndicator = document.getElementById('loading')
-
-        // 渲染单个 memo
-        function renderMemo(memo) {
-          try {
-            const date = new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
-            const content = memo.content || ''
-            const resources = memo.resourceList || []
-            
-            let resourcesHtml = ''
-            if (resources.length > 0) {
-              resourcesHtml = \`
-                <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                  \${resources.map(resource => \`
-                    <div class="relative aspect-square overflow-hidden rounded-lg">
-                      <img 
-                        src="\${resource.externalLink || ''}" 
-                        alt="\${resource.filename || '图片'}"
-                        class="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                      />
-                    </div>
-                  \`).join('')}
+        let resourcesHtml = ''
+        if (resources.length > 0) {
+          resourcesHtml = `
+            <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+              ${resources.map(resource => `
+                <div class="relative aspect-square overflow-hidden rounded-lg">
+                  <img 
+                    src="${resource.externalLink || ''}" 
+                    alt="${resource.filename || '图片'}"
+                    class="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
+                  />
                 </div>
-              \`
-            }
-
-            return \`
-              <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm">
-                <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
-                  \${date}
-                </div>
-                <div class="text-lg leading-relaxed">
-                  \${content}
-                </div>
-                \${resourcesHtml}
-              </article>
-            \`
-          } catch (error) {
-            console.error('渲染 memo 失败:', error)
-            return \`
-              <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                渲染失败: \${error.message}
-              </div>
-            \`
-          }
+              `).join('')}
+            </div>
+          `
         }
 
-        // 加载 memos
-        async function loadMemos() {
-          if (isLoading || !hasMore) return
-          
-          isLoading = true
-          loadingIndicator.classList.remove('hidden')
-          
-          try {
-            const response = await fetch(\`${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=&limit=10&offset=\${(currentPage - 1) * 10}\`, {
-              headers: {
-                'Accept': 'application/json',
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-              }
-            })
-
-            if (!response.ok) {
-              throw new Error(\`请求失败: \${response.status}\`)
-            }
-            
-            const memos = await response.json()
-            
-            if (!Array.isArray(memos) || memos.length === 0) {
-              hasMore = false
-              return
-            }
-            
-            memos.forEach(memo => {
-              try {
-                memoContainer.insertAdjacentHTML('beforeend', renderMemo(memo))
-              } catch (error) {
-                console.error('插入 memo 失败:', error)
-              }
-            })
-            
-            currentPage++
-          } catch (error) {
-            console.error('加载失败:', error)
-            memoContainer.insertAdjacentHTML('beforeend', \`
-              <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                加载失败: \${error.message}
-              </div>
-            \`)
-          } finally {
-            isLoading = false
-            loadingIndicator.classList.add('hidden')
-          }
-        }
-
-        // 监听滚动事件
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
-            if (entry.isIntersecting) {
-              loadMemos()
-            }
-          })
-        }, {
-          rootMargin: '100px'
-        })
-
-        observer.observe(loadingIndicator)
-
-        // 初始加载
-        loadMemos()
-      </script>
-    `
+        return `
+          <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm">
+            <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+              ${date}
+            </div>
+            <div class="text-lg leading-relaxed">
+              ${content}
+            </div>
+            ${resourcesHtml}
+          </article>
+        `
+      } catch (error) {
+        console.error('渲染 memo 失败:', error)
+        return `
+          <div class="text-red-500 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+            渲染失败: ${error.message}
+          </div>
+        `
+      }
+    }).join('')
 
     return html`
       <!DOCTYPE html>
@@ -282,8 +211,10 @@ app.get('/', async (c) => {
             </div>
           </header>
           
-          <main>
-            ${content}
+          <main class="container mx-auto px-4 py-8 max-w-4xl">
+            <div class="prose dark:prose-invert max-w-none">
+              ${memosHtml}
+            </div>
           </main>
 
           <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
