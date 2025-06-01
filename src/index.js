@@ -651,7 +651,7 @@ app.get('/tag/:tag', async (c) => {
     const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
 
     return new Response(renderBaseHtml(
-      `#${tag} - ${c.env.SITE_NAME}`, 
+      c.env.SITE_NAME, 
       memosHtml, 
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS
