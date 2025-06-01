@@ -34,7 +34,7 @@ function renderMemo(memo, isHomePage = false) {
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                 loading="lazy"
                 data-src="${resource.externalLink || ''}"
-                onclick="showImage(this)"
+                data-preview="true"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
             </div>
@@ -449,72 +449,55 @@ function renderBaseHtml(title, content, footerText, navLinks) {
             });
 
             lazyImages.forEach(img => imageObserver.observe(img));
-          });
 
-          // 图片预览
-          const modal = document.getElementById('imageModal');
-          const modalImg = modal.querySelector('img');
-          const closeBtn = modal.querySelector('.image-modal-close');
-          const prevBtn = modal.querySelector('.image-modal-prev');
-          const nextBtn = modal.querySelector('.image-modal-next');
-          
-          let currentImageIndex = 0;
-          let images = [];
-          
-          // 显示图片
-          window.showImage = function(img) {
-            // 获取所有图片
-            images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
-            currentImageIndex = images.indexOf(img.src);
-            
-            if (currentImageIndex !== -1) {
-              modalImg.src = img.src;
-              modal.classList.add('active');
-              document.body.style.overflow = 'hidden';
-            }
-          };
-          
-          function closeModal() {
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
-          }
-          
-          function showNextImage() {
-            currentImageIndex = (currentImageIndex + 1) % images.length;
-            modalImg.src = images[currentImageIndex];
-          }
-          
-          function showPrevImage() {
-            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
-            modalImg.src = images[currentImageIndex];
-          }
-          
-          closeBtn.addEventListener('click', closeModal);
-          prevBtn.addEventListener('click', showPrevImage);
-          nextBtn.addEventListener('click', showNextImage);
-          
-          // 点击模态框背景关闭
-          modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-              closeModal();
-            }
-          });
-          
-          // 键盘导航
-          document.addEventListener('keydown', (e) => {
-            if (!modal.classList.contains('active')) return;
-            
-            switch(e.key) {
-              case 'Escape':
-                closeModal();
-                break;
-              case 'ArrowLeft':
-                showPrevImage();
-                break;
-              case 'ArrowRight':
-                showNextImage();
-                break;
-            }
+            // 初始化图片预览功能
+            const previewImages = document.querySelectorAll('img[data-preview="true"]');
+            previewImages.forEach(img => {
+              img.addEventListener('click', function() {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center';
+                modal.style.display = 'flex';
+                
+                const modalContent = document.createElement('div');
+                modalContent.className = 'relative max-w-[90%] max-h-[90%]';
+                
+                const modalImg = document.createElement('img');
+                modalImg.src = this.src;
+                modalImg.className = 'max-w-full max-h-[90vh] object-contain';
+                
+                const closeBtn = document.createElement('button');
+                closeBtn.className = 'absolute top-4 right-4 text-white text-2xl cursor-pointer';
+                closeBtn.innerHTML = '&times;';
+                
+                modalContent.appendChild(modalImg);
+                modalContent.appendChild(closeBtn);
+                modal.appendChild(modalContent);
+                document.body.appendChild(modal);
+                
+                // 禁止背景滚动
+                document.body.style.overflow = 'hidden';
+                
+                // 关闭模态框
+                function closeModal() {
+                  modal.remove();
+                  document.body.style.overflow = '';
+                }
+                
+                closeBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', (e) => {
+                  if (e.target === modal) {
+                    closeModal();
+                  }
+                });
+                
+                // 键盘事件
+                document.addEventListener('keydown', function(e) {
+                  if (e.key === 'Escape') {
+                    closeModal();
+                  }
+                });
+              });
+            });
           });
         </script>
       </body>
