@@ -45,9 +45,7 @@ function renderMemo(memo) {
       <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
         <div class="p-6 sm:p-8">
           <time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
-            <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
-              ${date}
-            </a>
+            ${date}
           </time>
           <div class="mt-4 prose dark:prose-invert max-w-none">
             <p class="text-gray-800 dark:text-gray-200 leading-relaxed">${content}</p>
@@ -238,22 +236,16 @@ function renderBaseHtml(title, content) {
             transition: all 0.3s ease;
           }
 
-          .theme-btn[data-theme="system"] i {
+          .theme-btn[data-theme="system"] i.ti-device-desktop,
+          .theme-btn[data-theme="light"] i.ti-sun,
+          .theme-btn[data-theme="dark"] i.ti-moon {
             opacity: 1;
           }
 
-          .theme-btn[data-theme="light"] i,
-          .theme-btn[data-theme="dark"] i {
+          .theme-btn i.ti-device-desktop,
+          .theme-btn i.ti-sun,
+          .theme-btn i.ti-moon {
             opacity: 0;
-          }
-
-          .theme-btn.active[data-theme="system"] i {
-            opacity: 1;
-          }
-
-          .theme-btn.active[data-theme="light"] i,
-          .theme-btn.active[data-theme="dark"] i {
-            opacity: 1;
           }
 
           .back-to-top {
@@ -319,7 +311,7 @@ function renderBaseHtml(title, content) {
           </div>
         </div>
 
-        <footer class="mt-12 border-t border-gray-200 dark:border-gray-800">
+        <footer class="mt-12">
           <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-sm text-gray-500 dark:text-gray-400">
               <p>© ${new Date().getFullYear()} ${title}. All rights reserved.</p>
