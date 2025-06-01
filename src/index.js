@@ -225,17 +225,21 @@ function renderBaseHtml(title, content, footerText, navLinks) {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: transparent;
+            background: rgba(0, 0, 0, 0.05);
             cursor: pointer;
             transition: all 0.3s ease;
           }
 
           .theme-btn:hover {
-            background: rgba(0, 0, 0, 0.05);
+            background: rgba(0, 0, 0, 0.1);
+          }
+
+          .dark .theme-btn {
+            background: rgba(255, 255, 255, 0.1);
           }
 
           .dark .theme-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
           }
 
           .theme-btn i {
@@ -439,11 +443,19 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           
           // 为所有图片添加点击事件
           document.addEventListener('click', (e) => {
-            if (e.target.tagName === 'IMG' && e.target.closest('.group')) {
+            const img = e.target;
+            if (img.tagName === 'IMG' && img.closest('.group')) {
+              e.preventDefault();
+              e.stopPropagation();
+              
               // 获取当前页面所有图片
-              images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
-              currentImageIndex = images.indexOf(e.target.src);
-              openModal(e.target.src);
+              const allImages = Array.from(document.querySelectorAll('.group img'));
+              images = allImages.map(img => img.src);
+              currentImageIndex = allImages.indexOf(img);
+              
+              if (currentImageIndex !== -1) {
+                openModal(img.src);
+              }
             }
           });
           
@@ -465,9 +477,23 @@ function renderBaseHtml(title, content, footerText, navLinks) {
             modalImg.src = images[currentImageIndex];
           }
           
-          closeBtn.addEventListener('click', closeModal);
-          prevBtn.addEventListener('click', () => showImage(currentImageIndex - 1));
-          nextBtn.addEventListener('click', () => showImage(currentImageIndex + 1));
+          closeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            closeModal();
+          });
+          
+          prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showImage(currentImageIndex - 1);
+          });
+          
+          nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            showImage(currentImageIndex + 1);
+          });
           
           // 点击模态框背景关闭
           modal.addEventListener('click', (e) => {
