@@ -72,7 +72,7 @@ function renderMemo(memo, isHomePage = false) {
 }
 
 // 渲染基础 HTML
-function renderBaseHtml(title, content) {
+function renderBaseHtml(title, content, footerText) {
   return `
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
@@ -319,7 +319,7 @@ function renderBaseHtml(title, content) {
         <footer class="mt-12">
           <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="text-center text-sm text-gray-500 dark:text-gray-400">
-              <p>© ${new Date().getFullYear()} ${title}. All rights reserved.</p>
+              <p>${footerText}</p>
             </div>
           </div>
         </footer>
@@ -513,7 +513,7 @@ app.get('/', async (c) => {
       `
     }).join('')
 
-    return new Response(renderBaseHtml(c.env.SITE_NAME, memosHtml), {
+    return new Response(renderBaseHtml(c.env.SITE_NAME, memosHtml, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
@@ -529,7 +529,7 @@ app.get('/', async (c) => {
           返回首页
         </a>
       </div>
-    `), {
+    `, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
@@ -567,7 +567,7 @@ app.get('/post/:name', async (c) => {
             返回首页
           </a>
         </div>
-      `), {
+      `, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8'
         }
@@ -577,7 +577,7 @@ app.get('/post/:name', async (c) => {
     const memo = data.memo
     const memoHtml = renderMemo(memo, false)
 
-    return new Response(renderBaseHtml(c.env.SITE_NAME, memoHtml), {
+    return new Response(renderBaseHtml(c.env.SITE_NAME, memoHtml, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
@@ -593,7 +593,7 @@ app.get('/post/:name', async (c) => {
           返回首页
         </a>
       </div>
-    `), {
+    `, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
