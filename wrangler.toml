@@ -7,7 +7,4 @@ SITE_NAME = "归零杂记"
 NAV_LINKS = "首页:/,关于:/about"
 FOOTER_TEXT = "© 2024 Memos Themes. All rights reserved."
 PAGE_LIMIT = "10"
-API_HOST = "https://open.memos.dengchangdong.com"  # 请替换为您的实际 API 地址
-
-[site]
-bucket = "./public" 
+API_HOST = "https://open.memos.dengchangdong.com"  # 请替换为您的实际 API 地址 
