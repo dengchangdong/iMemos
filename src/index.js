@@ -651,8 +651,20 @@ app.get('/tag/:tag', async (c) => {
     const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
 
     return new Response(renderBaseHtml(
-      c.env.SITE_NAME, 
-      memosHtml, 
+      `${tag} - ${c.env.SITE_NAME}`,
+      `
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold tracking-tight">
+          <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+            ${c.env.SITE_NAME}
+          </a>
+        </h1>
+        <div class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+          <span class="text-blue-600 dark:text-blue-400">#${tag}</span>
+        </div>
+      </div>
+      ${memosHtml}
+      `,
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS
     ), {
