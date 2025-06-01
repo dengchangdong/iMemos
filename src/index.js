@@ -15,9 +15,9 @@ app.use('*', async (c, next) => {
 // 渲染单个 memo
 function renderMemo(memo) {
   try {
-    const date = new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
+    const date = new Date(memo.createTime).toLocaleString('zh-CN')
     const content = memo.content || ''
-    const resources = memo.resourceList || []
+    const resources = memo.resources || []
     
     let resourcesHtml = ''
     if (resources.length > 0) {
@@ -179,8 +179,8 @@ app.get('/post/:name', async (c) => {
       throw new Error(`API 请求失败: ${response.status}`)
     }
 
-    const memo = await response.json()
-    if (!memo) {
+    const data = await response.json()
+    if (!data || !data.memo) {
       return new Response(renderBaseHtml('未找到内容', `
         <div style="text-align: center; padding: 40px 20px;">
           <h2 style="margin-bottom: 20px;">未找到内容</h2>
@@ -193,8 +193,9 @@ app.get('/post/:name', async (c) => {
       })
     }
 
+    const memo = data.memo
     const memoHtml = renderMemo(memo)
-    const title = memo.content.substring(0, 50) + (memo.content.length > 50 ? '...' : '')
+    const title = memo.content ? (memo.content.substring(0, 50) + (memo.content.length > 50 ? '...' : '')) : '无标题'
 
     return new Response(renderBaseHtml(title, memoHtml), {
       headers: {
