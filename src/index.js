@@ -151,7 +151,16 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 解析导航链接
   const navItems = navLinks ? navLinks.split(',').map(link => {
     const [text, url] = link.split(':').map(item => item.trim());
-    return { text, url: url.startsWith('http') ? url : url.startsWith('/') ? url : `/${url}` };
+    // 修复 URL 解析
+    let finalUrl = url;
+    if (url.startsWith('http')) {
+      finalUrl = url;
+    } else if (url.startsWith('/')) {
+      finalUrl = url;
+    } else {
+      finalUrl = `/${url}`;
+    }
+    return { text, url: finalUrl };
   }) : [];
 
   return `
@@ -512,11 +521,11 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             closeBtn.innerHTML = '<i class="ti ti-x"></i>';
             
             const prevBtn = document.createElement('button');
-            prevBtn.className = 'absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
+            prevBtn.className = 'absolute -left-16 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
             prevBtn.innerHTML = '<i class="ti ti-chevron-left"></i>';
             
             const nextBtn = document.createElement('button');
-            nextBtn.className = 'absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
+            nextBtn.className = 'absolute -right-16 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
             nextBtn.innerHTML = '<i class="ti ti-chevron-right"></i>';
             
             modalContent.appendChild(modalImg);
