@@ -466,50 +466,87 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
 
             // 初始化图片预览功能
             const previewImages = document.querySelectorAll('img[data-preview="true"]');
-            previewImages.forEach(img => {
-              img.addEventListener('click', function() {
-                const modal = document.createElement('div');
-                modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center';
-                modal.style.display = 'flex';
-                
-                const modalContent = document.createElement('div');
-                modalContent.className = 'relative max-w-[90%] max-h-[90%]';
-                
-                const modalImg = document.createElement('img');
-                modalImg.src = this.src;
-                modalImg.className = 'max-w-full max-h-[90vh] object-contain';
-                
-                const closeBtn = document.createElement('button');
-                closeBtn.className = 'absolute top-4 right-4 text-white text-2xl cursor-pointer';
-                closeBtn.innerHTML = '&times;';
-                
-                modalContent.appendChild(modalImg);
-                modalContent.appendChild(closeBtn);
-                modal.appendChild(modalContent);
-                document.body.appendChild(modal);
-                
-                // 禁止背景滚动
-                document.body.style.overflow = 'hidden';
-                
-                // 关闭模态框
-                function closeModal() {
-                  modal.remove();
-                  document.body.style.overflow = '';
+            let currentImageIndex = 0;
+            let allImages = Array.from(previewImages);
+
+            function showImage(index) {
+              const modal = document.createElement('div');
+              modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center';
+              modal.style.display = 'flex';
+              
+              const modalContent = document.createElement('div');
+              modalContent.className = 'relative max-w-[90%] max-h-[90%]';
+              
+              const modalImg = document.createElement('img');
+              modalImg.src = allImages[index].src;
+              modalImg.className = 'max-w-full max-h-[90vh] object-contain';
+              
+              const closeBtn = document.createElement('button');
+              closeBtn.className = 'absolute top-4 right-4 text-white text-2xl cursor-pointer';
+              closeBtn.innerHTML = '&times;';
+              
+              const prevBtn = document.createElement('button');
+              prevBtn.className = 'absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer';
+              prevBtn.innerHTML = '<i class="ti ti-chevron-left"></i>';
+              
+              const nextBtn = document.createElement('button');
+              nextBtn.className = 'absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer';
+              nextBtn.innerHTML = '<i class="ti ti-chevron-right"></i>';
+              
+              modalContent.appendChild(modalImg);
+              modalContent.appendChild(closeBtn);
+              modalContent.appendChild(prevBtn);
+              modalContent.appendChild(nextBtn);
+              modal.appendChild(modalContent);
+              document.body.appendChild(modal);
+              
+              // 禁止背景滚动
+              document.body.style.overflow = 'hidden';
+              
+              // 关闭模态框
+              function closeModal() {
+                modal.remove();
+                document.body.style.overflow = '';
+              }
+              
+              // 显示上一张图片
+              function showPrevImage() {
+                currentImageIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
+                modalImg.src = allImages[currentImageIndex].src;
+              }
+              
+              // 显示下一张图片
+              function showNextImage() {
+                currentImageIndex = (currentImageIndex + 1) % allImages.length;
+                modalImg.src = allImages[currentImageIndex].src;
+              }
+              
+              closeBtn.addEventListener('click', closeModal);
+              prevBtn.addEventListener('click', showPrevImage);
+              nextBtn.addEventListener('click', showNextImage);
+              
+              modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                  closeModal();
                 }
-                
-                closeBtn.addEventListener('click', closeModal);
-                modal.addEventListener('click', (e) => {
-                  if (e.target === modal) {
-                    closeModal();
-                  }
-                });
-                
-                // 键盘事件
-                document.addEventListener('keydown', function(e) {
-                  if (e.key === 'Escape') {
-                    closeModal();
-                  }
-                });
+              });
+              
+              // 键盘事件
+              document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                  closeModal();
+                } else if (e.key === 'ArrowLeft') {
+                  showPrevImage();
+                } else if (e.key === 'ArrowRight') {
+                  showNextImage();
+                }
+              });
+            }
+
+            previewImages.forEach((img, index) => {
+              img.addEventListener('click', function() {
+                currentImageIndex = index;
+                showImage(currentImageIndex);
               });
             });
           });
