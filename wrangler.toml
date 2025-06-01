@@ -1,11 +1,11 @@
-name = "memos-themes"
+name = "imemos"
 main = "src/index.js"
 compatibility_date = "2024-02-20"
 
 [vars]
-SITE_NAME = "Memos Themes"
+SITE_NAME = "归零杂记"
 NAV_LINKS = "首页:/,关于:/about"
-FOOTER_TEXT = "© 2024 Memos Themes. All rights reserved."
+FOOTER_TEXT = "© 2025 归零杂记. All rights reserved."
 PAGE_LIMIT = "10"
 API_HOST = "https://open.memos.dengchangdong.com"
 

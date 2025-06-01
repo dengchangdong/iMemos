@@ -72,7 +72,13 @@ function renderMemo(memo, isHomePage = false) {
 }
 
 // 渲染基础 HTML
-function renderBaseHtml(title, content, footerText) {
+function renderBaseHtml(title, content, footerText, navLinks) {
+  // 解析导航链接
+  const navItems = navLinks ? navLinks.split(',').map(link => {
+    const [text, url] = link.split(':').map(item => item.trim());
+    return { text, url };
+  }) : [];
+
   return `
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
@@ -298,17 +304,28 @@ function renderBaseHtml(title, content, footerText) {
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
         <div class="flex-grow">
           <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <header class="flex items-center justify-between mb-12">
-              <h1 class="text-3xl font-bold tracking-tight">
-                <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                  ${title}
-                </a>
-              </h1>
-              <button class="theme-btn" data-theme="system">
-                <i class="ti ti-device-desktop"></i>
-                <i class="ti ti-sun"></i>
-                <i class="ti ti-moon"></i>
-              </button>
+            <header class="mb-12">
+              <div class="flex items-center justify-between mb-6">
+                <h1 class="text-3xl font-bold tracking-tight">
+                  <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    ${title}
+                  </a>
+                </h1>
+                <button class="theme-btn" data-theme="system">
+                  <i class="ti ti-device-desktop"></i>
+                  <i class="ti ti-sun"></i>
+                  <i class="ti ti-moon"></i>
+                </button>
+              </div>
+              ${navItems.length > 0 ? `
+                <nav class="flex items-center space-x-6 border-t border-gray-200 dark:border-gray-800 pt-4">
+                  ${navItems.map(item => `
+                    <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+                      ${item.text}
+                    </a>
+                  `).join('')}
+                </nav>
+              ` : ''}
             </header>
             <main class="space-y-8">
               ${content}
@@ -513,14 +530,21 @@ app.get('/', async (c) => {
       `
     }).join('')
 
-    return new Response(renderBaseHtml(c.env.SITE_NAME, memosHtml, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
+    return new Response(renderBaseHtml(
+      c.env.SITE_NAME, 
+      memosHtml, 
+      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      c.env.NAV_LINKS
+    ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
     })
   } catch (error) {
     console.error('渲染页面失败:', error)
-    return new Response(renderBaseHtml('错误', `
+    return new Response(renderBaseHtml(
+      '错误', 
+      `
       <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
         <h2 class="text-lg font-semibold mb-2">加载失败</h2>
         <p class="text-sm">${error.message}</p>
@@ -529,7 +553,10 @@ app.get('/', async (c) => {
           返回首页
         </a>
       </div>
-    `, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
+      `,
+      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      c.env.NAV_LINKS
+    ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
@@ -557,7 +584,9 @@ app.get('/post/:name', async (c) => {
 
     const data = await response.json()
     if (!data || !data.memo) {
-      return new Response(renderBaseHtml(c.env.SITE_NAME, `
+      return new Response(renderBaseHtml(
+        c.env.SITE_NAME, 
+        `
         <div class="text-center py-12">
           <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
           <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
@@ -567,7 +596,10 @@ app.get('/post/:name', async (c) => {
             返回首页
           </a>
         </div>
-      `, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
+        `,
+        c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+        c.env.NAV_LINKS
+      ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8'
         }
@@ -577,14 +609,21 @@ app.get('/post/:name', async (c) => {
     const memo = data.memo
     const memoHtml = renderMemo(memo, false)
 
-    return new Response(renderBaseHtml(c.env.SITE_NAME, memoHtml, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
+    return new Response(renderBaseHtml(
+      c.env.SITE_NAME, 
+      memoHtml, 
+      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      c.env.NAV_LINKS
+    ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
     })
   } catch (error) {
     console.error('渲染页面失败:', error)
-    return new Response(renderBaseHtml(c.env.SITE_NAME, `
+    return new Response(renderBaseHtml(
+      c.env.SITE_NAME, 
+      `
       <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
         <h2 class="text-lg font-semibold mb-2">加载失败</h2>
         <p class="text-sm">${error.message}</p>
@@ -593,7 +632,10 @@ app.get('/post/:name', async (c) => {
           返回首页
         </a>
       </div>
-    `, c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.'), {
+      `,
+      c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.',
+      c.env.NAV_LINKS
+    ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
       }
