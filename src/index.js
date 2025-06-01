@@ -101,42 +101,8 @@ function renderMemo(memo, isHomePage = false) {
   }
 }
 
-// 渲染错误页面
-function renderErrorPage(error, c) {
-  return renderBaseHtml(
-    '错误', 
-    `
-    <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
-      <h2 class="text-lg font-semibold mb-2">加载失败</h2>
-      <p class="text-sm">${error.message}</p>
-      <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-        <i class="ti ti-arrow-left mr-1"></i>
-        返回首页
-      </a>
-    </div>
-    `,
-    c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-    c.env.NAV_LINKS
-  )
-}
-
-// 获取 memos 数据
-async function fetchMemos(c, tag = '') {
-  const limit = c.env.PAGE_LIMIT || DEFAULT_PAGE_LIMIT
-  const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`
-  console.log('请求 API:', apiUrl)
-
-  const response = await fetch(apiUrl, { headers: DEFAULT_HEADERS })
-
-  if (!response.ok) {
-    throw new Error(`API 请求失败: ${response.status}`)
-  }
-
-  return response.json()
-}
-
 // 渲染基础 HTML
-function renderBaseHtml(title, content, footerText, navLinks) {
+function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 解析导航链接
   const navItems = navLinks ? navLinks.split(',').map(link => {
     const [text, url] = link.split(':').map(item => item.trim());
@@ -376,7 +342,7 @@ function renderBaseHtml(title, content, footerText, navLinks) {
               <div class="flex items-center justify-between">
                 <h1 class="text-2xl font-bold tracking-tight">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                    ${title}
+                    ${siteName}
                   </a>
                 </h1>
                 <div class="flex items-center space-x-6">
@@ -553,6 +519,41 @@ function renderBaseHtml(title, content, footerText, navLinks) {
   `
 }
 
+// 渲染错误页面
+function renderErrorPage(error, c) {
+  return renderBaseHtml(
+    '错误', 
+    `
+    <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+      <h2 class="text-lg font-semibold mb-2">加载失败</h2>
+      <p class="text-sm">${error.message}</p>
+      <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+        <i class="ti ti-arrow-left mr-1"></i>
+        返回首页
+      </a>
+    </div>
+    `,
+    c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
+    c.env.NAV_LINKS,
+    c.env.SITE_NAME
+  )
+}
+
+// 获取 memos 数据
+async function fetchMemos(c, tag = '') {
+  const limit = c.env.PAGE_LIMIT || DEFAULT_PAGE_LIMIT
+  const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`
+  console.log('请求 API:', apiUrl)
+
+  const response = await fetch(apiUrl, { headers: DEFAULT_HEADERS })
+
+  if (!response.ok) {
+    throw new Error(`API 请求失败: ${response.status}`)
+  }
+
+  return response.json()
+}
+
 // 主页路由
 app.get('/', async (c) => {
   try {
@@ -565,7 +566,8 @@ app.get('/', async (c) => {
       c.env.SITE_NAME, 
       memosHtml, 
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-      c.env.NAV_LINKS
+      c.env.NAV_LINKS,
+      c.env.SITE_NAME
     ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
@@ -610,7 +612,8 @@ app.get('/post/:name', async (c) => {
         </div>
         `,
         c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-        c.env.NAV_LINKS
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME
       ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8'
@@ -625,7 +628,8 @@ app.get('/post/:name', async (c) => {
       c.env.SITE_NAME, 
       memoHtml, 
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-      c.env.NAV_LINKS
+      c.env.NAV_LINKS,
+      c.env.SITE_NAME
     ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
@@ -654,7 +658,8 @@ app.get('/tag/:tag', async (c) => {
       `${tag} - ${c.env.SITE_NAME}`, 
       memosHtml, 
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-      c.env.NAV_LINKS
+      c.env.NAV_LINKS,
+      c.env.SITE_NAME
     ), {
       headers: {
         'Content-Type': 'text/html;charset=UTF-8'
