@@ -100,16 +100,16 @@ function renderMemo(memo, isHomePage = false) {
       resourcesHtml = `
         <div class="grid ${gridCols} gap-4 mt-6">
           ${resources.map(resource => `
-            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer border border-gray-200 dark:border-gray-700" onclick="showImage(this.querySelector('img'))">
+            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer" onclick="showImage(this.querySelector('img'))">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
-                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg"
                 loading="lazy"
                 data-src="${resource.externalLink || ''}"
                 data-preview="true"
               />
-              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300 rounded-lg"></div>
             </div>
           `).join('')}
         </div>
@@ -149,19 +149,15 @@ function renderMemo(memo, isHomePage = false) {
 // 渲染基础 HTML
 function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 解析导航链接
-  const navItems = navLinks ? navLinks.split(',').map(link => {
-    const [text, url] = link.split(':').map(item => item.trim());
-    // 修复 URL 解析
-    let finalUrl = url;
-    if (url.startsWith('http')) {
-      finalUrl = url;
-    } else if (url.startsWith('/')) {
-      finalUrl = url;
-    } else {
-      finalUrl = `/${url}`;
+  let navItems = [];
+  try {
+    if (navLinks) {
+      const linksObj = JSON.parse(navLinks);
+      navItems = Object.entries(linksObj).map(([text, url]) => ({ text, url }));
     }
-    return { text, url: finalUrl };
-  }) : [];
+  } catch (error) {
+    console.error('解析导航链接失败:', error);
+  }
 
   return `
     <!DOCTYPE html>
@@ -514,7 +510,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             const modalImg = document.createElement('img');
             modalImg.src = img.src;
-            modalImg.className = 'max-w-full max-h-[90vh] object-contain';
+            modalImg.className = 'max-w-full max-h-[90vh] object-contain rounded-lg';
             
             const closeBtn = document.createElement('button');
             closeBtn.className = 'absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-10 h-10 flex items-center justify-center transition-colors';
