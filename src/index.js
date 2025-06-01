@@ -20,6 +20,46 @@ app.use('*', async (c, next) => {
   }
 })
 
+// 格式化时间
+function formatTime(timestamp) {
+  const now = new Date()
+  const date = new Date(timestamp)
+  const diff = now - date
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+  const hours = Math.floor(diff / (1000 * 60 * 60))
+  const minutes = Math.floor(diff / (1000 * 60))
+
+  if (days > 3) {
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    }).replace(/\//g, '-')
+  }
+
+  if (days === 1) {
+    return `昨天 ${date.toLocaleString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+  }
+
+  if (days > 1) {
+    return `${days} 天前`
+  }
+
+  if (hours > 0) {
+    return `${hours} 小时前`
+  }
+
+  if (minutes > 0) {
+    return `${minutes} 分钟前`
+  }
+
+  return '刚刚'
+}
+
 // 解析内容中的标签
 function parseTags(content) {
   const tagRegex = /#([^#\s]+)/g;
@@ -42,9 +82,10 @@ function parseTags(content) {
 // 渲染单个 memo
 function renderMemo(memo, isHomePage = false) {
   try {
-    const date = memo.createTime 
-      ? new Date(memo.createTime).toLocaleString('zh-CN')
-      : new Date(memo.createdTs * 1000).toLocaleString('zh-CN')
+    const timestamp = memo.createTime 
+      ? new Date(memo.createTime).getTime()
+      : memo.createdTs * 1000
+    const date = formatTime(timestamp)
     
     const content = memo.content || ''
     const { parsedContent } = parseTags(content)
@@ -63,7 +104,6 @@ function renderMemo(memo, isHomePage = false) {
                 loading="lazy"
                 data-src="${resource.externalLink || ''}"
                 data-preview="true"
-                onclick="showImage(this)"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
             </div>
@@ -107,7 +147,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 解析导航链接
   const navItems = navLinks ? navLinks.split(',').map(link => {
     const [text, url] = link.split(':').map(item => item.trim());
-    return { text, url };
+    return { text, url: url.startsWith('http') ? url : url.startsWith('/') ? url : `/${url}` };
   }) : [];
 
   return `
@@ -449,14 +489,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           });
 
           // 图片预览功能
-          let currentImageIndex = 0;
-          let allImages = [];
-
           function showImage(img) {
-            // 获取所有可预览的图片
-            allImages = Array.from(document.querySelectorAll('img[data-preview="true"]'));
-            currentImageIndex = allImages.indexOf(img);
-            
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center';
             modal.style.display = 'flex';
@@ -490,6 +523,10 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             // 禁止背景滚动
             document.body.style.overflow = 'hidden';
             
+            // 获取所有可预览的图片
+            const allImages = Array.from(document.querySelectorAll('img[data-preview="true"]'));
+            let currentIndex = allImages.indexOf(img);
+            
             // 关闭模态框
             function closeModal() {
               modal.remove();
@@ -498,14 +535,14 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             // 显示上一张图片
             function showPrevImage() {
-              currentImageIndex = (currentImageIndex - 1 + allImages.length) % allImages.length;
-              modalImg.src = allImages[currentImageIndex].src;
+              currentIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+              modalImg.src = allImages[currentIndex].src;
             }
             
             // 显示下一张图片
             function showNextImage() {
-              currentImageIndex = (currentImageIndex + 1) % allImages.length;
-              modalImg.src = allImages[currentImageIndex].src;
+              currentIndex = (currentIndex + 1) % allImages.length;
+              modalImg.src = allImages[currentIndex].src;
             }
             
             closeBtn.addEventListener('click', closeModal);
@@ -546,6 +583,11 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             });
 
             lazyImages.forEach(img => imageObserver.observe(img));
+
+            // 为所有可预览图片添加点击事件
+            document.querySelectorAll('img[data-preview="true"]').forEach(img => {
+              img.addEventListener('click', () => showImage(img));
+            });
           });
         </script>
       </body>
@@ -707,6 +749,17 @@ app.get('/tag/:tag', async (c) => {
       }
     })
   }
+})
+
+// 修改图片缓存时间
+app.get('/api/v1/memo', async (c) => {
+  const response = await fetchMemos(c)
+  return new Response(JSON.stringify(response), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, max-age=2592000' // 30天缓存
+    }
+  })
 })
 
 export default app 
