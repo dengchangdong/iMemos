@@ -96,11 +96,11 @@ function renderMemo(memo, isHomePage = false) {
       resourcesHtml = `
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
           ${resources.map(resource => `
-            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800">
+            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer" onclick="showImage(this.querySelector('img'))">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
-                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
                 data-src="${resource.externalLink || ''}"
                 data-preview="true"
@@ -489,7 +489,9 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           });
 
           // 图片预览功能
-          function showImage(img) {
+          window.showImage = function(img) {
+            if (!img) return;
+            
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center';
             modal.style.display = 'flex';
@@ -583,11 +585,6 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             });
 
             lazyImages.forEach(img => imageObserver.observe(img));
-
-            // 为所有可预览图片添加点击事件
-            document.querySelectorAll('img[data-preview="true"]').forEach(img => {
-              img.addEventListener('click', () => showImage(img));
-            });
           });
         </script>
       </body>
