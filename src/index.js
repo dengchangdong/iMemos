@@ -33,7 +33,8 @@ function renderMemo(memo, isHomePage = false) {
                 alt="${resource.filename || '图片'}"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                 loading="lazy"
-                onclick="showImage('${resource.externalLink || ''}')"
+                data-src="${resource.externalLink || ''}"
+                onclick="showImage(this)"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300"></div>
             </div>
@@ -151,76 +152,6 @@ function renderBaseHtml(title, content, footerText, navLinks) {
             color: #E5E7EB;
           }
 
-          .image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 50;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-          }
-
-          .image-modal.active {
-            display: flex;
-            opacity: 1;
-          }
-
-          .image-modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            margin: auto;
-            position: relative;
-          }
-
-          .image-modal-content img {
-            max-width: 100%;
-            max-height: 90vh;
-            object-fit: contain;
-          }
-
-          .image-modal-close {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 0.5rem;
-          }
-
-          .image-modal-prev,
-          .image-modal-next {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            padding: 1rem;
-            user-select: none;
-          }
-
-          .image-modal-prev {
-            left: -60px;
-          }
-
-          .image-modal-next {
-            right: -60px;
-          }
-
-          @media (max-width: 768px) {
-            .image-modal-prev {
-              left: 10px;
-            }
-            .image-modal-next {
-              right: 10px;
-            }
-          }
-
           .theme-btn {
             position: relative;
             width: 40px;
@@ -304,6 +235,76 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           .dark .back-to-top:hover {
             background: rgba(17, 24, 39, 0.9);
           }
+
+          .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
+          }
+
+          .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            margin: auto;
+            position: relative;
+          }
+
+          .image-modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+          }
+
+          .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+          }
+
+          .image-modal-prev,
+          .image-modal-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 1rem;
+            user-select: none;
+          }
+
+          .image-modal-prev {
+            left: -60px;
+          }
+
+          .image-modal-next {
+            right: -60px;
+          }
+
+          @media (max-width: 768px) {
+            .image-modal-prev {
+              left: 10px;
+            }
+            .image-modal-next {
+              right: 10px;
+            }
+          }
         </style>
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
@@ -311,7 +312,7 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <header class="mb-12">
               <div class="flex items-center justify-between">
-                <h1 class="text-3xl font-bold tracking-tight">
+                <h1 class="text-2xl font-bold tracking-tight">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     ${title}
                   </a>
@@ -432,6 +433,24 @@ function renderBaseHtml(title, content, footerText, navLinks) {
             });
           });
 
+          // 图片懒加载
+          document.addEventListener('DOMContentLoaded', function() {
+            const lazyImages = document.querySelectorAll('img[data-src]');
+            
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  const img = entry.target;
+                  img.src = img.dataset.src;
+                  img.removeAttribute('data-src');
+                  observer.unobserve(img);
+                }
+              });
+            });
+
+            lazyImages.forEach(img => imageObserver.observe(img));
+          });
+
           // 图片预览
           const modal = document.getElementById('imageModal');
           const modalImg = modal.querySelector('img');
@@ -443,13 +462,13 @@ function renderBaseHtml(title, content, footerText, navLinks) {
           let images = [];
           
           // 显示图片
-          window.showImage = function(src) {
+          window.showImage = function(img) {
             // 获取所有图片
             images = Array.from(document.querySelectorAll('.group img')).map(img => img.src);
-            currentImageIndex = images.indexOf(src);
+            currentImageIndex = images.indexOf(img.src);
             
             if (currentImageIndex !== -1) {
-              modalImg.src = src;
+              modalImg.src = img.src;
               modal.classList.add('active');
               document.body.style.overflow = 'hidden';
             }
