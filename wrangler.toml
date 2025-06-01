@@ -9,9 +9,5 @@ SITE_NAME = "我的 Memos"
 NAV_LINKS = "首页:/,关于:/about,归档:/archive"
 FOOTER_TEXT = "© 2024 我的 Memos. All rights reserved."
 
-[build]
-command = "npm run build"
-watch_dir = "src"
-
 [site]
 bucket = "./public" 
