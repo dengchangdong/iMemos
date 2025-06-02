@@ -18,7 +18,7 @@ const LINK_PATTERNS = {
   github: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/g,
   douyin: /https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/g,
   tiktok: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g,
-  wechat: /https?:\/\/mp\.weixin\.qq\.com\/s\?__biz=([^&]+)(?:&|%26)mid=([^&]+)(?:&|%26)idx=([^&]+)(?:&|%26)sn=([^&]+)/g
+  wechat: /https?:\/\/mp\.weixin\.qq\.com\/s[^"'\s]*/g
 }
 
 // 错误处理中间件
@@ -111,17 +111,51 @@ function parseLinks(content) {
   });
 }
 
+// 获取网页标题
+async function fetchPageTitle(url) {
+  try {
+    console.log('获取页面标题:', url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`获取页面失败: ${response.status}`);
+    }
+    
+    const html = await response.text();
+    const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+    
+    if (titleMatch && titleMatch[1]) {
+      // 清理标题文本
+      let title = titleMatch[1].trim();
+      // 移除特殊字符和HTML实体
+      title = title.replace(/&[a-zA-Z0-9#]+;/g, ' ').replace(/\s+/g, ' ');
+      return title;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('获取页面标题失败:', error);
+    return null;
+  }
+}
+
 // 解析特殊链接
-function parseSpecialLinks(content) {
+async function parseSpecialLinks(content, c) {
   let parsedContent = content;
   const placeholders = {};
   let placeholderIndex = 0;
+  const fetchPromises = [];
 
   // 使用占位符替换特殊链接，避免嵌套替换问题
   function replaceWithPlaceholder(pattern, replacer) {
     parsedContent = parsedContent.replace(pattern, (match, ...args) => {
       const placeholder = `__SPECIAL_LINK_PLACEHOLDER_${placeholderIndex}__`;
-      placeholders[placeholder] = replacer(match, ...args);
+      placeholders[placeholder] = { match, args, replacer };
       placeholderIndex++;
       return placeholder;
     });
@@ -155,8 +189,8 @@ function parseSpecialLinks(content) {
           allowfullscreen
           sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
           referrerpolicy="no-referrer"
-          loading="lazy"
-        ></iframe>
+          loading="lazy">
+        </iframe>
       </div>
     `;
   });
@@ -196,7 +230,7 @@ function parseSpecialLinks(content) {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
-          src="//music.163.com/outchain/player?type=2&id=${songId}&auto=1&height=66" 
+          src="//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66" 
           class="w-full h-[86px]"
           frameborder="no" 
           border="0" 
@@ -223,40 +257,67 @@ function parseSpecialLinks(content) {
 
   // 微信公众号文章
   replaceWithPlaceholder(LINK_PATTERNS.wechat, (match) => {
-    // 尝试从URL中提取标题，但这不是总能成功
-    let title = "微信公众号文章";
-    try {
-      // 查找URL中的title参数
-      const titleMatch = match.match(/(?:&|%26)title=([^&]+)/);
-      if (titleMatch && titleMatch[1]) {
-        title = decodeURIComponent(titleMatch[1].replace(/\+/g, ' '));
+    // 创建一个异步操作来获取标题
+    const fetchPromise = (async () => {
+      let title = "微信公众号文章";
+      try {
+        // 尝试获取页面标题
+        const pageTitle = await fetchPageTitle(match);
+        if (pageTitle) {
+          title = pageTitle;
+        }
+      } catch (e) {
+        console.error('解析微信文章标题失败:', e);
       }
-    } catch (e) {
-      console.error('解析微信文章标题失败:', e);
-    }
+      
+      return `
+        <div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
+          </svg>
+          <a href="${match}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex-1 truncate">
+            ${title}
+          </a>
+        </div>
+      `;
+    })();
     
-    return `
-      <div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
-        <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
-        </svg>
-        <a href="${match}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex-1 truncate">
-          ${title}
-        </a>
-      </div>
-    `;
+    fetchPromises.push({
+      placeholder: `__SPECIAL_LINK_PLACEHOLDER_${placeholderIndex - 1}__`,
+      promise: fetchPromise
+    });
+    
+    // 返回一个临时占位符，后续会被替换
+    return "FETCHING_TITLE_PLACEHOLDER";
   });
 
-  // 将所有占位符替换回实际内容
+  // 等待所有微信公众号标题获取完成
+  if (fetchPromises.length > 0) {
+    try {
+      const results = await Promise.all(fetchPromises.map(item => item.promise));
+      
+      // 替换所有动态获取的内容
+      for (let i = 0; i < fetchPromises.length; i++) {
+        const placeholder = fetchPromises[i].placeholder;
+        delete placeholders[placeholder]; // 移除原始占位符
+        placedContent = parsedContent.replace(placeholder, results[i]);
+      }
+    } catch (error) {
+      console.error('获取微信标题时发生错误:', error);
+    }
+  }
+
+  // 将所有剩余的占位符替换回实际内容
   Object.keys(placeholders).forEach(placeholder => {
-    parsedContent = parsedContent.replace(placeholder, placeholders[placeholder]);
+    const { match, args, replacer } = placeholders[placeholder];
+    parsedContent = parsedContent.replace(placeholder, replacer(match, ...args));
   });
 
   return parsedContent;
 }
 
 // 渲染单个 memo
-function renderMemo(memo, isHomePage = false) {
+async function renderMemo(memo, isHomePage = false, c) {
   try {
     const timestamp = memo.createTime 
       ? new Date(memo.createTime).getTime()
@@ -266,7 +327,7 @@ function renderMemo(memo, isHomePage = false) {
     const content = memo.content || ''
     const { parsedContent: contentWithTags } = parseTags(content)
     const contentWithLinks = parseLinks(contentWithTags)
-    const parsedContent = parseSpecialLinks(contentWithLinks)
+    const parsedContent = await parseSpecialLinks(contentWithLinks, c)
     const resources = memo.resources || memo.resourceList || []
     
     let resourcesHtml = ''
@@ -822,11 +883,11 @@ app.get('/', async (c) => {
     const memos = await fetchMemos(c)
     console.log('获取到 memos 数量:', memos.length)
 
-    const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
+    const memosHtml = await Promise.all(memos.map(async memo => renderMemo(memo, true, c)))
 
     return new Response(renderBaseHtml(
       c.env.SITE_NAME, 
-      memosHtml, 
+      memosHtml.join(''), 
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS,
       c.env.SITE_NAME
@@ -884,7 +945,7 @@ app.get('/post/:name', async (c) => {
     }
 
     const memo = data.memo
-    const memoHtml = renderMemo(memo, false)
+    const memoHtml = await renderMemo(memo, false, c)
 
     return new Response(renderBaseHtml(
       c.env.SITE_NAME, 
@@ -914,11 +975,11 @@ app.get('/tag/:tag', async (c) => {
     const memos = await fetchMemos(c, tag)
     console.log('获取到 memos 数量:', memos.length)
 
-    const memosHtml = memos.map(memo => renderMemo(memo, true)).join('')
+    const memosHtml = await Promise.all(memos.map(async memo => renderMemo(memo, true, c)))
 
     return new Response(renderBaseHtml(
       `${tag} - ${c.env.SITE_NAME}`, 
-      memosHtml, 
+      memosHtml.join(''), 
       c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
       c.env.NAV_LINKS,
       c.env.SITE_NAME
