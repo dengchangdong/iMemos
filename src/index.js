@@ -135,12 +135,18 @@ function parseSpecialLinks(content) {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
-          src="https://player.bilibili.com/player.html?bvid=${videoId}" 
+          src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0" 
           class="w-full aspect-video"
           scrolling="no" 
           frameborder="no" 
-          allowfullscreen>
-        </iframe>
+          allowfullscreen
+          sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
+          referrerpolicy="no-referrer"
+          loading="lazy"
+          onload="this.style.opacity=1"
+          style="opacity:0;transition:opacity 0.3s"
+          onerror="this.parentNode.innerHTML='<div class=\\'p-4 text-sm text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-lg\\'>视频加载失败，可能是由于广告拦截器或隐私保护功能阻止了嵌入内容。<a href=\\''+this.src+'\' target=\\'_blank\\' class=\\'ml-2 underline\\'>点击直接访问</a></div>'"
+        ></iframe>
       </div>
     `
   })
