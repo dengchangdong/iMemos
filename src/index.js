@@ -17,7 +17,8 @@ const LINK_PATTERNS = {
   neteaseMusic: /https:\/\/music\.163\.com\/.*id=(\d+)/g,
   github: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/g,
   douyin: /https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/g,
-  tiktok: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g
+  tiktok: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g,
+  wechat: /https?:\/\/mp\.weixin\.qq\.com\/s\?__biz=([^&]+)(?:&|%26)mid=([^&]+)(?:&|%26)idx=([^&]+)(?:&|%26)sn=([^&]+)/g
 }
 
 // 错误处理中间件
@@ -206,6 +207,32 @@ function parseSpecialLinks(content) {
         </svg>
         <a href="https://github.com/${repo}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
           ${repo}
+        </a>
+      </div>
+    `
+  })
+
+  // 微信公众号文章
+  parsedContent = parsedContent.replace(LINK_PATTERNS.wechat, (match) => {
+    // 尝试从URL中提取标题，但这不是总能成功
+    let title = "微信公众号文章";
+    try {
+      // 查找URL中的title参数
+      const titleMatch = match.match(/(?:&|%26)title=([^&]+)/);
+      if (titleMatch && titleMatch[1]) {
+        title = decodeURIComponent(titleMatch[1].replace(/\+/g, ' '));
+      }
+    } catch (e) {
+      console.error('解析微信文章标题失败:', e);
+    }
+    
+    return `
+      <div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+        <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
+        </svg>
+        <a href="${match}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex-1 truncate">
+          ${title}
         </a>
       </div>
     `
