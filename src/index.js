@@ -136,6 +136,9 @@ const markdownRenderer = {
     // 使用字符串替换而非DOM操作，提高性能
     let html = text;
     
+    // 预处理文本，将连续的换行转换为段落分隔
+    html = html.replace(/\n{2,}/g, '\n\n');
+    
     // 代码块（保留原始缩进）
     html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => 
       utils.createHtml`<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-${lang || 'plaintext'}">${utils.escapeHtml(code)}</code></pre>`
@@ -188,13 +191,16 @@ const markdownRenderer = {
       `$1<a href="$2" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">$2</a>`
     );
     
-    // 处理段落
-    html = html.replace(/\n/g, '<br>');
-    
-    // 仅在非HTML开头时添加段落标签
-    if (!html.startsWith('<')) {
-      html = `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${html}</p>`;
-    }
+    // 正确处理段落，将单个换行符转换为<br>，将多个换行符转换为段落分隔
+    const paragraphs = html.split('\n\n');
+    html = paragraphs.map(para => {
+      // 如果段落已经包含块级元素标签，不再包装
+      if (para.trim() === '' || /^<(h[1-6]|pre|blockquote|ul|ol|div|p)/.test(para)) {
+        return para;
+      }
+      // 替换段落内的单个换行为<br>
+      return `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${para.replace(/\n/g, '<br>')}</p>`;
+    }).join('\n');
     
     return html;
   },
@@ -216,7 +222,7 @@ const markdownRenderer = {
       return this.createWechatCard(match);
     });
     
-    // 处理各类媒体嵌入
+    // 处理各类媒体嵌入 - 修复解析问题
     result = this.embedMedia(result);
     
     // 移除临时容器
@@ -236,18 +242,26 @@ const markdownRenderer = {
       });
     };
     
-    // YouTube视频嵌入
-    html = processEmbed(CONFIG.REGEX.YOUTUBE, (match, url, videoId) => 
-      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+    // YouTube视频嵌入 - 修复全局匹配
+    html = html.replace(/https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9]{11})/g, (match, videoId) => {
+      // 检查链接是否已经被处理过
+      const inAnchor = new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html);
+      if (inAnchor) return match;
+      
+      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
         <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0" 
                 class="w-full aspect-video" frameborder="0" 
                 allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowfullscreen loading="lazy"></iframe>
-      </div>`
-    );
+      </div>`;
+    });
     
-    // Bilibili视频嵌入
-    html = processEmbed(CONFIG.REGEX.BILIBILI, (match, url, bvid) => {
+    // Bilibili视频嵌入 - 修复全局匹配
+    html = html.replace(/https:\/\/www\.bilibili\.com\/video\/((av\d{1,10})|(BV\w{10}))\/?/g, (match, bvid) => {
+      // 检查链接是否已经被处理过
+      const inAnchor = new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html);
+      if (inAnchor) return match;
+      
       const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
       return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
         <iframe src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0" 
@@ -257,23 +271,31 @@ const markdownRenderer = {
       </div>`;
     });
     
-    // 抖音视频嵌入
-    html = processEmbed(CONFIG.REGEX.DOUYIN, (match, url, p1, videoId) => 
-      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+    // 抖音视频嵌入 - 修复全局匹配
+    html = html.replace(/https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/g, (match, p1, videoId) => {
+      // 检查链接是否已经被处理过
+      const inAnchor = new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html);
+      if (inAnchor) return match;
+      
+      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
         <iframe src="https://www.douyin.com/embed/${videoId}?autoplay=0" 
                 class="w-full aspect-video" scrolling="no" frameborder="no" 
                 allowfullscreen loading="lazy"></iframe>
-      </div>`
-    );
+      </div>`;
+    });
     
-    // TikTok视频嵌入
-    html = processEmbed(CONFIG.REGEX.TIKTOK, (match, url, p1, videoId) => 
-      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+    // TikTok视频嵌入 - 修复全局匹配
+    html = html.replace(/https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g, (match, p1, videoId) => {
+      // 检查链接是否已经被处理过
+      const inAnchor = new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html);
+      if (inAnchor) return match;
+      
+      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
         <iframe src="https://www.tiktok.com/embed/v2/${videoId}?autoplay=0" 
                 class="w-full aspect-video" scrolling="no" frameborder="no" 
                 allowfullscreen loading="lazy"></iframe>
-      </div>`
-    );
+      </div>`;
+    });
     
     // 网易云音乐嵌入
     html = processEmbed(CONFIG.REGEX.NETEASE, (match, url, songId) => 
