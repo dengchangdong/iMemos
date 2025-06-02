@@ -1,56 +1,321 @@
 import { Hono } from 'hono'
-import { marked } from 'marked';
 
 const app = new Hono()
 
-// 常量配置
-const DEFAULT_FOOTER_TEXT = '© 2024 Memos Themes. All rights reserved.'
-const DEFAULT_PAGE_LIMIT = '10'
-const DEFAULT_HEADERS = {
-  'Accept': 'application/json',
-  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+// 常量配置 - 集中管理所有常量
+const CONFIG = {
+  FOOTER_TEXT: '© 2024 Memos Themes. All rights reserved.',
+  PAGE_LIMIT: '10',
+  HEADERS: {
+    'Accept': 'application/json',
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+  },
+  // 正则表达式预编译，提高性能
+  REGEX: {
+    YOUTUBE: /https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9]{11})/,
+    BILIBILI: /https:\/\/www\.bilibili\.com\/video\/((av\d{1,10})|(BV\w{10}))\/?/,
+    NETEASE: /https:\/\/music\.163\.com\/.*id=(\d+)/,
+    GITHUB: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/,
+    DOUYIN: /https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/,
+    TIKTOK: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/,
+    WECHAT: /https?:\/\/mp\.weixin\.qq\.com\/[^\s<"']+/,
+    WECHAT_MD: /\[([^\]]+)\]\((https?:\/\/mp\.weixin\.qq\.com\/[^)]+)\)/,
+    MD_CODE_BLOCK: /```([a-z]*)\n([\s\S]*?)\n```/g,
+    MD_INLINE_CODE: /`([^`]+)`/g,
+    MD_H1: /^# (.*$)/gm,
+    MD_H2: /^## (.*$)/gm,
+    MD_H3: /^### (.*$)/gm,
+    MD_QUOTE: /^\> (.*)$/gm,
+    MD_LIST_ITEM: /^- (.*)$/gm,
+    MD_NUM_LIST: /^(\d+)\. (.*)$/gm,
+    MD_BOLD: /\*\*(.*?)\*\*/g,
+    MD_ITALIC: /\*(.*?)\*/g,
+    MD_LINK: /\[([^\]]+)\]\((?!https?:\/\/mp\.weixin\.qq\.com)([^)]+)\)/g,
+    MD_IMAGE: /!\[([^\]]*)\]\(([^)]+)\)/g,
+    TAG: /#([a-zA-Z0-9_\u4e00-\u9fa5]+)/g
+  },
+  CSS: {
+    CARD: 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden',
+    PROSE: 'prose dark:prose-invert max-w-none',
+    LINK: 'text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors',
+    EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800'
+  }
 }
 
-// 特殊链接解析
-const LINK_PATTERNS = {
-  youtube: /https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9]{11})/g,
-  bilibili: /https:\/\/www\.bilibili\.com\/video\/((av\d{1,10})|(BV\w{10}))\/?/g,
-  neteaseMusic: /https:\/\/music\.163\.com\/.*id=(\d+)/g,
-  github: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/g,
-  douyin: /https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/g,
-  tiktok: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g
+// 帮助函数 - 工具集
+const utils = {
+  // HTML转义，防止XSS攻击
+  escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  },
+  
+  // 格式化时间
+  formatTime(timestamp) {
+    const now = new Date()
+    const date = new Date(timestamp)
+    const diff = now - date
+    const minutes = Math.floor(diff / (1000 * 60))
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    
+    // 1分钟以内
+    if (minutes < 1) return '刚刚'
+    
+    // 1小时以内
+    if (minutes < 60) return `${minutes} 分钟前`
+    
+    // 当天发布的且24小时以内
+    if (hours < 24 && date.getDate() === now.getDate()) 
+      return `${hours} 小时前`
+    
+    // 非当天发布但是是当年发布的
+    if (date.getFullYear() === now.getFullYear()) {
+      return date.toLocaleString('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).replace(/\//g, '-')
+    }
+    
+    // 非当年发布的
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    }).replace(/\//g, '-')
+  },
+  
+  // 创建HTML元素（用于模板）
+  createHtml(strings, ...values) {
+    return String.raw({ raw: strings }, ...values);
+  }
 }
 
-// 创建Markdown渲染器
-const renderer = new marked.Renderer();
+// Markdown渲染核心 - 使用缓存和高效处理
+const markdownRenderer = {
+  // 处理缓存
+  cache: new Map(),
+  
+  // 主处理函数
+  render(text) {
+    if (!text) return '';
+    
+    // 检查缓存
+    const cacheKey = text;
+    if (this.cache.has(cacheKey)) {
+      return this.cache.get(cacheKey);
+    }
+    
+    // 三步处理流程
+    const markdown = this.ensureMarkdown(text);
+    const html = this.renderToHtml(markdown);
+    const withSpecialLinks = this.processSpecialLinks(html);
+    
+    // 存入缓存
+    this.cache.set(cacheKey, withSpecialLinks);
+    return withSpecialLinks;
+  },
+  
+  // 确保内容是Markdown格式
+  ensureMarkdown(text) {
+    // 当前实现只是传递，未来可添加格式转换
+    return text;
+  },
+  
+  // 将Markdown渲染为HTML - 高效实现
+  renderToHtml(text) {
+    // 使用字符串替换而非DOM操作，提高性能
+    let html = text;
+    
+    // 代码块（保留原始缩进）
+    html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => 
+      utils.createHtml`<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-${lang || 'plaintext'}">${utils.escapeHtml(code)}</code></pre>`
+    );
+    
+    // 行内代码
+    html = html.replace(CONFIG.REGEX.MD_INLINE_CODE, '<code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">$1</code>');
+    
+    // 标题 
+    html = html.replace(CONFIG.REGEX.MD_H1, '<h1 class="text-2xl font-bold mt-6 mb-4">$1</h1>');
+    html = html.replace(CONFIG.REGEX.MD_H2, '<h2 class="text-xl font-bold mt-5 mb-3">$1</h2>');
+    html = html.replace(CONFIG.REGEX.MD_H3, '<h3 class="text-lg font-bold mt-4 mb-2">$1</h3>');
+    
+    // 引用
+    html = html.replace(CONFIG.REGEX.MD_QUOTE, '<blockquote class="pl-4 border-l-4 border-gray-300 dark:border-gray-600 my-4 text-gray-600 dark:text-gray-400">$1</blockquote>');
+    
+    // 列表项
+    html = html.replace(CONFIG.REGEX.MD_LIST_ITEM, '<li class="ml-4 list-disc">$1</li>');
+    html = html.replace(CONFIG.REGEX.MD_NUM_LIST, '<li class="ml-4 list-decimal">$2</li>');
+    
+    // 包装列表
+    html = html.replace(/(<li.*>.*<\/li>\n)+/g, (match) => {
+      if (match.includes('list-decimal')) {
+        return `<ol class="my-4">${match}</ol>`;
+      }
+      return `<ul class="my-4">${match}</ul>`;
+    });
+    
+    // 格式化文本
+    html = html.replace(CONFIG.REGEX.MD_BOLD, '<strong>$1</strong>');
+    html = html.replace(CONFIG.REGEX.MD_ITALIC, '<em>$1</em>');
+    
+    // 处理图片 - 添加懒加载和预览支持
+    html = html.replace(CONFIG.REGEX.MD_IMAGE, 
+      '<img src="$2" alt="$1" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />'
+    );
+    
+    // 处理链接 - 排除微信链接（由特殊链接处理器处理）
+    html = html.replace(CONFIG.REGEX.MD_LINK, 
+      `<a href="$2" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">$1</a>`
+    );
+    
+    // 处理标签
+    html = html.replace(CONFIG.REGEX.TAG, 
+      `<a href="/tag/$1" class="${CONFIG.CSS.LINK}">#$1</a>`
+    );
+    
+    // 处理普通URL - 避免处理已经在标签内的URL
+    html = html.replace(/(^|[^"=])(https?:\/\/(?!mp\.weixin\.qq\.com)[^\s<]+[^<.,:;"')\]\s])/g, 
+      `$1<a href="$2" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">$2</a>`
+    );
+    
+    // 处理段落
+    html = html.replace(/\n/g, '<br>');
+    
+    // 仅在非HTML开头时添加段落标签
+    if (!html.startsWith('<')) {
+      html = `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${html}</p>`;
+    }
+    
+    return html;
+  },
+  
+  // 处理特殊链接 - 高效精简实现
+  processSpecialLinks(html) {
+    // 使用临时包装处理
+    const tempContent = `<div id="temp-content">${html}</div>`;
+    
+    // 微信公众号链接处理（Markdown格式）- 卡片式展示
+    let result = tempContent.replace(CONFIG.REGEX.WECHAT_MD, (match, title, url) => this.createWechatCard(url, title));
+    
+    // 处理非Markdown格式的微信公众号链接
+    result = result.replace(CONFIG.REGEX.WECHAT, (match) => {
+      // 检查链接是否已被处理（在a标签内）
+      if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(result)) {
+        return match;
+      }
+      return this.createWechatCard(match);
+    });
+    
+    // 处理各类媒体嵌入
+    result = this.embedMedia(result);
+    
+    // 移除临时容器
+    return result.replace('<div id="temp-content">', '').replace('</div>', '');
+  },
+  
+  // 嵌入各种媒体内容
+  embedMedia(html) {
+    // 处理函数：检查链接是否已处理并执行转换
+    const processEmbed = (regex, callback) => {
+      return html.replace(regex, (match, ...args) => {
+        // 如果链接已经在<a>标签中，不再处理
+        const escapedMatch = match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const inAnchor = new RegExp(`href=["']${escapedMatch}["']`).test(html);
+        if (inAnchor) return match;
+        return callback(match, ...args);
+      });
+    };
+    
+    // YouTube视频嵌入
+    html = processEmbed(CONFIG.REGEX.YOUTUBE, (match, url, videoId) => 
+      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+        <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0" 
+                class="w-full aspect-video" frameborder="0" 
+                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowfullscreen loading="lazy"></iframe>
+      </div>`
+    );
+    
+    // Bilibili视频嵌入
+    html = processEmbed(CONFIG.REGEX.BILIBILI, (match, url, bvid) => {
+      const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
+      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+        <iframe src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0" 
+                class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen
+                sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
+                referrerpolicy="no-referrer" loading="lazy"></iframe>
+      </div>`;
+    });
+    
+    // 抖音视频嵌入
+    html = processEmbed(CONFIG.REGEX.DOUYIN, (match, url, p1, videoId) => 
+      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+        <iframe src="https://www.douyin.com/embed/${videoId}?autoplay=0" 
+                class="w-full aspect-video" scrolling="no" frameborder="no" 
+                allowfullscreen loading="lazy"></iframe>
+      </div>`
+    );
+    
+    // TikTok视频嵌入
+    html = processEmbed(CONFIG.REGEX.TIKTOK, (match, url, p1, videoId) => 
+      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+        <iframe src="https://www.tiktok.com/embed/v2/${videoId}?autoplay=0" 
+                class="w-full aspect-video" scrolling="no" frameborder="no" 
+                allowfullscreen loading="lazy"></iframe>
+      </div>`
+    );
+    
+    // 网易云音乐嵌入
+    html = processEmbed(CONFIG.REGEX.NETEASE, (match, url, songId) => 
+      utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+        <iframe src="//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66" 
+                class="w-full h-[86px]" frameborder="no" border="0" 
+                marginwidth="0" marginheight="0" loading="lazy"></iframe>
+      </div>`
+    );
+    
+    // GitHub仓库卡片
+    html = processEmbed(CONFIG.REGEX.GITHUB, (match, url, repo) => 
+      utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+        <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        <a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">
+          ${repo}
+        </a>
+      </div>`
+    );
+    
+    return html;
+  },
+  
+  // 创建微信公众号卡片
+  createWechatCard(url, title = '微信公众号文章') {
+    return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+      <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.295.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
+      </svg>
+      <a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK} flex-1 truncate">
+        ${title}
+      </a>
+    </div>`;
+  }
+}
 
-// 自定义链接渲染
-renderer.link = (href, title, text) => {
-  const linkAttr = `href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"`;
-  return `<a ${linkAttr}>${text}</a>`;
-};
-
-// 自定义图片渲染
-renderer.image = (href, title, text) => {
-  return `<img src="${href}" alt="${text || ''}" class="rounded-lg max-w-full my-4" loading="lazy" data-src="${href}" data-preview="true" />`;
-};
-
-// 自定义代码块渲染
-renderer.code = (code, language) => {
-  return `<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-${language || 'plaintext'}">${code}</code></pre>`;
-};
-
-// 配置Markdown解析选项
-const markedOptions = {
-  renderer,
-  headerIds: false,
-  gfm: true,
-  breaks: true,
-  pedantic: false,
-  sanitize: false,
-  smartLists: true,
-  smartypants: false
-};
+// 简化外部调用接口
+function simpleMarkdown(text) {
+  return markdownRenderer.render(text);
+}
 
 // 错误处理中间件
 app.use('*', async (c, next) => {
@@ -62,218 +327,112 @@ app.use('*', async (c, next) => {
   }
 })
 
-// 格式化时间
-function formatTime(timestamp) {
-  const now = new Date()
-  const date = new Date(timestamp)
-  const diff = now - date
-  const minutes = Math.floor(diff / (1000 * 60))
-  const hours = Math.floor(diff / (1000 * 60 * 60))
-  
-  // 1分钟以内
-  if (minutes < 1) {
-    return '刚刚'
-  }
-  
-  // 1小时以内
-  if (minutes < 60) {
-    return `${minutes} 分钟前`
-  }
-  
-  // 当天发布的且24小时以内
-  if (hours < 24 && date.getDate() === now.getDate()) {
-    return `${hours} 小时前`
-  }
-  
-  // 非当天发布但是是当年发布的
-  if (date.getFullYear() === now.getFullYear()) {
-    return date.toLocaleString('zh-CN', {
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(/\//g, '-')
-  }
-  
-  // 非当年发布的
-  return date.toLocaleString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false
-  }).replace(/\//g, '-')
-}
-
-// 处理特殊内容嵌入
-function processSpecialContent(content) {
-  // 处理YouTube视频
-  content = content.replace(LINK_PATTERNS.youtube, (match, videoId) => {
-    return `<div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-      <iframe 
-        src="https://www.youtube.com/embed/${videoId}?autoplay=0" 
-        class="w-full aspect-video"
-        frameborder="0" 
-        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-      </iframe>
-    </div>`;
-  });
-
-  // 处理Bilibili视频
-  content = content.replace(LINK_PATTERNS.bilibili, (match, bvid) => {
-    const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
-    return `<div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-      <iframe 
-        src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0" 
-        class="w-full aspect-video"
-        scrolling="no" 
-        frameborder="no" 
-        allowfullscreen
-        sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
-        referrerpolicy="no-referrer"
-        loading="lazy">
-      </iframe>
-    </div>`;
-  });
-
-  // 处理抖音视频
-  content = content.replace(LINK_PATTERNS.douyin, (match, p1, videoId) => {
-    return `<div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-      <iframe 
-        src="https://www.douyin.com/embed/${videoId}?autoplay=0" 
-        class="w-full aspect-video"
-        scrolling="no" 
-        frameborder="no" 
-        allowfullscreen>
-      </iframe>
-    </div>`;
-  });
-
-  // 处理TikTok视频
-  content = content.replace(LINK_PATTERNS.tiktok, (match, p1, videoId) => {
-    return `<div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-      <iframe 
-        src="https://www.tiktok.com/embed/v2/${videoId}?autoplay=0" 
-        class="w-full aspect-video"
-        scrolling="no" 
-        frameborder="no" 
-        allowfullscreen>
-      </iframe>
-    </div>`;
-  });
-
-  // 处理网易云音乐
-  content = content.replace(LINK_PATTERNS.neteaseMusic, (match, songId) => {
-    return `<div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-      <iframe 
-        src="//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66" 
-        class="w-full h-[86px]"
-        frameborder="no" 
-        border="0" 
-        marginwidth="0" 
-        marginheight="0">
-      </iframe>
-    </div>`;
-  });
-
-  // 处理GitHub仓库
-  content = content.replace(LINK_PATTERNS.github, (match, repo) => {
-    return `<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
-      <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-      </svg>
-      <a href="https://github.com/${repo}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">
-        ${repo}
-      </a>
-    </div>`;
-  });
-
-  return content;
-}
-
-// 渲染Markdown内容
-function renderMarkdown(content) {
-  // 先处理特殊内容嵌入
-  const processedContent = processSpecialContent(content);
-  
-  // 然后渲染Markdown
-  return marked.parse(processedContent, markedOptions);
-}
-
 // 渲染单个 memo
 function renderMemo(memo, isHomePage = false) {
   try {
     const timestamp = memo.createTime 
       ? new Date(memo.createTime).getTime()
-      : memo.createdTs * 1000
-    const date = formatTime(timestamp)
+      : memo.createdTs * 1000;
+    const date = utils.formatTime(timestamp);
     
-    const content = memo.content || ''
-    // 使用Markdown渲染内容
-    const parsedContent = renderMarkdown(content)
+    // 使用简易Markdown渲染内容
+    const content = memo.content || '';
+    const parsedContent = simpleMarkdown(content);
     
-    // 资源处理
-    const resources = memo.resources || memo.resourceList || []
-    let resourcesHtml = ''
+    // 资源处理 - 图片预览优化
+    const resources = memo.resources || memo.resourceList || [];
+    let resourcesHtml = '';
     
     if (resources.length > 0) {
+      // 优化布局类选择逻辑
       const gridCols = resources.length === 1 ? 'grid-cols-1' : 
                       resources.length === 2 ? 'grid-cols-2' : 
-                      'grid-cols-1 sm:grid-cols-2 md:grid-cols-3'
+                      'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
       
-      resourcesHtml = `
+      // 使用模板字符串生成HTML
+      resourcesHtml = utils.createHtml`
         <div class="grid ${gridCols} gap-4 mt-6">
-          ${resources.map(resource => `
+          ${resources.map(resource => utils.createHtml`
             <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer" onclick="showImage(this.querySelector('img'))">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
                 class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg"
                 loading="lazy"
-                data-src="${resource.externalLink || ''}"
                 data-preview="true"
               />
               <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300 rounded-lg"></div>
             </div>
           `).join('')}
         </div>
-      `
+      `;
     }
     
+    // 根据页面类型生成时间HTML
     const timeHtml = isHomePage 
-      ? `<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
+      ? utils.createHtml`<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
            <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
              ${date}
            </a>
          </time>`
-      : `<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">${date}</time>`
+      : utils.createHtml`<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">${date}</time>`;
     
-    return `
-      <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
+    // 组合最终HTML
+    return utils.createHtml`
+      <article class="${CONFIG.CSS.CARD}">
         <div class="p-6 sm:p-8">
           ${timeHtml}
-          <div class="mt-4 prose dark:prose-invert max-w-none">
+          <div class="mt-4 ${CONFIG.CSS.PROSE}">
             ${parsedContent}
           </div>
           ${resourcesHtml}
         </div>
       </article>
-    `
+    `;
   } catch (error) {
-    console.error('渲染 memo 失败:', error)
-    return `
+    console.error('渲染 memo 失败:', error);
+    return utils.createHtml`
       <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
         <p class="font-medium">渲染失败</p>
         <p class="text-sm mt-1">${error.message}</p>
       </div>
-    `
+    `;
   }
 }
 
-// 渲染基础 HTML
+// 优化HTML模板渲染 - 减少重复代码
+const htmlTemplates = {
+  // 错误页面模板
+  errorPage(error) {
+    return utils.createHtml`
+      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">加载失败</h2>
+        <p class="text-sm">${error.message}</p>
+        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+          <i class="ti ti-arrow-left mr-1"></i>
+          返回首页
+        </a>
+      </div>
+    `;
+  },
+  
+  // 404页面模板
+  notFoundPage() {
+    return utils.createHtml`
+      <div class="text-center py-12">
+        <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
+        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">您访问的内容不存在或已被删除</p>
+        <a href="/" class="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+          <i class="ti ti-arrow-left mr-1"></i>
+          返回首页
+        </a>
+      </div>
+    `;
+  }
+};
+
+// 渲染基础 HTML - 优化CSS加载和脚本处理
 function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 解析导航链接
   let navItems = [];
@@ -288,7 +447,19 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
     console.error('解析导航链接失败:', error);
   }
 
-  return `
+  // 导航链接HTML
+  const navHtml = navItems.length > 0 
+    ? utils.createHtml`
+      <nav class="flex items-center space-x-6">
+        ${navItems.map(item => utils.createHtml`
+          <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+            ${item.text}
+          </a>
+        `).join('')}
+      </nav>
+    ` : '';
+
+  return utils.createHtml`
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
       <head>
@@ -342,9 +513,8 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </script>
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
         <style>
-          @import url('https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css');
-
           .prose {
             max-width: 65ch;
             color: #374151;
@@ -525,15 +695,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   </a>
                 </h1>
                 <div class="flex items-center space-x-6">
-                  ${navItems.length > 0 ? `
-                    <nav class="flex items-center space-x-6">
-                      ${navItems.map(item => `
-                        <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-                          ${item.text}
-                        </a>
-                      `).join('')}
-                    </nav>
-                  ` : ''}
+                  ${navHtml}
                   <button class="theme-btn" data-theme="system">
                     <i class="ti ti-device-desktop"></i>
                     <i class="ti ti-sun"></i>
@@ -626,7 +788,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             });
           });
 
-          // 图片预览功能
+          // 图片预览功能 - 简化实现
           window.showImage = function(img) {
             if (!img) return;
             
@@ -707,194 +869,256 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             });
           }
 
-          // 图片懒加载
+          // 图片懒加载 - 使用 Intersection Observer API
           document.addEventListener('DOMContentLoaded', function() {
-            const lazyImages = document.querySelectorAll('img[data-src]');
-            
-            const imageObserver = new IntersectionObserver((entries, observer) => {
-              entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                  const img = entry.target;
-                  img.src = img.dataset.src;
-                  img.removeAttribute('data-src');
-                  observer.unobserve(img);
-                }
+            if ('IntersectionObserver' in window) {
+              const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+              
+              const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                      img.src = img.dataset.src;
+                      img.removeAttribute('data-src');
+                    }
+                    imageObserver.unobserve(img);
+                  }
+                });
               });
-            });
 
-            lazyImages.forEach(img => imageObserver.observe(img));
+              lazyImages.forEach(img => imageObserver.observe(img));
+            }
           });
         </script>
       </body>
     </html>
-  `
+  `;
 }
 
-// 渲染错误页面
+// 统一路由错误处理
 function renderErrorPage(error, c) {
   return renderBaseHtml(
     '错误', 
-    `
-    <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
-      <h2 class="text-lg font-semibold mb-2">加载失败</h2>
-      <p class="text-sm">${error.message}</p>
-      <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-        <i class="ti ti-arrow-left mr-1"></i>
-        返回首页
-      </a>
-    </div>
-    `,
-    c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
+    htmlTemplates.errorPage(error),
+    c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
     c.env.NAV_LINKS,
     c.env.SITE_NAME
-  )
+  );
 }
 
-// 获取 memos 数据
-async function fetchMemos(c, tag = '') {
-  const limit = c.env.PAGE_LIMIT || DEFAULT_PAGE_LIMIT
-  const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`
-  console.log('请求 API:', apiUrl)
+// API处理相关 - 优化HTTP请求和缓存
+const apiHandler = {
+  // 数据缓存
+  cache: new Map(),
+  
+  // 缓存TTL，默认1分钟（单位：毫秒）
+  cacheTTL: 60 * 1000,
 
-  const response = await fetch(apiUrl, { headers: DEFAULT_HEADERS })
-
-  if (!response.ok) {
-    throw new Error(`API 请求失败: ${response.status}`)
-  }
-
-  return response.json()
-}
-
-// 主页路由
-app.get('/', async (c) => {
-  try {
-    const memos = await fetchMemos(c)
-    console.log('获取到 memos 数量:', memos.length)
-
-    const memosHtml = await Promise.all(memos.map(async memo => renderMemo(memo, true, c)))
-
-    return new Response(renderBaseHtml(
-      c.env.SITE_NAME, 
-      memosHtml.join(''), 
-      c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-      c.env.NAV_LINKS,
-      c.env.SITE_NAME
-    ), {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8'
+  // 获取memos数据
+  async fetchMemos(c, tag = '') {
+    try {
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const cacheKey = `memos_${tag}_${limit}`;
+      
+      // 检查缓存
+      const cachedData = this.cache.get(cacheKey);
+      if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
+        return cachedData.data;
       }
-    })
-  } catch (error) {
-    console.error('渲染页面失败:', error)
-    return new Response(renderErrorPage(error, c), {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8'
+      
+      // 构建API URL
+      const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`;
+      console.log('请求 API:', apiUrl);
+
+      // 发送请求
+      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
+      if (!response.ok) {
+        throw new Error(`API 请求失败: ${response.status}`);
       }
-    })
-  }
-})
 
-// 单页路由
-app.get('/post/:name', async (c) => {
-  try {
-    const name = c.req.param('name')
-    const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`
-    console.log('请求 API:', apiUrl)
-
-    const response = await fetch(apiUrl, { headers: DEFAULT_HEADERS })
-
-    if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status}`)
+      // 解析数据
+      const data = await response.json();
+      
+      // 更新缓存
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('获取 memos 数据失败:', error);
+      throw error;
     }
+  },
+  
+  // 获取单条memo
+  async fetchMemo(c, name) {
+    try {
+      const cacheKey = `memo_${name}`;
+      
+      // 检查缓存
+      const cachedData = this.cache.get(cacheKey);
+      if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
+        return cachedData.data;
+      }
+      
+      // 构建API URL
+      const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`;
+      console.log('请求 API:', apiUrl);
 
-    const data = await response.json()
-    if (!data || !data.memo) {
+      // 发送请求
+      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
+      if (!response.ok) {
+        return null;
+      }
+
+      // 解析数据
+      const data = await response.json();
+      
+      // 更新缓存
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('获取单条 memo 数据失败:', error);
+      return null;
+    }
+  }
+};
+
+// 路由处理 - 优化路由模块化
+const routes = {
+  // 主页路由处理
+  async home(c) {
+    try {
+      const memos = await apiHandler.fetchMemos(c);
+      console.log('获取到 memos 数量:', memos.length);
+
+      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+
       return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
-        `
-        <div class="text-center py-12">
-          <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
-          <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">您访问的内容不存在或已被删除</p>
-          <a href="/" class="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
-            <i class="ti ti-arrow-left mr-1"></i>
-            返回首页
-          </a>
-        </div>
-        `,
-        c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
+        memosHtml, 
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
       ), {
         headers: {
-          'Content-Type': 'text/html;charset=UTF-8'
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=300' // 5分钟缓存
         }
-      })
+      });
+    } catch (error) {
+      console.error('渲染首页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
     }
-
-    const memo = data.memo
-    const memoHtml = await renderMemo(memo, false, c)
-
-    return new Response(renderBaseHtml(
-      c.env.SITE_NAME, 
-      memoHtml, 
-      c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-      c.env.NAV_LINKS,
-      c.env.SITE_NAME
-    ), {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8'
+  },
+  
+  // 单页路由处理
+  async post(c) {
+    try {
+      const name = c.req.param('name');
+      const data = await apiHandler.fetchMemo(c, name);
+      
+      // 未找到数据
+      if (!data || !data.memo) {
+        return new Response(renderBaseHtml(
+          c.env.SITE_NAME, 
+          htmlTemplates.notFoundPage(),
+          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+          c.env.NAV_LINKS,
+          c.env.SITE_NAME
+        ), {
+          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          status: 404
+        });
       }
-    })
-  } catch (error) {
-    console.error('渲染页面失败:', error)
-    return new Response(renderErrorPage(error, c), {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8'
-      }
-    })
-  }
-})
 
-// 标签页面路由
-app.get('/tag/:tag', async (c) => {
-  try {
-    const tag = c.req.param('tag')
-    const memos = await fetchMemos(c, tag)
-    console.log('获取到 memos 数量:', memos.length)
+      const memoHtml = renderMemo(data.memo, false);
 
-    const memosHtml = await Promise.all(memos.map(async memo => renderMemo(memo, true, c)))
-
-    return new Response(renderBaseHtml(
-      `${tag} - ${c.env.SITE_NAME}`, 
-      memosHtml.join(''), 
-      c.env.FOOTER_TEXT || DEFAULT_FOOTER_TEXT,
-      c.env.NAV_LINKS,
-      c.env.SITE_NAME
-    ), {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8'
-      }
-    })
-  } catch (error) {
-    console.error('渲染页面失败:', error)
-    return new Response(renderErrorPage(error, c), {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8'
-      }
-    })
-  }
-})
-
-// 修改图片缓存时间
-app.get('/api/v1/memo', async (c) => {
-  const response = await fetchMemos(c)
-  return new Response(JSON.stringify(response), {
-    headers: {
-      'Content-Type': 'application/json',
-      'Cache-Control': 'public, max-age=2592000' // 30天缓存
+      return new Response(renderBaseHtml(
+        c.env.SITE_NAME, 
+        memoHtml, 
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME
+      ), {
+        headers: {
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=1800' // 30分钟缓存
+        }
+      });
+    } catch (error) {
+      console.error('渲染文章页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
     }
-  })
-})
+  },
+  
+  // 标签页路由处理
+  async tag(c) {
+    try {
+      const tag = c.req.param('tag');
+      const memos = await apiHandler.fetchMemos(c, tag);
+      console.log('获取到标签页 memos 数量:', memos.length);
+
+      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+
+      return new Response(renderBaseHtml(
+        `${tag} - ${c.env.SITE_NAME}`, 
+        memosHtml, 
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME
+      ), {
+        headers: {
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=300' // 5分钟缓存
+        }
+      });
+    } catch (error) {
+      console.error('渲染标签页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
+    }
+  },
+  
+  // API代理 - 用于缓存资源
+  async api(c) {
+    try {
+      const memos = await apiHandler.fetchMemos(c);
+      return new Response(JSON.stringify(memos), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=2592000' // 30天缓存
+        }
+      });
+    } catch (error) {
+      console.error('API代理失败:', error);
+      return new Response(JSON.stringify({ error: error.message }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+  }
+};
+
+// 注册路由 - 更简洁的路由处理
+app.get('/', routes.home);
+app.get('/post/:name', routes.post);
+app.get('/tag/:tag', routes.tag);
+app.get('/api/v1/memo', routes.api);
 
 export default app 
