@@ -1062,7 +1062,7 @@ class Routes {
    */
   static async serviceWorker(c) {
     return new Response(
-      c.env.ASSETS.fetch(new Request('https://memos-themes.pages.dev/sw.js')), 
+      c.env.ASSETS.fetch(new Request('/sw.js')), 
       {
         headers: {
           'Content-Type': 'application/javascript',
