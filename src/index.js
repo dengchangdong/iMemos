@@ -18,91 +18,7 @@ const LINK_PATTERNS = {
   github: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/g,
   douyin: /https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/g,
   tiktok: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g,
-  wechat: /https?:\/\/mp\.weixin\.qq\.com\/[^\s<]+/g
-}
-
-// Markdown 解析器
-function parseMarkdown(text) {
-  if (!text) return '';
-  
-  // 预处理: 替换HTML特殊字符
-  text = text.replace(/&/g, '&amp;')
-             .replace(/</g, '&lt;')
-             .replace(/>/g, '&gt;');
-
-  // 处理段落: 将多行文本分割为段落
-  let paragraphs = text.split(/\n{2,}/);
-  paragraphs = paragraphs.map(para => {
-    if (!para.trim()) return '';
-    
-    // 跳过代码块的处理
-    if (para.trim().startsWith('```') && para.trim().endsWith('```')) {
-      return para;
-    }
-    
-    return `<p>${para.trim()}</p>`;
-  });
-  
-  text = paragraphs.join('\n');
-  
-  // 处理代码块
-  text = text.replace(/```([\s\S]*?)```/g, (match, code) => {
-    return `<pre><code>${code.trim()}</code></pre>`;
-  });
-  
-  // 处理行内代码
-  text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
-  
-  // 处理标题
-  text = text.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
-  text = text.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
-  text = text.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
-  text = text.replace(/^#### (.*?)$/gm, '<h4>$1</h4>');
-  text = text.replace(/^##### (.*?)$/gm, '<h5>$1</h5>');
-  text = text.replace(/^###### (.*?)$/gm, '<h6>$1</h6>');
-  
-  // 处理加粗
-  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
-  
-  // 处理斜体
-  text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  text = text.replace(/_(.*?)_/g, '<em>$1</em>');
-  
-  // 处理删除线
-  text = text.replace(/~~(.*?)~~/g, '<del>$1</del>');
-  
-  // 处理水平线
-  text = text.replace(/^---$/gm, '<hr>');
-  
-  // 处理无序列表
-  text = text.replace(/^\s*[\*\-\+]\s+(.*?)$/gm, '<li>$1</li>');
-  text = text.replace(/(<li>.*?<\/li>)\s*(<li>)/g, '$1$2');
-  text = text.replace(/(<li>.*?<\/li>)(?!\s*<li>)/g, '<ul>$1</ul>');
-  
-  // 处理有序列表
-  text = text.replace(/^\s*\d+\.\s+(.*?)$/gm, '<li>$1</li>');
-  text = text.replace(/(<li>.*?<\/li>)\s*(<li>)/g, '$1$2');
-  text = text.replace(/(<li>.*?<\/li>)(?!\s*<li>)/g, '<ol>$1</ol>');
-  
-  // 处理图片
-  text = text.replace(/!\[(.*?)\]\((.*?)\)/g, '<img alt="$1" src="$2">');
-  
-  // 处理链接 (忽略已经被处理为HTML的链接)
-  text = text.replace(/(?<!\()\[(.*?)\]\((.*?)\)(?!\))/g, '<a href="$2">$1</a>');
-  
-  // 处理引用
-  text = text.replace(/^>\s+(.*?)$/gm, '<blockquote>$1</blockquote>');
-  
-  // 修复一些常见问题
-  // 修复段落内的换行
-  text = text.replace(/<\/p>\s*<p>/g, '</p>\n<p>');
-  
-  // 修复列表问题
-  text = text.replace(/<\/ul>\s*<ul>/g, '');
-  text = text.replace(/<\/ol>\s*<ol>/g, '');
-  
-  return text;
+  wechat: /https?:\/\/mp\.weixin\.qq\.com\/s[^"'\s]*/g
 }
 
 // 错误处理中间件
@@ -181,64 +97,51 @@ function parseTags(content) {
 
 // 解析普通链接
 function parseLinks(content) {
-  // 匹配Markdown格式的链接
-  const markdownLinkPattern = /\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g;
-  let processedContent = content;
-  let wechatLinks = [];
-
-  // 先处理Markdown格式的链接
-  processedContent = processedContent.replace(markdownLinkPattern, (match, text, url) => {
-    // 检查是否是微信公众号链接
-    if (url.startsWith('https://mp.weixin.qq.com/') || url.startsWith('http://mp.weixin.qq.com/')) {
-      // 保存微信链接信息，稍后处理
-      wechatLinks.push({ text, url });
-      // 返回一个唯一标记，后续会被替换
-      return `__WECHAT_LINK_${wechatLinks.length - 1}__`;
-    }
-    
-    // 处理其他Markdown链接
-    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">${text}</a>`;
-  });
-
-  // 匹配普通URL
+  // 匹配 http 或 https 链接
   const urlPattern = /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g;
-  processedContent = processedContent.replace(urlPattern, (url) => {
-    // 检查是否是特殊链接
+  return content.replace(urlPattern, (url) => {
+    // 检查是否是特殊链接（YouTube、Bilibili、GitHub、网易云音乐）
     for (const pattern of Object.values(LINK_PATTERNS)) {
       if (pattern.test(url)) {
         return url; // 如果是特殊链接，保持原样，让 parseSpecialLinks 处理
       }
     }
-    
-    // 检查是否是微信公众号链接
-    if (url.startsWith('https://mp.weixin.qq.com/') || url.startsWith('http://mp.weixin.qq.com/')) {
-      // 保存微信链接信息，稍后处理
-      wechatLinks.push({ text: '微信公众号文章', url });
-      // 返回一个唯一标记，后续会被替换
-      return `__WECHAT_LINK_${wechatLinks.length - 1}__`;
-    }
-    
     // 普通链接转换为可点击的链接
     return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">${url}</a>`;
   });
+}
 
-  // 替换所有微信公众号链接为卡片样式
-  wechatLinks.forEach((link, index) => {
-    const placeholder = `__WECHAT_LINK_${index}__`;
-    const wechatCard = `
-      <div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
-        <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.295.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
-        </svg>
-        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex-1 truncate">
-          ${link.text}
-        </a>
-      </div>
-    `;
-    processedContent = processedContent.replace(placeholder, wechatCard);
-  });
-  
-  return processedContent;
+// 获取网页标题
+async function fetchPageTitle(url) {
+  try {
+    console.log('获取页面标题:', url);
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml'
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`获取页面失败: ${response.status}`);
+    }
+    
+    const html = await response.text();
+    const titleMatch = html.match(/<title[^>]*>(.*?)<\/title>/i);
+    
+    if (titleMatch && titleMatch[1]) {
+      // 清理标题文本
+      let title = titleMatch[1].trim();
+      // 移除特殊字符和HTML实体
+      title = title.replace(/&[a-zA-Z0-9#]+;/g, ' ').replace(/\s+/g, ' ');
+      return title;
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('获取页面标题失败:', error);
+    return null;
+  }
 }
 
 // 解析特殊链接
@@ -246,15 +149,11 @@ async function parseSpecialLinks(content, c) {
   let parsedContent = content;
   const placeholders = {};
   let placeholderIndex = 0;
-  
+  const fetchPromises = [];
+
   // 使用占位符替换特殊链接，避免嵌套替换问题
   function replaceWithPlaceholder(pattern, replacer) {
     parsedContent = parsedContent.replace(pattern, (match, ...args) => {
-      // 跳过已处理的微信公众号链接
-      if (match.includes('__WECHAT_LINK_')) {
-        return match;
-      }
-      
       const placeholder = `__SPECIAL_LINK_PLACEHOLDER_${placeholderIndex}__`;
       placeholders[placeholder] = { match, args, replacer };
       placeholderIndex++;
@@ -355,7 +254,59 @@ async function parseSpecialLinks(content, c) {
       </div>
     `;
   });
-  
+
+  // 微信公众号文章
+  replaceWithPlaceholder(LINK_PATTERNS.wechat, (match) => {
+    // 创建一个异步操作来获取标题
+    const fetchPromise = (async () => {
+      let title = "微信公众号文章";
+      try {
+        // 尝试获取页面标题
+        const pageTitle = await fetchPageTitle(match);
+        if (pageTitle) {
+          title = pageTitle;
+        }
+      } catch (e) {
+        console.error('解析微信文章标题失败:', e);
+      }
+      
+      return `
+        <div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
+          </svg>
+          <a href="${match}" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors flex-1 truncate">
+            ${title}
+          </a>
+        </div>
+      `;
+    })();
+    
+    fetchPromises.push({
+      placeholder: `__SPECIAL_LINK_PLACEHOLDER_${placeholderIndex - 1}__`,
+      promise: fetchPromise
+    });
+    
+    // 返回一个临时占位符，后续会被替换
+    return "FETCHING_TITLE_PLACEHOLDER";
+  });
+
+  // 等待所有微信公众号标题获取完成
+  if (fetchPromises.length > 0) {
+    try {
+      const results = await Promise.all(fetchPromises.map(item => item.promise));
+      
+      // 替换所有动态获取的内容
+      for (let i = 0; i < fetchPromises.length; i++) {
+        const placeholder = fetchPromises[i].placeholder;
+        delete placeholders[placeholder]; // 移除原始占位符
+        placedContent = parsedContent.replace(placeholder, results[i]);
+      }
+    } catch (error) {
+      console.error('获取微信标题时发生错误:', error);
+    }
+  }
+
   // 将所有剩余的占位符替换回实际内容
   Object.keys(placeholders).forEach(placeholder => {
     const { match, args, replacer } = placeholders[placeholder];
@@ -374,15 +325,9 @@ async function renderMemo(memo, isHomePage = false, c) {
     const date = formatTime(timestamp)
     
     const content = memo.content || ''
-    
-    // 首先将Markdown转换为HTML
-    const htmlContent = parseMarkdown(content)
-    
-    // 然后进行标签和链接解析
-    const { parsedContent: contentWithTags } = parseTags(htmlContent)
+    const { parsedContent: contentWithTags } = parseTags(content)
     const contentWithLinks = parseLinks(contentWithTags)
     const parsedContent = await parseSpecialLinks(contentWithLinks, c)
-    
     const resources = memo.resources || memo.resourceList || []
     
     let resourcesHtml = ''
