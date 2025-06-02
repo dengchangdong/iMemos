@@ -15,7 +15,9 @@ const LINK_PATTERNS = {
   youtube: /https:\/\/www\.youtube\.com\/watch\?v=([a-zA-Z0-9]{11})/g,
   bilibili: /https:\/\/www\.bilibili\.com\/video\/((av\d{1,10})|(BV\w{10}))\/?/g,
   neteaseMusic: /https:\/\/music\.163\.com\/.*id=(\d+)/g,
-  github: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/g
+  github: /https:\/\/github\.com\/([^\/]+\/[^\/]+)/g,
+  douyin: /https?:\/\/(www\.)?douyin\.com\/video\/([0-9]+)/g,
+  tiktok: /https?:\/\/(www\.)?tiktok\.com\/@.+\/video\/([0-9]+)/g
 }
 
 // 错误处理中间件
@@ -133,7 +135,37 @@ function parseSpecialLinks(content) {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
-          src="https://www.bilibili.com/blackboard/html5mobileplayer.html?bvid=${videoId}&as_wide=1&high_quality=1&danmaku=0" 
+          src="https://player.bilibili.com/player.html?bvid=${videoId}" 
+          class="w-full aspect-video"
+          scrolling="no" 
+          frameborder="no" 
+          allowfullscreen>
+        </iframe>
+      </div>
+    `
+  })
+
+  // 抖音视频
+  parsedContent = parsedContent.replace(LINK_PATTERNS.douyin, (match, p1, videoId) => {
+    return `
+      <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <iframe 
+          src="https://www.douyin.com/embed/${videoId}" 
+          class="w-full aspect-video"
+          scrolling="no" 
+          frameborder="no" 
+          allowfullscreen>
+        </iframe>
+      </div>
+    `
+  })
+
+  // TikTok 视频
+  parsedContent = parsedContent.replace(LINK_PATTERNS.tiktok, (match, p1, videoId) => {
+    return `
+      <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <iframe 
+          src="https://www.tiktok.com/embed/v2/${videoId}" 
           class="w-full aspect-video"
           scrolling="no" 
           frameborder="no" 
@@ -618,11 +650,11 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             closeBtn.innerHTML = '<i class="ti ti-x"></i>';
             
             const prevBtn = document.createElement('button');
-            prevBtn.className = 'absolute -left-16 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
+            prevBtn.className = 'absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800/50 hover:bg-gray-700/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors';
             prevBtn.innerHTML = '<i class="ti ti-chevron-left"></i>';
             
             const nextBtn = document.createElement('button');
-            nextBtn.className = 'absolute -right-16 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-12 h-12 flex items-center justify-center transition-colors';
+            nextBtn.className = 'absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800/50 hover:bg-gray-700/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors';
             nextBtn.innerHTML = '<i class="ti ti-chevron-right"></i>';
             
             modalContent.appendChild(modalImg);
