@@ -217,16 +217,7 @@ const markdownRenderer = {
     // 处理链接 - 排除微信链接（由特殊链接处理器处理）
     html = html.replace(CONFIG.REGEX.MD_LINK, (match, text, url) => {
       // 保持URL原样，不对特殊字符进行转义
-      // 特殊字符处理：防止链接中的特殊字符被错误解析
-      // 只替换HTML特殊字符，保留URL中的其他特殊字符
-      const safeUrl = url
-        .replace(/&(?!amp;|lt;|gt;|quot;|#39;)/g, '&amp;')
-        .replace(/%3C/g, '<')
-        .replace(/%3E/g, '>')
-        .replace(/%3Cem%3E/g, '*')
-        .replace(/%3C\/em%3E/g, '*');
-      
-      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${text}</a>`;
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${text}</a>`;
     });
     
     // 处理标签
@@ -236,17 +227,7 @@ const markdownRenderer = {
     
     // 处理普通URL - 避免处理已经在标签内的URL
     html = html.replace(/(^|[^"=])(https?:\/\/(?!mp\.weixin\.qq\.com)[^\s<]+[^<.,:;"')\]\s])/g, (match, prefix, url) => {
-      // 修复URL中可能被错误转义的特殊字符
-      const safeUrl = url
-        .replace(/%3Cem%3E/g, '*')
-        .replace(/%3C\/em%3E/g, '*')
-        .replace(/&lt;/g, '<')
-        .replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"')
-        .replace(/&#39;/g, "'")
-        .replace(/&(?!amp;|lt;|gt;|quot;|#39;)/g, '&amp;');
-      
-      return `${prefix}<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${url}</a>`;
+      return `${prefix}<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${url}</a>`;
     });
     
     // 正确处理段落，将单个换行符转换为<br>，将多个换行符转换为段落分隔
@@ -293,22 +274,7 @@ const markdownRenderer = {
         processedMarker[markerId] = true;
         
         try {
-          // 修复URL中可能被错误转义的特殊字符
-          const fixedArgs = args.map(arg => {
-            if (typeof arg === 'string') {
-              return arg
-                .replace(/%3Cem%3E/g, '*')
-                .replace(/%3C\/em%3E/g, '*')
-                .replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>')
-                .replace(/&quot;/g, '"')
-                .replace(/&#39;/g, "'")
-                .replace(/&amp;/g, '&');
-            }
-            return arg;
-          });
-          
-          return linkProcessor(match, ...fixedArgs);
+          return linkProcessor(match, ...args);
         } catch (error) {
           console.error('链接处理错误:', error, match, args);
           return match;
@@ -335,24 +301,9 @@ const markdownRenderer = {
         processedMarker[markerId] = true;
         
         try {
-          // 修复URL中可能被错误转义的特殊字符
-          const fixedArgs = args.map(arg => {
-            if (typeof arg === 'string') {
-              return arg
-                .replace(/%3Cem%3E/g, '*')
-                .replace(/%3C\/em%3E/g, '*')
-                .replace(/&lt;/g, '<')
-                .replace(/&gt;/g, '>')
-                .replace(/&quot;/g, '"')
-                .replace(/&#39;/g, "'")
-                .replace(/&amp;/g, '&');
-            }
-            return arg;
-          });
-          
           // 取出正则表达式捕获的值用于生成嵌入源
           const embedSrc = typeof createEmbedHTML.embedSrc === 'function' 
-            ? createEmbedHTML.embedSrc(match, ...fixedArgs) 
+            ? createEmbedHTML.embedSrc(match, ...args) 
             : '';
           
           // 检查是否已经嵌入
@@ -367,7 +318,13 @@ const markdownRenderer = {
             return match;
           }
           
-          return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+          // 抖音视频需要特殊的容器样式
+          const isDouyin = embedSrc.includes('open.douyin.com');
+          const containerClass = isDouyin 
+            ? `${CONFIG.CSS.EMBED_CONTAINER} douyin-container` 
+            : CONFIG.CSS.EMBED_CONTAINER;
+          
+          return utils.createHtml`<div class="${containerClass}">
             <iframe src="${embedSrc}" 
                     ${createEmbedHTML.attributes || ''}
                     loading="lazy"></iframe>
@@ -436,7 +393,7 @@ const markdownRenderer = {
         }
         return `https://open.douyin.com/player/video?vid=${finalVideoId}&autoplay=0`;
       },
-      attributes: 'class="w-full" style="aspect-ratio: 0.4821;" scrolling="no" frameborder="no" allowfullscreen referrerpolicy="unsafe-url"'
+      attributes: 'style="aspect-ratio: .4821; width: min(324px, 100%); margin: auto;" scrolling="no" frameborder="no" allowfullscreen referrerpolicy="unsafe-url"'
     });
     
     // 处理TikTok视频
@@ -483,19 +440,8 @@ const markdownRenderer = {
       return '';
     }
     
-    // 清理URL中被错误转义的特殊字符
-    url = url
-      // 修复转义后的特殊字符
-      .replace(/%3Cem%3E/g, '*')
-      .replace(/%3C\/em%3E/g, '*')
-      // 修复HTML实体
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-      .replace(/&amp;/g, '&');
-    
-    // 处理XSS风险
+    // 确保URL是安全的，但不进行HTML实体编码
+    // 仅过滤掉可能导致XSS的尖括号和引号
     url = url.replace(/[<>"']/g, match => {
       switch (match) {
         case '<': return '%3C';
@@ -734,6 +680,20 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
 
           .dark .prose {
             color: #E5E7EB;
+          }
+
+          /* 抖音视频容器样式 */
+          .douyin-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 100%;
+            margin: 1rem auto;
+          }
+          
+          .douyin-container iframe {
+            max-width: 100%;
+            border-radius: 8px;
           }
 
           .image-modal {
