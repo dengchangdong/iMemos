@@ -16,7 +16,7 @@ const CONFIG = {
     BILIBILI: /https?:\/\/(?:www\.)?bilibili\.com\/video\/(?:(av\d+)|(BV[a-zA-Z0-9]+))(?:[/?].+)?/,
     NETEASE: /https?:\/\/music\.163\.com\/(?:#\/)?song\?id=(\d+)(?:[&?].+)?/,
     GITHUB: /https?:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)(?:\/)?(?:[#?].+)?/,
-    DOUYIN: /https?:\/\/(?:www\.|v\.)?douyin\.com\/(?:video\/([0-9]+)|([a-zA-Z0-9_-]+))(?:[?#].+)?/,
+    DOUYIN: /https?:\/\/(?:www\.)?douyin\.com\/(?:video\/([0-9]+)|.*vid=([0-9]+))(?:[?#].+)?/,
     TIKTOK: /https?:\/\/(?:www\.)?tiktok\.com\/@[^\/]+\/video\/([0-9]+)(?:[?#].+)?/,
     WECHAT: /https?:\/\/mp\.weixin\.qq\.com\/[^\s<"']+/,
     WECHAT_MD: /\[([^\]]+)\]\((https?:\/\/mp\.weixin\.qq\.com\/[^)]+)\)/,
@@ -210,14 +210,13 @@ const markdownRenderer = {
     html = html.replace(CONFIG.REGEX.MD_ITALIC, '<em>$1</em>');
     
     // 处理图片 - 添加懒加载和预览支持
-    html = html.replace(CONFIG.REGEX.MD_IMAGE, (match, alt, src) => {
-      // 保持原始URL，不进行额外转义
-      return `<img src="${src}" alt="${alt || ''}" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />`;
-    });
+    html = html.replace(CONFIG.REGEX.MD_IMAGE, 
+      '<img src="$2" alt="$1" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />'
+    );
     
     // 处理链接 - 排除微信链接（由特殊链接处理器处理）
     html = html.replace(CONFIG.REGEX.MD_LINK, (match, text, url) => {
-      // 保持原始URL，不进行额外转义
+      // 保持URL原样，不对特殊字符进行转义
       return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${text}</a>`;
     });
     
@@ -228,7 +227,6 @@ const markdownRenderer = {
     
     // 处理普通URL - 避免处理已经在标签内的URL
     html = html.replace(/(^|[^"=])(https?:\/\/(?!mp\.weixin\.qq\.com)[^\s<]+[^<.,:;"')\]\s])/g, (match, prefix, url) => {
-      // 保持原始URL，不进行额外转义
       return `${prefix}<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${url}</a>`;
     });
     
@@ -267,11 +265,8 @@ const markdownRenderer = {
           return match;
         }
         
-        // 安全地检查链接是否已在a标签内
-        // 转义特殊字符，但保持原始URL的功能
-        const escapedMatch = match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const linkRegex = new RegExp(`href=["']${escapedMatch}["']`);
-        if (linkRegex.test(html)) {
+        // 检查链接是否已在a标签内
+        if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html)) {
           return match;
         }
         
@@ -383,20 +378,16 @@ const markdownRenderer = {
     
     // 处理抖音视频
     html = processMediaEmbed(CONFIG.REGEX.DOUYIN, {
-      embedSrc: function(match, videoId, shortCode) {
-        // 处理短链接格式
-        if (shortCode && typeof shortCode === 'string') {
-          // 如果是短链接，直接使用完整的原始URL
-          return `https://www.douyin.com/iframe/?sec_user_id=MS4wLjABAAAAsJ0xsLVkzdhzZSXaOvCm7UrQBtNkPfQYjwGJFpZ4_8E&embed_source=video_detail&embed_type=video&video_url=${encodeURIComponent(match)}`;
+      embedSrc: function(match, videoId, vidParam) {
+        // 使用视频ID或vid参数
+        const finalVideoId = videoId || vidParam;
+        if (!finalVideoId || typeof finalVideoId !== 'string') {
+          console.error('无效的抖音视频ID:', match);
+          return '';
         }
-        // 处理标准视频ID格式
-        else if (videoId && typeof videoId === 'string') {
-          return `https://www.douyin.com/embed/${videoId}?autoplay=0`;
-        }
-        
-        return '';
+        return `https://open.douyin.com/player/video?vid=${finalVideoId}&autoplay=0`;
       },
-      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
+      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen referrerpolicy="unsafe-url"'
     });
     
     // 处理TikTok视频
@@ -443,8 +434,18 @@ const markdownRenderer = {
       return '';
     }
     
-    // 不对URL进行额外转义，直接使用原始URL
-    // 只对标题进行安全处理
+    // 确保URL是安全的，但不进行HTML实体编码
+    // 仅过滤掉可能导致XSS的尖括号和引号
+    url = url.replace(/[<>"']/g, match => {
+      switch (match) {
+        case '<': return '%3C';
+        case '>': return '%3E';
+        case '"': return '%22';
+        case "'": return '%27';
+        default: return match;
+      }
+    });
+    
     title = title.replace(/[<>"']/g, '');
     
     return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
@@ -870,7 +871,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </button>
 
         <script>
-          // Service Worker注册
+          // 注册Service Worker
           if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
               navigator.serviceWorker.register('/sw.js')
@@ -878,7 +879,7 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   console.log('Service Worker 注册成功:', registration.scope);
                 })
                 .catch(error => {
-                  console.log('Service Worker 注册失败:', error);
+                  console.error('Service Worker 注册失败:', error);
                 });
             });
           }
@@ -1279,11 +1280,116 @@ app.get('/', routes.home);
 app.get('/post/:name', routes.post);
 app.get('/tag/:tag', routes.tag);
 app.get('/api/v1/memo', routes.api);
-app.get('/sw.js', c => {
-  return c.file('src/sw.js', {
+
+// Service Worker相关路由
+app.get('/sw.js', (c) => {
+  return new Response(
+    c.env.ASSETS.fetch(new Request('https://memos-themes.pages.dev/sw.js')), 
+    {
+      headers: {
+        'Content-Type': 'application/javascript',
+        'Cache-Control': 'no-cache'
+      }
+    }
+  );
+});
+
+// 离线页面
+app.get('/offline.html', (c) => {
+  return new Response(`
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>离线 - ${c.env.SITE_NAME || '博客'}</title>
+      <style>
+        body {
+          font-family: system-ui, -apple-system, sans-serif;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+          padding: 20px;
+          text-align: center;
+          color: #333;
+          background-color: #f9fafb;
+        }
+        .container {
+          max-width: 500px;
+        }
+        h1 {
+          font-size: 24px;
+          margin-bottom: 16px;
+          color: #1f2937;
+        }
+        p {
+          font-size: 16px;
+          line-height: 1.6;
+          margin-bottom: 24px;
+          color: #4b5563;
+        }
+        .icon {
+          font-size: 48px;
+          margin-bottom: 24px;
+          color: #6b7280;
+        }
+        .btn {
+          display: inline-block;
+          background-color: #3b82f6;
+          color: white;
+          padding: 10px 20px;
+          border-radius: 6px;
+          text-decoration: none;
+          font-weight: 500;
+          transition: background-color 0.2s;
+        }
+        .btn:hover {
+          background-color: #2563eb;
+        }
+        @media (prefers-color-scheme: dark) {
+          body {
+            background-color: #111827;
+            color: #e5e7eb;
+          }
+          h1 {
+            color: #f9fafb;
+          }
+          p {
+            color: #d1d5db;
+          }
+          .icon {
+            color: #9ca3af;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="icon">📶</div>
+        <h1>您当前处于离线状态</h1>
+        <p>无法加载新内容。请检查您的网络连接并重试。</p>
+        <a href="/" class="btn">刷新页面</a>
+      </div>
+    </body>
+    </html>
+  `, {
     headers: {
-      'Content-Type': 'application/javascript',
-      'Service-Worker-Allowed': '/'
+      'Content-Type': 'text/html;charset=UTF-8',
+      'Cache-Control': 'public, max-age=2592000'
+    }
+  });
+});
+
+// 离线图片占位符
+app.get('/offline-image.png', (c) => {
+  // 提供简单的Base64编码的1x1像素透明PNG作为占位符
+  const transparentPixel = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  return new Response(Buffer.from(transparentPixel, 'base64'), {
+    headers: {
+      'Content-Type': 'image/png',
+      'Cache-Control': 'public, max-age=2592000'
     }
   });
 });
