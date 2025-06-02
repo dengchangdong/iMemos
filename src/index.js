@@ -208,108 +208,84 @@ const markdownRenderer = {
   // 处理特殊链接 - 高效精简实现
   processSpecialLinks(html) {
     // 对于已经处理过的HTML内容，直接返回，避免重复处理
-    if (html.includes('iframe') || html.includes('class="embed-container"')) {
+    if (html.includes('<iframe') || html.includes('class="embed-container"')) {
       return html;
     }
     
-    // 使用临时包装处理
-    const tempContent = `<div id="temp-content">${html}</div>`;
-    
-    // 微信公众号链接处理（Markdown格式）- 卡片式展示
-    let result = tempContent.replace(CONFIG.REGEX.WECHAT_MD, (match, title, url) => this.createWechatCard(url, title));
-    
-    // 处理非Markdown格式的微信公众号链接
-    result = result.replace(CONFIG.REGEX.WECHAT, (match) => {
-      // 检查链接是否已被处理（在a标签内）
-      if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(result)) {
-        return match;
-      }
-      return this.createWechatCard(match);
-    });
-    
-    // 处理各类媒体嵌入 - 确保只处理原始链接，不处理已嵌入的内容
-    result = this.embedMedia(result);
-    
-    // 移除临时容器
-    return result.replace('<div id="temp-content">', '').replace('</div>', '');
-  },
-  
-  // 嵌入各种媒体内容 - 优化处理逻辑，避免重复处理
-  embedMedia(html) {
-    // 对各类特殊链接进行处理
-    let processedHtml = html;
-    
-    // 安全检查函数 - 确认链接未被处理过
-    const isLinkProcessed = (link) => {
-      // 检查链接是否在标签内
-      const escapedLink = link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      return new RegExp(`href=["']${escapedLink}["']`).test(processedHtml) || 
-             processedHtml.includes(`src="${link}"`) ||
-             processedHtml.includes(link.replace('http:', ''));
+    // 统一的链接处理函数
+    const processLink = (regex, linkProcessor) => {
+      html = html.replace(new RegExp(regex.source, 'g'), (...args) => {
+        const match = args[0];
+        // 检查链接是否已在a标签内
+        if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html)) {
+          return match;
+        }
+        return linkProcessor(...args);
+      });
+      return html;
     };
     
-    // YouTube视频嵌入 - 使用预编译正则
-    processedHtml = processedHtml.replace(new RegExp(CONFIG.REGEX.YOUTUBE.source, 'g'), (match, videoId) => {
-      if (isLinkProcessed(match)) return match;
-      
-      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
-        <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=0" 
-                class="w-full aspect-video" frameborder="0" 
-                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen loading="lazy"></iframe>
-      </div>`;
+    // 媒体嵌入处理函数
+    const processMediaEmbed = (regex, createEmbedHTML) => {
+      html = html.replace(new RegExp(regex.source, 'g'), (...args) => {
+        const match = args[0];
+        const embedSrc = createEmbedHTML.embedSrc(...args);
+        
+        // 检查是否已经嵌入
+        if (html.includes(`src="${embedSrc}"`) || html.includes(`src="${embedSrc.replace('http:', '')}"`)) {
+          return match;
+        }
+        
+        return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
+          <iframe src="${embedSrc}" 
+                  ${createEmbedHTML.attributes || ''}
+                  loading="lazy"></iframe>
+        </div>`;
+      });
+      return html;
+    };
+    
+    // 微信公众号链接处理（Markdown格式）
+    html = processLink(CONFIG.REGEX.WECHAT_MD, (match, title, url) => this.createWechatCard(url, title));
+    
+    // 处理非Markdown格式的微信公众号链接
+    html = processLink(CONFIG.REGEX.WECHAT, (match) => this.createWechatCard(match));
+    
+    // 处理YouTube视频
+    html = processMediaEmbed(CONFIG.REGEX.YOUTUBE, {
+      embedSrc: (match, videoId) => `https://www.youtube.com/embed/${videoId}?autoplay=0`,
+      attributes: 'class="w-full aspect-video" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen'
     });
     
-    // Bilibili视频嵌入 - 使用预编译正则
-    processedHtml = processedHtml.replace(new RegExp(CONFIG.REGEX.BILIBILI.source, 'g'), (match, bvid) => {
-      if (isLinkProcessed(match)) return match;
-      
-      const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
-      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
-        <iframe src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0" 
-                class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen
-                sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
-                referrerpolicy="no-referrer" loading="lazy"></iframe>
-      </div>`;
+    // 处理Bilibili视频
+    html = processMediaEmbed(CONFIG.REGEX.BILIBILI, {
+      embedSrc: (match, bvid) => {
+        const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
+        return `https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0`;
+      },
+      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups" referrerpolicy="no-referrer"'
     });
     
-    // 抖音视频嵌入 - 使用预编译正则
-    processedHtml = processedHtml.replace(new RegExp(CONFIG.REGEX.DOUYIN.source, 'g'), (match, p1, videoId) => {
-      if (isLinkProcessed(match)) return match;
-      
-      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
-        <iframe src="https://www.douyin.com/embed/${videoId}?autoplay=0" 
-                class="w-full aspect-video" scrolling="no" frameborder="no" 
-                allowfullscreen loading="lazy"></iframe>
-      </div>`;
+    // 处理抖音视频
+    html = processMediaEmbed(CONFIG.REGEX.DOUYIN, {
+      embedSrc: (match, p1, videoId) => `https://www.douyin.com/embed/${videoId}?autoplay=0`,
+      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
     });
     
-    // TikTok视频嵌入 - 使用预编译正则
-    processedHtml = processedHtml.replace(new RegExp(CONFIG.REGEX.TIKTOK.source, 'g'), (match, p1, videoId) => {
-      if (isLinkProcessed(match)) return match;
-      
-      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
-        <iframe src="https://www.tiktok.com/embed/v2/${videoId}?autoplay=0" 
-                class="w-full aspect-video" scrolling="no" frameborder="no" 
-                allowfullscreen loading="lazy"></iframe>
-      </div>`;
+    // 处理TikTok视频
+    html = processMediaEmbed(CONFIG.REGEX.TIKTOK, {
+      embedSrc: (match, p1, videoId) => `https://www.tiktok.com/embed/v2/${videoId}?autoplay=0`,
+      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
     });
     
-    // 网易云音乐嵌入 - 使用预编译正则
-    processedHtml = processedHtml.replace(new RegExp(CONFIG.REGEX.NETEASE.source, 'g'), (match, songId) => {
-      if (isLinkProcessed(match)) return match;
-      
-      return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
-        <iframe src="//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66" 
-                class="w-full h-[86px]" frameborder="no" border="0" 
-                marginwidth="0" marginheight="0" loading="lazy"></iframe>
-      </div>`;
+    // 处理网易云音乐
+    html = processMediaEmbed(CONFIG.REGEX.NETEASE, {
+      embedSrc: (match, songId) => `//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66`,
+      attributes: 'class="w-full h-[86px]" frameborder="no" border="0" marginwidth="0" marginheight="0"'
     });
     
-    // GitHub仓库卡片 - 使用预编译正则
-    processedHtml = processedHtml.replace(new RegExp(CONFIG.REGEX.GITHUB.source, 'g'), (match, repo) => {
-      if (isLinkProcessed(match)) return match;
-      
+    // 处理GitHub仓库
+    html = processLink(CONFIG.REGEX.GITHUB, (match, repo) => {
       return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
         <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -320,7 +296,7 @@ const markdownRenderer = {
       </div>`;
     });
     
-    return processedHtml;
+    return html;
   },
   
   // 创建微信公众号卡片
