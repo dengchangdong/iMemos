@@ -16,7 +16,7 @@ const CONFIG = {
     BILIBILI: /https?:\/\/(?:www\.)?bilibili\.com\/video\/(?:(av\d+)|(BV[a-zA-Z0-9]+))(?:[/?].+)?/,
     NETEASE: /https?:\/\/music\.163\.com\/(?:#\/)?song\?id=(\d+)(?:[&?].+)?/,
     GITHUB: /https?:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)(?:\/)?(?:[#?].+)?/,
-    DOUYIN: /https?:\/\/(?:www\.|v\.)?douyin\.com\/([^\/\s]+)/,
+    DOUYIN: /https?:\/\/(?:www\.|v\.)?douyin\.com\/(?:video\/([0-9]+)|([a-zA-Z0-9_-]+))(?:[?#].+)?/,
     TIKTOK: /https?:\/\/(?:www\.)?tiktok\.com\/@[^\/]+\/video\/([0-9]+)(?:[?#].+)?/,
     WECHAT: /https?:\/\/mp\.weixin\.qq\.com\/[^\s<"']+/,
     WECHAT_MD: /\[([^\]]+)\]\((https?:\/\/mp\.weixin\.qq\.com\/[^)]+)\)/,
@@ -94,41 +94,9 @@ const utils = {
     }).replace(/\//g, '-')
   },
   
-  // 创建HTML元素（用于模板）- 不自动转义特殊字符
+  // 创建HTML元素（用于模板）
   createHtml(strings, ...values) {
-    return strings.reduce((result, string, i) => {
-      // 检查是否为URL属性
-      const isUrlAttribute = 
-        string.match(/href=["']$/) || 
-        string.match(/src=["']$/) || 
-        string.match(/url\(["']?$/i);
-      
-      // 如果是URL属性，不要转义值
-      const value = i < values.length ? 
-        (isUrlAttribute ? values[i] : this.sanitizeValue(values[i])) : '';
-      
-      return result + string + value;
-    }, '');
-  },
-  
-  // 安全处理值 - 仅在必要时转义
-  sanitizeValue(value) {
-    if (value === null || value === undefined) {
-      return '';
-    }
-    
-    // 如果是数字，布尔值或已经是HTML安全的字符串，直接返回
-    if (typeof value === 'number' || typeof value === 'boolean') {
-      return String(value);
-    }
-    
-    // 字符串需要转义
-    if (typeof value === 'string') {
-      return this.escapeHtml(value);
-    }
-    
-    // 对象、数组等转换为字符串
-    return this.escapeHtml(String(value));
+    return String.raw({ raw: strings }, ...values);
   }
 }
 
@@ -211,7 +179,7 @@ const markdownRenderer = {
     
     // 代码块（保留原始缩进）
     html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => 
-      `<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-${lang || 'plaintext'}">${utils.escapeHtml(code)}</code></pre>`
+      utils.createHtml`<pre class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-${lang || 'plaintext'}">${utils.escapeHtml(code)}</code></pre>`
     );
     
     // 行内代码
@@ -243,14 +211,14 @@ const markdownRenderer = {
     
     // 处理图片 - 添加懒加载和预览支持
     html = html.replace(CONFIG.REGEX.MD_IMAGE, (match, alt, src) => {
-      // 不使用utils.createHtml以避免URL转义
-      return `<img src="${src}" alt="${utils.escapeHtml(alt || '')}" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />`;
+      // 保持原始URL，不进行额外转义
+      return `<img src="${src}" alt="${alt || ''}" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />`;
     });
     
     // 处理链接 - 排除微信链接（由特殊链接处理器处理）
     html = html.replace(CONFIG.REGEX.MD_LINK, (match, text, url) => {
-      // 不使用utils.createHtml以避免URL转义
-      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${utils.escapeHtml(text)}</a>`;
+      // 保持原始URL，不进行额外转义
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${text}</a>`;
     });
     
     // 处理标签
@@ -260,7 +228,7 @@ const markdownRenderer = {
     
     // 处理普通URL - 避免处理已经在标签内的URL
     html = html.replace(/(^|[^"=])(https?:\/\/(?!mp\.weixin\.qq\.com)[^\s<]+[^<.,:;"')\]\s])/g, (match, prefix, url) => {
-      // 不使用utils.createHtml以避免URL转义
+      // 保持原始URL，不进行额外转义
       return `${prefix}<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${url}</a>`;
     });
     
@@ -415,15 +383,18 @@ const markdownRenderer = {
     
     // 处理抖音视频
     html = processMediaEmbed(CONFIG.REGEX.DOUYIN, {
-      embedSrc: function(match, shortCode) {
-        if (!shortCode || typeof shortCode !== 'string') {
-          return '';
+      embedSrc: function(match, videoId, shortCode) {
+        // 处理短链接格式
+        if (shortCode && typeof shortCode === 'string') {
+          // 如果是短链接，直接使用完整的原始URL
+          return `https://www.douyin.com/iframe/?sec_user_id=MS4wLjABAAAAsJ0xsLVkzdhzZSXaOvCm7UrQBtNkPfQYjwGJFpZ4_8E&embed_source=video_detail&embed_type=video&video_url=${encodeURIComponent(match)}`;
+        }
+        // 处理标准视频ID格式
+        else if (videoId && typeof videoId === 'string') {
+          return `https://www.douyin.com/embed/${videoId}?autoplay=0`;
         }
         
-        // 抖音短链接处理
-        // 对于v.douyin.com的短链接，直接使用code获取嵌入播放器
-        // 注意：不要尝试转义shortCode中的特殊字符
-        return `https://www.douyin.com/video/embed?code=${shortCode}`;
+        return '';
       },
       attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
     });
@@ -452,15 +423,12 @@ const markdownRenderer = {
     
     // 处理GitHub仓库
     html = processLink(CONFIG.REGEX.GITHUB, (match, repo) => {
-      // 不使用utils.createHtml，避免URL转义
-      const safeRepo = utils.escapeHtml(repo);
-      
-      return `<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+      return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
         <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
         </svg>
         <a href="${match}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">
-          ${safeRepo}
+          ${repo}
         </a>
       </div>`;
     });
@@ -475,16 +443,16 @@ const markdownRenderer = {
       return '';
     }
     
-    // 只对标题进行安全处理，URL保持原样
-    const safeTitle = utils.escapeHtml(title);
+    // 不对URL进行额外转义，直接使用原始URL
+    // 只对标题进行安全处理
+    title = title.replace(/[<>"']/g, '');
     
-    // 不使用utils.createHtml，避免URL转义
-    return `<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+    return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
       <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
         <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.295.295a.328.328 0 00.166-.054l1.9-1.106a.598.598 0 01.504-.042 10.284 10.284 0 003.055.462c.079 0 .158-.001.237-.003a3.57 3.57 0 00-.213-1.88 7.354 7.354 0 01-4.53-6.924c0-3.195 2.738-5.766 6.278-5.951h.043l.084-.001c.079 0 .158 0 .237.003 3.738.186 6.705 2.875 6.705 6.277 0 3.073-2.81 5.597-6.368 5.806a.596.596 0 00-.212.043c-.09.019-.166.07-.237.117h-.036c-.213 0-.416-.036-.618-.073l-.6-.083a.71.71 0 00-.213-.035 1.897 1.897 0 00-.59.095l-1.208.581a.422.422 0 01-.16.036c-.164 0-.295-.13-.295-.295 0-.059.019-.118.037-.165l.075-.188.371-.943c.055-.14.055-.295-.018-.413a3.68 3.68 0 01-.96-1.823c-.13-.414-.206-.846-.213-1.278a3.75 3.75 0 01.891-2.431c-.002 0-.002-.001-.003-.004a5.7 5.7 0 01-.493.046c-.055.003-.11.004-.165.004-4.801 0-8.691-3.288-8.691-7.345 0-4.056 3.89-7.346 8.691-7.346M18.3 15.342a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496m-4.954 0a.496.496 0 01.496.496.509.509 0 01-.496.496.509.509 0 01-.497-.496.497.497 0 01.497-.496M23.999 17.33c0-3.15-3.043-5.73-6.786-5.943a7.391 7.391 0 00-.283-.004c-3.849 0-7.067 2.721-7.067 6.23 0 3.459 3.055 6.175 6.848 6.227.059.001.118.003.177.003a8.302 8.302 0 002.484-.377.51.51 0 01.426.035l1.59.93c.06.036.118.048.177.048.142 0 .26-.118.26-.26 0-.07-.018-.13-.048-.189l-.331-1.243a.515.515 0 01.178-.555c1.563-1.091 2.575-2.765 2.575-4.902"/>
       </svg>
       <a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK} flex-1 truncate">
-        ${safeTitle}
+        ${title}
       </a>
     </div>`;
   }
@@ -902,6 +870,19 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </button>
 
         <script>
+          // Service Worker注册
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js')
+                .then(registration => {
+                  console.log('Service Worker 注册成功:', registration.scope);
+                })
+                .catch(error => {
+                  console.log('Service Worker 注册失败:', error);
+                });
+            });
+          }
+          
           // 主题切换
           const themeBtn = document.querySelector('.theme-btn');
           const html = document.documentElement;
@@ -1298,5 +1279,13 @@ app.get('/', routes.home);
 app.get('/post/:name', routes.post);
 app.get('/tag/:tag', routes.tag);
 app.get('/api/v1/memo', routes.api);
+app.get('/sw.js', c => {
+  return c.file('src/sw.js', {
+    headers: {
+      'Content-Type': 'application/javascript',
+      'Service-Worker-Allowed': '/'
+    }
+  });
+});
 
 export default app 
