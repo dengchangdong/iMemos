@@ -210,24 +210,27 @@ const markdownRenderer = {
     html = html.replace(CONFIG.REGEX.MD_ITALIC, '<em>$1</em>');
     
     // 处理图片 - 添加懒加载和预览支持
-    html = html.replace(CONFIG.REGEX.MD_IMAGE, 
-      '<img src="$2" alt="$1" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />'
-    );
+    html = html.replace(CONFIG.REGEX.MD_IMAGE, (match, alt, src) => {
+      // 保持原始URL，不进行额外转义
+      return `<img src="${src}" alt="${alt || ''}" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />`;
+    });
     
     // 处理链接 - 排除微信链接（由特殊链接处理器处理）
-    html = html.replace(CONFIG.REGEX.MD_LINK, 
-      `<a href="$2" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">$1</a>`
-    );
+    html = html.replace(CONFIG.REGEX.MD_LINK, (match, text, url) => {
+      // 保持原始URL，不进行额外转义
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${text}</a>`;
+    });
     
     // 处理标签
-    html = html.replace(CONFIG.REGEX.TAG, 
-      `<a href="/tag/$1" class="${CONFIG.CSS.LINK}">#$1</a>`
-    );
+    html = html.replace(CONFIG.REGEX.TAG, (match, tag) => {
+      return `<a href="/tag/${tag}" class="${CONFIG.CSS.LINK}">#${tag}</a>`;
+    });
     
     // 处理普通URL - 避免处理已经在标签内的URL
-    html = html.replace(/(^|[^"=])(https?:\/\/(?!mp\.weixin\.qq\.com)[^\s<]+[^<.,:;"')\]\s])/g, 
-      `$1<a href="$2" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">$2</a>`
-    );
+    html = html.replace(/(^|[^"=])(https?:\/\/(?!mp\.weixin\.qq\.com)[^\s<]+[^<.,:;"')\]\s])/g, (match, prefix, url) => {
+      // 保持原始URL，不进行额外转义
+      return `${prefix}<a href="${url}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">${url}</a>`;
+    });
     
     // 正确处理段落，将单个换行符转换为<br>，将多个换行符转换为段落分隔
     const paragraphs = html.split('\n\n');
@@ -264,8 +267,11 @@ const markdownRenderer = {
           return match;
         }
         
-        // 检查链接是否已在a标签内
-        if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html)) {
+        // 安全地检查链接是否已在a标签内
+        // 转义特殊字符，但保持原始URL的功能
+        const escapedMatch = match.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+        const linkRegex = new RegExp(`href=["']${escapedMatch}["']`);
+        if (linkRegex.test(html)) {
           return match;
         }
         
@@ -410,12 +416,6 @@ const markdownRenderer = {
     
     // 处理GitHub仓库
     html = processLink(CONFIG.REGEX.GITHUB, (match, repo) => {
-      // 确保repo有效
-      if (!repo || typeof repo !== 'string') {
-        console.error('无效的GitHub仓库:', repo);
-        return match;
-      }
-      
       return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
         <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
@@ -436,8 +436,8 @@ const markdownRenderer = {
       return '';
     }
     
-    // 确保URL是安全的
-    url = url.replace(/[<>"']/g, '');
+    // 不对URL进行额外转义，直接使用原始URL
+    // 只对标题进行安全处理
     title = title.replace(/[<>"']/g, '');
     
     return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
