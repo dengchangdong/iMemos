@@ -291,7 +291,10 @@ const markdownRenderer = {
           return match;
         }
         
-        const embedSrc = createEmbedHTML.embedSrc(...args);
+        // 取出正则表达式捕获的值用于生成嵌入源
+        const embedSrc = typeof createEmbedHTML.embedSrc === 'function' 
+          ? createEmbedHTML.embedSrc(...args) 
+          : '';
         
         // 检查是否已经嵌入
         if (html.includes(`src="${embedSrc}"`) || 
@@ -301,6 +304,12 @@ const markdownRenderer = {
         
         // 标记为已处理
         processedMarker[markerId] = true;
+        
+        // 确保有有效的嵌入源
+        if (!embedSrc) {
+          console.error('无法生成嵌入源:', match);
+          return match;
+        }
         
         return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
           <iframe src="${embedSrc}" 
@@ -320,13 +329,15 @@ const markdownRenderer = {
     
     // 处理YouTube视频
     html = processMediaEmbed(CONFIG.REGEX.YOUTUBE, {
-      embedSrc: (match, videoId) => `https://www.youtube.com/embed/${videoId}?autoplay=0`,
+      embedSrc: function(match, videoId) {
+        return `https://www.youtube.com/embed/${videoId}?autoplay=0`;
+      },
       attributes: 'class="w-full aspect-video" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen'
     });
     
     // 处理Bilibili视频
     html = processMediaEmbed(CONFIG.REGEX.BILIBILI, {
-      embedSrc: (match, bvid) => {
+      embedSrc: function(match, bvid) {
         const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
         return `https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0`;
       },
@@ -335,19 +346,25 @@ const markdownRenderer = {
     
     // 处理抖音视频
     html = processMediaEmbed(CONFIG.REGEX.DOUYIN, {
-      embedSrc: (match, p1, videoId) => `https://www.douyin.com/embed/${videoId}?autoplay=0`,
+      embedSrc: function(match, p1, videoId) {
+        return `https://www.douyin.com/embed/${videoId}?autoplay=0`;
+      },
       attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
     });
     
     // 处理TikTok视频
     html = processMediaEmbed(CONFIG.REGEX.TIKTOK, {
-      embedSrc: (match, p1, videoId) => `https://www.tiktok.com/embed/v2/${videoId}?autoplay=0`,
+      embedSrc: function(match, p1, videoId) {
+        return `https://www.tiktok.com/embed/v2/${videoId}?autoplay=0`;
+      },
       attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
     });
     
     // 处理网易云音乐
     html = processMediaEmbed(CONFIG.REGEX.NETEASE, {
-      embedSrc: (match, songId) => `//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66`,
+      embedSrc: function(match, songId) {
+        return `//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66`;
+      },
       attributes: 'class="w-full h-[86px]" frameborder="no" border="0" marginwidth="0" marginheight="0"'
     });
     
