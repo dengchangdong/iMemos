@@ -115,19 +115,57 @@ const markdownRenderer = {
       return this.cache.get(cacheKey);
     }
     
+    // 检测是否需要处理特殊链接
+    const containsSpecialLinks = 
+      text.includes('youtube.com') || 
+      text.includes('bilibili.com') || 
+      text.includes('douyin.com') || 
+      text.includes('tiktok.com') || 
+      text.includes('music.163.com') || 
+      text.includes('github.com') || 
+      text.includes('mp.weixin.qq.com');
+    
     // 三步处理流程
     const markdown = this.ensureMarkdown(text);
-    const html = this.renderToHtml(markdown);
-    const withSpecialLinks = this.processSpecialLinks(html);
+    
+    // 先处理特殊链接再渲染Markdown (如果包含特殊链接)
+    let html;
+    if (containsSpecialLinks) {
+      // 先处理特殊链接，避免被Markdown渲染破坏
+      const preProcessed = this.processSpecialLinks(markdown);
+      // 再渲染Markdown
+      html = this.renderToHtml(preProcessed);
+    } else {
+      // 正常渲染Markdown
+      html = this.renderToHtml(markdown);
+      // 再处理特殊链接
+      html = this.processSpecialLinks(html);
+    }
     
     // 存入缓存
-    this.cache.set(cacheKey, withSpecialLinks);
-    return withSpecialLinks;
+    this.cache.set(cacheKey, html);
+    return html;
   },
   
   // 确保内容是Markdown格式
   ensureMarkdown(text) {
-    // 当前实现只是传递，未来可添加格式转换
+    // 识别文本是否已包含Markdown格式
+    const containsMarkdown = 
+      text.includes('# ') || 
+      text.includes('## ') || 
+      text.includes('### ') || 
+      text.includes('```') || 
+      text.includes('*') || 
+      text.includes('> ') ||
+      /\[.*\]\(.*\)/.test(text);
+    
+    // 如果已经是Markdown格式，直接返回
+    if (containsMarkdown) {
+      return text;
+    }
+    
+    // 否则尝试将纯文本转换为简单的Markdown
+    // 目前实现简单返回，未来可以添加自动格式化
     return text;
   },
   
@@ -208,33 +246,61 @@ const markdownRenderer = {
   // 处理特殊链接 - 高效精简实现
   processSpecialLinks(html) {
     // 对于已经处理过的HTML内容，直接返回，避免重复处理
-    if (html.includes('<iframe') || html.includes('class="embed-container"')) {
+    if (html.includes('<iframe') || html.includes('<div class="' + CONFIG.CSS.EMBED_CONTAINER + '">')) {
       return html;
     }
     
-    // 统一的链接处理函数
+    // 统一的链接处理函数 - 添加标记以防止重复处理
     const processLink = (regex, linkProcessor) => {
-      html = html.replace(new RegExp(regex.source, 'g'), (...args) => {
-        const match = args[0];
+      // 在处理前添加一个标记，防止重复处理同一链接
+      const processedMarker = {};
+      
+      html = html.replace(new RegExp(regex.source, 'g'), (match, ...args) => {
+        // 生成唯一ID来标记这个匹配
+        const markerId = match.slice(0, 20) + (args[0] || '');
+        
+        // 检查是否已处理过这个匹配
+        if (processedMarker[markerId]) {
+          return match;
+        }
+        
         // 检查链接是否已在a标签内
         if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html)) {
           return match;
         }
-        return linkProcessor(...args);
+        
+        // 标记为已处理
+        processedMarker[markerId] = true;
+        
+        return linkProcessor(match, ...args);
       });
       return html;
     };
     
-    // 媒体嵌入处理函数
+    // 媒体嵌入处理函数 - 添加标记以防止重复处理
     const processMediaEmbed = (regex, createEmbedHTML) => {
-      html = html.replace(new RegExp(regex.source, 'g'), (...args) => {
-        const match = args[0];
+      // 在处理前添加一个标记，防止重复处理同一链接
+      const processedMarker = {};
+      
+      html = html.replace(new RegExp(regex.source, 'g'), (match, ...args) => {
+        // 生成唯一ID来标记这个匹配
+        const markerId = match.slice(0, 20) + (args[0] || '');
+        
+        // 检查是否已处理过这个匹配
+        if (processedMarker[markerId]) {
+          return match;
+        }
+        
         const embedSrc = createEmbedHTML.embedSrc(...args);
         
         // 检查是否已经嵌入
-        if (html.includes(`src="${embedSrc}"`) || html.includes(`src="${embedSrc.replace('http:', '')}"`)) {
+        if (html.includes(`src="${embedSrc}"`) || 
+            html.includes(`src="${embedSrc.replace('http:', '')}"`)) {
           return match;
         }
+        
+        // 标记为已处理
+        processedMarker[markerId] = true;
         
         return utils.createHtml`<div class="${CONFIG.CSS.EMBED_CONTAINER}">
           <iframe src="${embedSrc}" 
@@ -242,6 +308,7 @@ const markdownRenderer = {
                   loading="lazy"></iframe>
         </div>`;
       });
+      
       return html;
     };
     
