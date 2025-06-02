@@ -113,30 +113,42 @@ function parseLinks(content) {
 
 // 解析特殊链接
 function parseSpecialLinks(content) {
-  let parsedContent = content
+  let parsedContent = content;
+  const placeholders = {};
+  let placeholderIndex = 0;
+
+  // 使用占位符替换特殊链接，避免嵌套替换问题
+  function replaceWithPlaceholder(pattern, replacer) {
+    parsedContent = parsedContent.replace(pattern, (match, ...args) => {
+      const placeholder = `__SPECIAL_LINK_PLACEHOLDER_${placeholderIndex}__`;
+      placeholders[placeholder] = replacer(match, ...args);
+      placeholderIndex++;
+      return placeholder;
+    });
+  }
 
   // YouTube 视频
-  parsedContent = parsedContent.replace(LINK_PATTERNS.youtube, (match, videoId) => {
+  replaceWithPlaceholder(LINK_PATTERNS.youtube, (match, videoId) => {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
           src="https://www.youtube.com/embed/${videoId}?autoplay=0" 
           class="w-full aspect-video"
           frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowfullscreen>
         </iframe>
       </div>
-    `
-  })
+    `;
+  });
 
   // Bilibili 视频
-  parsedContent = parsedContent.replace(LINK_PATTERNS.bilibili, (match, bvid) => {
-    const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2)
+  replaceWithPlaceholder(LINK_PATTERNS.bilibili, (match, bvid) => {
+    const videoId = bvid.startsWith('BV') ? bvid : bvid.slice(2);
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
-          src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0" 
+          src="https://player.bilibili.com/player.html?bvid=${videoId}&high_quality=1&danmaku=0&autoplay=0" 
           class="w-full aspect-video"
           scrolling="no" 
           frameborder="no" 
@@ -144,46 +156,43 @@ function parseSpecialLinks(content) {
           sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
           referrerpolicy="no-referrer"
           loading="lazy"
-          onload="this.style.opacity=1"
-          style="opacity:0;transition:opacity 0.3s"
-          onerror="this.parentNode.innerHTML='<div class=\\'p-4 text-sm text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 rounded-lg\\'>视频加载失败，可能是由于广告拦截器或隐私保护功能阻止了嵌入内容。<a href=\\''+this.src+'\' target=\\'_blank\\' class=\\'ml-2 underline\\'>点击直接访问</a></div>'"
         ></iframe>
       </div>
-    `
-  })
+    `;
+  });
 
   // 抖音视频
-  parsedContent = parsedContent.replace(LINK_PATTERNS.douyin, (match, p1, videoId) => {
+  replaceWithPlaceholder(LINK_PATTERNS.douyin, (match, p1, videoId) => {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
-          src="https://www.douyin.com/embed/${videoId}" 
+          src="https://www.douyin.com/embed/${videoId}?autoplay=0" 
           class="w-full aspect-video"
           scrolling="no" 
           frameborder="no" 
           allowfullscreen>
         </iframe>
       </div>
-    `
-  })
+    `;
+  });
 
   // TikTok 视频
-  parsedContent = parsedContent.replace(LINK_PATTERNS.tiktok, (match, p1, videoId) => {
+  replaceWithPlaceholder(LINK_PATTERNS.tiktok, (match, p1, videoId) => {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
-          src="https://www.tiktok.com/embed/v2/${videoId}" 
+          src="https://www.tiktok.com/embed/v2/${videoId}?autoplay=0" 
           class="w-full aspect-video"
           scrolling="no" 
           frameborder="no" 
           allowfullscreen>
         </iframe>
       </div>
-    `
-  })
+    `;
+  });
 
   // 网易云音乐
-  parsedContent = parsedContent.replace(LINK_PATTERNS.neteaseMusic, (match, songId) => {
+  replaceWithPlaceholder(LINK_PATTERNS.neteaseMusic, (match, songId) => {
     return `
       <div class="my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
         <iframe 
@@ -195,11 +204,11 @@ function parseSpecialLinks(content) {
           marginheight="0">
         </iframe>
       </div>
-    `
-  })
+    `;
+  });
 
   // GitHub 仓库
-  parsedContent = parsedContent.replace(LINK_PATTERNS.github, (match, repo) => {
+  replaceWithPlaceholder(LINK_PATTERNS.github, (match, repo) => {
     return `
       <div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
         <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
@@ -209,11 +218,11 @@ function parseSpecialLinks(content) {
           ${repo}
         </a>
       </div>
-    `
-  })
+    `;
+  });
 
   // 微信公众号文章
-  parsedContent = parsedContent.replace(LINK_PATTERNS.wechat, (match) => {
+  replaceWithPlaceholder(LINK_PATTERNS.wechat, (match) => {
     // 尝试从URL中提取标题，但这不是总能成功
     let title = "微信公众号文章";
     try {
@@ -235,10 +244,15 @@ function parseSpecialLinks(content) {
           ${title}
         </a>
       </div>
-    `
-  })
+    `;
+  });
 
-  return parsedContent
+  // 将所有占位符替换回实际内容
+  Object.keys(placeholders).forEach(placeholder => {
+    parsedContent = parsedContent.replace(placeholder, placeholders[placeholder]);
+  });
+
+  return parsedContent;
 }
 
 // 渲染单个 memo
