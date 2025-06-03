@@ -1,4 +1,4 @@
-import { CONFIG } from './config.js';
+import { CONFIG } from './config'
 
 export const apiHandler = {
   cache: new Map(),
@@ -12,6 +12,7 @@ export const apiHandler = {
         return cachedData.data;
       }
       const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`;
+      console.log('请求 API:', apiUrl);
       const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
       if (!response.ok) {
         throw new Error(`API 请求失败: ${response.status}`);
@@ -23,6 +24,7 @@ export const apiHandler = {
       });
       return data;
     } catch (error) {
+      console.error('获取 memos 数据失败:', error);
       throw error;
     }
   },
@@ -34,6 +36,7 @@ export const apiHandler = {
         return cachedData.data;
       }
       const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`;
+      console.log('请求 API:', apiUrl);
       const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
       if (!response.ok) {
         return null;
@@ -45,6 +48,7 @@ export const apiHandler = {
       });
       return data;
     } catch (error) {
+      console.error('获取单条 memo 数据失败:', error);
       return null;
     }
   }
