@@ -18,7 +18,7 @@ const CONFIG = {
     GITHUB: /https?:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)(?:\/)?(?:[#?].+)?/,
     DOUYIN: /https?:\/\/(?:www\.)?douyin\.com\/(?:video\/([0-9]+)|.*vid=([0-9]+))(?:[?#].+)?/,
     TIKTOK: /https?:\/\/(?:www\.)?tiktok\.com\/@[^\/]+\/video\/([0-9]+)(?:[?#].+)?/,
-    WECHAT: /https?:\/\/mp\.weixin\.qq\.com\/[^-\u007F<"']+/,
+    WECHAT: /^https?:\/\/mp\.weixin\.qq\.com\/[^"]+/,
     MD_CODE_BLOCK: /```([a-z]*)\n([\s\S]*?)\n```/g,
     MD_INLINE_CODE: /`([^`]+)`/g,
     MD_H1: /^# (.*$)/gm,
