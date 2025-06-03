@@ -848,11 +848,8 @@ const CACHE_NAME = \`imemos-cache-\${CACHE_VERSION}\`;
 // 需要缓存的资源
 const STATIC_CACHE_URLS = [
   '/',
-  // 静态资源CDN
-  'https://cdn.tailwindcss.com',
-  'https://rsms.me/inter/inter.css',
-  'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css'
+  '/offline.html',
+  '/offline-image.png'
 ];
 
 // 动态缓存API响应的最大时间 (24小时)

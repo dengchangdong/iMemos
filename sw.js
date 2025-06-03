@@ -7,8 +7,6 @@ const STATIC_CACHE_URLS = [
   '/',
   '/offline.html',
   '/offline-image.png'
-  // 移除外部CDN资源，避免CORS问题
-  // 这些资源将通过网络请求获取，而不是通过Service Worker缓存
 ];
 
 // 动态缓存API响应的最大时间 (24小时)
