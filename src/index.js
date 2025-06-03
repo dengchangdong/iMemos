@@ -538,5 +538,254 @@ function renderErrorPage(error, c) {
   );
 }
 
+// API数据获取和缓存
+const apiHandler = {
+  // 缓存管理
+  cache: new Map(),
+  cacheExpiry: new Map(),
+  CACHE_DURATION: 5 * 60 * 1000, // 5分钟缓存
+  
+  // 获取缓存数据或进行新请求
+  async fetchWithCache(url, cacheKey, init = {}) {
+    const now = Date.now();
+    
+    // 检查缓存是否有效
+    if (this.cache.has(cacheKey) && this.cacheExpiry.get(cacheKey) > now) {
+      return this.cache.get(cacheKey);
+    }
+    
+    // 合并默认请求头和自定义设置
+    const mergedInit = {
+      headers: CONFIG.HEADERS,
+      ...init
+    };
+    
+    // 发起请求
+    try {
+      const response = await fetch(url, mergedInit);
+      
+      if (!response.ok) {
+        throw new Error(`请求失败: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // 更新缓存
+      this.cache.set(cacheKey, data);
+      this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
+      
+      return data;
+    } catch (error) {
+      console.error('API请求错误:', error, url);
+      throw error;
+    }
+  },
+  
+  // 获取备忘录列表
+  async fetchMemos(c, tag = '') {
+    try {
+      const limit = parseInt(c.env.PAGE_LIMIT) || CONFIG.DEFAULTS.PAGE_LIMIT;
+      const cacheKey = `memos_${tag}_${limit}`;
+      
+      // 构建API URL
+      const apiUrl = new URL(c.env.API_HOST);
+      apiUrl.pathname = '/api/v1/memo';
+      
+      // 添加查询参数
+      const searchParams = new URLSearchParams({
+        limit: limit.toString(),
+        rowStatus: 'NORMAL',
+        creatorId: '1', // 默认获取ID为1的用户的备忘录
+      });
+      
+      // 如果指定了标签，添加标签过滤
+      if (tag) {
+        searchParams.append('tag', tag);
+      }
+      
+      apiUrl.search = searchParams.toString();
+      
+      console.log('请求备忘录列表URL:', apiUrl.toString());
+      
+      // 获取数据
+      return await this.fetchWithCache(apiUrl.toString(), cacheKey);
+    } catch (error) {
+      console.error('获取备忘录列表失败:', error);
+      throw new Error('获取数据失败，请稍后重试');
+    }
+  },
+  
+  // 获取单个备忘录
+  async fetchMemo(c, name) {
+    if (!name) {
+      throw new Error('备忘录名称不能为空');
+    }
+    
+    try {
+      const cacheKey = `memo_${name}`;
+      
+      // 构建API URL - 使用 v1 API
+      const apiUrl = new URL(c.env.API_HOST);
+      apiUrl.pathname = `/api/v1/memo/${name}`;
+      
+      console.log('请求单个备忘录URL:', apiUrl.toString());
+      
+      // 获取数据
+      const response = await fetch(apiUrl.toString(), { headers: CONFIG.HEADERS });
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          return null;
+        }
+        throw new Error(`API请求失败: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 更新缓存
+      this.cache.set(cacheKey, data);
+      this.cacheExpiry.set(cacheKey, Date.now() + this.CACHE_DURATION);
+      
+      return data;
+    } catch (error) {
+      console.error(`获取备忘录 ${name} 失败:`, error);
+      throw new Error('未找到该备忘录或已被删除');
+    }
+  }
+};
+
+// 路由处理器
+const routeHandler = {
+  // 首页 - 显示备忘录列表
+  async home(c) {
+    try {
+      // 获取备忘录列表
+      const memos = await apiHandler.fetchMemos(c);
+      
+      if (!memos || !memos.length) {
+        return c.html(renderBaseHtml(c, c.env.SITE_NAME, htmlTemplates.emptyDataPage('暂无内容')));
+      }
+      
+      console.log(`获取到 ${memos.length} 条备忘录`);
+      
+      // 渲染备忘录列表
+      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+      
+      // 返回完整HTML
+      return c.html(renderBaseHtml(c, c.env.SITE_NAME, memosHtml));
+    } catch (error) {
+      console.error('首页渲染错误:', error);
+      return renderErrorPage(error, c);
+    }
+  },
+  
+  // 详情页 - 显示单个备忘录
+  async post(c) {
+    try {
+      const name = c.req.param('name');
+      
+      if (!name) {
+        return c.html(renderBaseHtml(c, '未找到', htmlTemplates.notFoundPage()));
+      }
+      
+      console.log(`请求备忘录详情: ${name}`);
+      
+      // 获取备忘录
+      const memo = await apiHandler.fetchMemo(c, name);
+      
+      if (!memo) {
+        console.log(`未找到备忘录: ${name}`);
+        return c.html(renderBaseHtml(c, '未找到', htmlTemplates.notFoundPage()));
+      }
+      
+      console.log(`获取到备忘录: ${name}`);
+      
+      // 渲染备忘录
+      const memoHtml = renderMemo(memo, false);
+      
+      // 提取标题
+      const title = memo.content ? 
+        memo.content.substring(0, 30).replace(/\n/g, ' ') + (memo.content.length > 30 ? '...' : '') : 
+        '备忘录详情';
+      
+      // 返回完整HTML
+      return c.html(renderBaseHtml(c, title, memoHtml));
+    } catch (error) {
+      console.error('详情页渲染错误:', error);
+      return renderErrorPage(error, c);
+    }
+  },
+  
+  // 标签页 - 显示特定标签的备忘录
+  async tag(c) {
+    try {
+      const tag = c.req.param('tag');
+      
+      if (!tag) {
+        return c.html(renderBaseHtml(c, '未找到', htmlTemplates.notFoundPage()));
+      }
+      
+      // 获取备忘录列表
+      const memos = await apiHandler.fetchMemos(c, tag);
+      
+      if (!memos || !memos.length) {
+        return c.html(renderBaseHtml(c, `#${tag}`, htmlTemplates.emptyDataPage(`暂无 #${tag} 标签的内容`)));
+      }
+      
+      // 渲染备忘录列表
+      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+      
+      // 返回完整HTML
+      return c.html(renderBaseHtml(c, `#${tag}`, memosHtml));
+    } catch (error) {
+      return renderErrorPage(error, c);
+    }
+  },
+  
+  // API代理 - 返回原始JSON数据
+  async api(c) {
+    try {
+      const path = c.req.param('path');
+      
+      if (!path) {
+        return c.json({ error: 'Path is required' }, 400);
+      }
+      
+      // 构建API URL
+      const apiUrl = new URL(c.env.API_HOST);
+      apiUrl.pathname = `/api/${path}`;
+      apiUrl.search = c.req.url.search;
+      
+      // 发起请求
+      const response = await fetch(apiUrl.toString(), {
+        method: c.req.method,
+        headers: {
+          ...CONFIG.HEADERS,
+          'Content-Type': 'application/json'
+        },
+        body: c.req.method !== 'GET' ? await c.req.text() : undefined
+      });
+      
+      // 返回JSON响应
+      const data = await response.json();
+      return c.json(data, response.status);
+    } catch (error) {
+      console.error('API代理错误:', error);
+      return c.json({ error: error.message }, 500);
+    }
+  }
+};
+
+// 注册路由
+app.get('/', routeHandler.home);
+app.get('/post/:name', routeHandler.post);
+app.get('/tag/:tag', routeHandler.tag);
+app.all('/api/:path{.*}', routeHandler.api);
+
+// 404 处理
+app.notFound((c) => {
+  return c.html(renderBaseHtml(c, '未找到', htmlTemplates.notFoundPage()));
+});
+
 // 导出应用
 export default app;
