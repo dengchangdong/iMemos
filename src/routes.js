@@ -1,8 +1,8 @@
-import apiHandler from './api.js';
-import { renderMemo, htmlTemplates, renderBaseHtml } from './template.js';
+import { apiHandler } from './api.js';
+import { renderMemo, renderBaseHtml, htmlTemplates, renderErrorPage } from './template.js';
+import { CONFIG } from './config.js';
 
-const routes = {
-  // 主页路由处理
+export const routes = {
   async home(c) {
     try {
       const memos = await apiHandler.fetchMemos(c);
@@ -10,7 +10,7 @@ const routes = {
       return new Response(renderBaseHtml(
         c.env.SITE_NAME,
         memosHtml,
-        c.env.FOOTER_TEXT,
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
       ), {
@@ -20,19 +20,12 @@ const routes = {
         }
       });
     } catch (error) {
-      return new Response(renderBaseHtml(
-        '错误',
-        htmlTemplates.errorPage(error),
-        c.env.FOOTER_TEXT,
-        c.env.NAV_LINKS,
-        c.env.SITE_NAME
-      ), {
+      return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
     }
   },
-  // 单页路由处理
   async post(c) {
     try {
       const name = c.req.param('name');
@@ -41,7 +34,7 @@ const routes = {
         return new Response(renderBaseHtml(
           c.env.SITE_NAME,
           htmlTemplates.notFoundPage(),
-          c.env.FOOTER_TEXT,
+          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
@@ -53,7 +46,7 @@ const routes = {
       return new Response(renderBaseHtml(
         c.env.SITE_NAME,
         memoHtml,
-        c.env.FOOTER_TEXT,
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
       ), {
@@ -63,19 +56,12 @@ const routes = {
         }
       });
     } catch (error) {
-      return new Response(renderBaseHtml(
-        '错误',
-        htmlTemplates.errorPage(error),
-        c.env.FOOTER_TEXT,
-        c.env.NAV_LINKS,
-        c.env.SITE_NAME
-      ), {
+      return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
     }
   },
-  // 标签页路由处理
   async tag(c) {
     try {
       const tag = c.req.param('tag');
@@ -84,7 +70,7 @@ const routes = {
       return new Response(renderBaseHtml(
         `${tag} - ${c.env.SITE_NAME}`,
         memosHtml,
-        c.env.FOOTER_TEXT,
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
       ), {
@@ -94,19 +80,12 @@ const routes = {
         }
       });
     } catch (error) {
-      return new Response(renderBaseHtml(
-        '错误',
-        htmlTemplates.errorPage(error),
-        c.env.FOOTER_TEXT,
-        c.env.NAV_LINKS,
-        c.env.SITE_NAME
-      ), {
+      return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
     }
   },
-  // API代理
   async api(c) {
     try {
       const memos = await apiHandler.fetchMemos(c);
@@ -123,6 +102,4 @@ const routes = {
       });
     }
   }
-};
-
-export default routes; 
+}; 
