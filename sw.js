@@ -5,11 +5,10 @@ const CACHE_NAME = `imemos-cache-${CACHE_VERSION}`;
 // 需要缓存的资源
 const STATIC_CACHE_URLS = [
   '/',
-  // 静态资源CDN
-  'https://cdn.tailwindcss.com',
-  'https://rsms.me/inter/inter.css',
-  'https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap',
-  'https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css'
+  '/offline.html',
+  '/offline-image.png'
+  // 移除外部CDN资源，避免CORS问题
+  // 这些资源将通过网络请求获取，而不是通过Service Worker缓存
 ];
 
 // 动态缓存API响应的最大时间 (24小时)
@@ -54,6 +53,35 @@ self.addEventListener('fetch', (event) => {
   }
   
   // 处理静态资源
+  // 检查是否为外部资源（非当前域名）
+  const url = new URL(event.request.url);
+  const isSameOrigin = url.origin === self.location.origin;
+  
+  // 对于外部资源，直接通过网络获取，不尝试缓存
+  if (!isSameOrigin && !event.request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          // 离线回退处理
+          if (event.request.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
+            return caches.match('/offline-image.png');
+          }
+          if (event.request.headers.get('Accept').includes('text/html')) {
+            return caches.match('/offline.html');
+          }
+          return new Response('网络连接失败', {
+            status: 503,
+            statusText: 'Service Unavailable',
+            headers: new Headers({
+              'Content-Type': 'text/plain'
+            })
+          });
+        })
+    );
+    return;
+  }
+  
+  // 处理同源资源
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
@@ -70,12 +98,14 @@ self.addEventListener('fetch', (event) => {
               return response;
             }
             
-            // 缓存资源
-            const responseToCache = response.clone();
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
+            // 只缓存同源资源
+            if (isSameOrigin) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME)
+                .then((cache) => {
+                  cache.put(event.request, responseToCache);
+                });
+            }
             
             return response;
           })
@@ -171,4 +201,4 @@ async function handleApiRequest(request) {
       headers: { 'Content-Type': 'application/json' }
     });
   }
-} 
+}
