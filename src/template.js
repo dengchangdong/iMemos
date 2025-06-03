@@ -669,6 +669,4 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </body>
     </html>
   `;
-}
-
-export { renderMemo, htmlTemplates, renderBaseHtml }; 
+} 
