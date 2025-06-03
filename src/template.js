@@ -88,6 +88,7 @@ export function renderStyles() {
 }
 
 // 渲染公共脚本
+// 渲染公共脚本
 export function renderScripts() {
   return `
     <script>
@@ -224,4 +225,4 @@ export function renderBaseHtml(c, title, content) {
       </body>
     </html>
   `
-} 
+}
