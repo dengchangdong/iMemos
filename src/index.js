@@ -56,11 +56,16 @@ const utils = {
   
   // 格式化时间
   formatTime(timestamp) {
-    const now = new Date()
-    const date = new Date(timestamp)
-    const diff = now - date
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(diff / (1000 * 60 * 60))
+    // 使用上海时区
+    const timeZone = 'Asia/Shanghai';
+    const now = new Date();
+    const date = new Date(timestamp);
+    // 获取上海时区的当前时间和目标时间
+    const nowShanghai = new Date(now.toLocaleString('en-US', { timeZone }));
+    const dateShanghai = new Date(date.toLocaleString('en-US', { timeZone }));
+    const diff = nowShanghai - dateShanghai;
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
     
     // 1分钟以内
     if (minutes < 1) return '刚刚'
@@ -69,28 +74,30 @@ const utils = {
     if (minutes < 60) return `${minutes} 分钟前`
     
     // 当天发布的且24小时以内
-    if (hours < 24 && date.getDate() === now.getDate()) 
+    if (hours < 24 && dateShanghai.getDate() === nowShanghai.getDate()) 
       return `${hours} 小时前`
     
     // 非当天发布但是是当年发布的
-    if (date.getFullYear() === now.getFullYear()) {
-      return date.toLocaleString('zh-CN', {
+    if (dateShanghai.getFullYear() === nowShanghai.getFullYear()) {
+      return dateShanghai.toLocaleString('zh-CN', {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
+        hour12: false,
+        timeZone
       }).replace(/\//g, '-')
     }
     
     // 非当年发布的
-    return date.toLocaleString('zh-CN', {
+    return dateShanghai.toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
+      timeZone
     }).replace(/\//g, '-')
   },
   
