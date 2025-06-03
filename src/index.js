@@ -1056,23 +1056,6 @@ class Routes {
   }
   
   /**
-   * 服务工作线程路由
-   * @param {Context} c - Hono上下文
-   * @return {Response} HTTP响应
-   */
-  static async serviceWorker(c) {
-    return new Response(
-      c.env.ASSETS.fetch(new Request('/sw.js')), 
-      {
-        headers: {
-          'Content-Type': 'application/javascript',
-          'Cache-Control': 'no-cache'
-        }
-      }
-    );
-  }
-  
-  /**
    * 离线页面路由
    * @param {Context} c - Hono上下文
    * @return {Response} HTTP响应
@@ -1197,9 +1180,6 @@ app.get('/post/:name', Routes.post);
 app.get('/tag/:tag', Routes.tag);
 app.get('/api/v1/memo', Routes.api);
 
-// Service Worker相关路由
-app.get('/sw.js', Routes.serviceWorker);
-
 // 离线页面
 app.get('/offline.html', Routes.offlinePage);
 
@@ -1232,163 +1212,6 @@ app.get('/manifest.json', (c) => {
     headers: {
       'Content-Type': 'application/json',
       'Cache-Control': 'public, max-age=2592000'
-    }
-  });
-});
-
-// Service Worker实现
-app.get('/sw.js', (c) => {
-  const swScript = `
-    const CACHE_NAME = 'memos-theme-cache-v1';
-    const ASSETS_CACHE = 'memos-assets-cache-v1';
-    const API_CACHE = 'memos-api-cache-v1';
-    
-    // 预缓存的资源
-    const PRECACHE_ASSETS = [
-      '/',
-      '/offline.html',
-      '/offline-image.png'
-    ];
-    
-    // 安装事件 - 预缓存静态资源
-    self.addEventListener('install', event => {
-      event.waitUntil(
-        caches.open(CACHE_NAME)
-          .then(cache => {
-            console.log('预缓存静态资源');
-            return cache.addAll(PRECACHE_ASSETS);
-          })
-          .then(() => self.skipWaiting())
-      );
-    });
-    
-    // 激活事件 - 清理旧缓存
-    self.addEventListener('activate', event => {
-      const currentCaches = [CACHE_NAME, ASSETS_CACHE, API_CACHE];
-      event.waitUntil(
-        caches.keys().then(cacheNames => {
-          return cacheNames.filter(cacheName => !currentCaches.includes(cacheName));
-        }).then(cachesToDelete => {
-          return Promise.all(cachesToDelete.map(cacheToDelete => {
-            return caches.delete(cacheToDelete);
-          }));
-        }).then(() => self.clients.claim())
-      );
-    });
-    
-    // 响应策略 - 处理不同类型请求
-    self.addEventListener('fetch', event => {
-      const url = new URL(event.request.url);
-      
-      // 跳过不支持的请求
-      if (event.request.method !== 'GET') return;
-      
-      // API请求处理 - 网络优先，失败时回退到缓存
-      if (url.pathname.startsWith('/api/')) {
-        event.respondWith(handleApiRequest(event.request));
-        return;
-      }
-      
-      // 静态资源处理 - 缓存优先，失败时回退到网络
-      if (
-        url.pathname.endsWith('.js') || 
-        url.pathname.endsWith('.css') || 
-        url.pathname.endsWith('.png') || 
-        url.pathname.endsWith('.jpg') || 
-        url.pathname.endsWith('.svg') ||
-        url.pathname.includes('cdn')
-      ) {
-        event.respondWith(handleAssetRequest(event.request));
-        return;
-      }
-      
-      // HTML请求处理 - 网络优先，失败时回退到缓存或离线页面
-      event.respondWith(handlePageRequest(event.request));
-    });
-    
-    // API请求处理
-    async function handleApiRequest(request) {
-      try {
-        // 先尝试网络请求
-        const networkResponse = await fetch(request);
-        // 如果成功，更新缓存
-        if (networkResponse.ok) {
-          const cache = await caches.open(API_CACHE);
-          cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-      } catch (error) {
-        // 网络请求失败，尝试从缓存获取
-        const cachedResponse = await caches.match(request);
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        // 返回JSON错误
-        return new Response(JSON.stringify({
-          error: 'Network error. Using offline cached data.'
-        }), {
-          headers: { 'Content-Type': 'application/json' },
-          status: 503
-        });
-      }
-    }
-    
-    // 静态资源请求处理
-    async function handleAssetRequest(request) {
-      // 先查询缓存
-      const cachedResponse = await caches.match(request);
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      // 缓存未命中，从网络获取
-      try {
-        const networkResponse = await fetch(request);
-        if (networkResponse.ok) {
-          // 成功获取后缓存
-          const cache = await caches.open(ASSETS_CACHE);
-          cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-      } catch (error) {
-        // 对于图片，返回占位符
-        if (request.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) {
-          return caches.match('/offline-image.png');
-        }
-        
-        // 其他资源返回网络错误
-        return new Response('Network error', { status: 503 });
-      }
-    }
-    
-    // 页面请求处理
-    async function handlePageRequest(request) {
-      try {
-        // 尝试网络请求
-        const networkResponse = await fetch(request);
-        // 成功后更新缓存
-        if (networkResponse.ok) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put(request, networkResponse.clone());
-        }
-        return networkResponse;
-      } catch (error) {
-        // 网络请求失败，尝试从缓存获取
-        const cachedResponse = await caches.match(request);
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        
-        // 缓存也没有，返回离线页面
-        return caches.match('/offline.html');
-      }
-    }
-  `;
-  
-  return new Response(swScript, {
-    headers: {
-      'Content-Type': 'application/javascript',
-      'Cache-Control': 'no-cache'
     }
   });
 });
