@@ -162,7 +162,7 @@ export function renderMemo(memo, isHomePage = false) {
 }
 
 // 错误页面模板
-const htmlTemplates = {
+export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
     return utils.createHtml`
