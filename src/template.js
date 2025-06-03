@@ -1,18 +1,7 @@
 import { html } from 'hono/html'
 
-// 常量配置
-const CONFIG = {
-  STYLES: {
-    LINK: 'hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors',
-    NAV_LINK: 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors',
-    CONTAINER: 'container mx-auto px-4 max-w-4xl',
-    BORDER: 'border-zinc-200 dark:border-zinc-800'
-  }
-}
-
 // 解析导航链接
 export function parseNavLinks(linksStr) {
-  if (!linksStr) return [];
   return linksStr.split(',').map(link => {
     const [name, url] = link.split(':')
     return { name, url }
@@ -22,20 +11,25 @@ export function parseNavLinks(linksStr) {
 // 渲染页头
 export function renderHeader(siteName, navLinks) {
   return `
-    <header class="border-b ${CONFIG.STYLES.BORDER}">
-      <div class="${CONFIG.STYLES.CONTAINER} py-4">
+    <header class="border-b border-zinc-200 dark:border-zinc-800">
+      <div class="container mx-auto px-4 py-4 max-w-4xl">
         <div class="flex flex-col md:flex-row justify-between items-center">
           <h1 class="text-2xl font-bold mb-4 md:mb-0">
-            <a href="/" class="${CONFIG.STYLES.LINK}">${siteName}</a>
+            <a href="/" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">
+              ${siteName}
+            </a>
           </h1>
-          ${navLinks ? `
           <nav>
             <ul class="flex space-x-6">
               ${parseNavLinks(navLinks).map(link => `
-                <li><a href="${link.url}" class="${CONFIG.STYLES.NAV_LINK}">${link.name}</a></li>
+                <li>
+                  <a href="${link.url}" class="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors">
+                    ${link.name}
+                  </a>
+                </li>
               `).join('')}
             </ul>
-          </nav>` : ''}
+          </nav>
         </div>
       </div>
     </header>
@@ -45,9 +39,11 @@ export function renderHeader(siteName, navLinks) {
 // 渲染页脚
 export function renderFooter(footerText) {
   return `
-    <footer class="border-t ${CONFIG.STYLES.BORDER} mt-8">
-      <div class="${CONFIG.STYLES.CONTAINER} py-6">
-        <div class="text-center text-zinc-600 dark:text-zinc-400">${footerText}</div>
+    <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
+      <div class="container mx-auto px-4 py-6 max-w-4xl">
+        <div class="text-center text-zinc-600 dark:text-zinc-400">
+          ${footerText}
+        </div>
       </div>
     </footer>
   `
@@ -92,55 +88,61 @@ export function renderStyles() {
 }
 
 // 渲染公共脚本
+// 渲染公共脚本
 export function renderScripts() {
   return `
     <script>
-      // 检测和应用系统主题
-      const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-      const applyTheme = (isDark) => document.documentElement.classList[isDark ? 'add' : 'remove']('dark');
-      
-      // 初始化主题
-      applyTheme(darkModeMediaQuery.matches);
-      
+      // 检测系统主题
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark')
+      }
+
       // 监听系统主题变化
-      darkModeMediaQuery.addEventListener('change', e => applyTheme(e.matches));
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+        if (e.matches) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+      })
 
       // 图片预览功能
-      document.addEventListener('DOMContentLoaded', () => {
-        const imageModal = document.getElementById('imageModal');
-        const modalImage = document.getElementById('modalImage');
-        
-        window.showImageModal = (src) => {
-          modalImage.src = src;
-          imageModal.style.display = 'block';
-          document.body.style.overflow = 'hidden';
-        };
-        
-        imageModal.addEventListener('click', () => {
-          imageModal.style.display = 'none';
-          document.body.style.overflow = '';
-        });
-      });
+      const imageModal = document.getElementById('imageModal')
+      const modalImage = document.getElementById('modalImage')
+
+      function showImageModal(src) {
+        modalImage.src = src
+        imageModal.style.display = 'block'
+        document.body.style.overflow = 'hidden'
+      }
+
+      function hideImageModal() {
+        imageModal.style.display = 'none'
+        document.body.style.overflow = ''
+      }
+
+      imageModal.addEventListener('click', hideImageModal)
     </script>
   `
 }
 
 // 渲染单个 memo
 export function renderMemo(memo) {
-  const formattedDate = new Date(memo.createdTs * 1000).toLocaleString('zh-CN');
-  const hasResources = memo.resourceList && memo.resourceList.length > 0;
-  
   return `
     <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-      <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">${formattedDate}</div>
-      <div class="text-lg leading-relaxed">${memo.content}</div>
-      ${hasResources ? `
+      <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
+        ${new Date(memo.createdTs * 1000).toLocaleString('zh-CN')}
+      </div>
+      <div class="text-lg leading-relaxed">
+        ${memo.content}
+      </div>
+      ${memo.resourceList.length > 0 ? `
         <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
           ${memo.resourceList.map(resource => `
             <div class="relative aspect-square overflow-hidden rounded-lg cursor-zoom-in" onclick="showImageModal('${resource.externalLink}')">
               <img 
                 src="${resource.externalLink}" 
-                alt="${resource.filename || '图片'}"
+                alt="${resource.filename}"
                 class="object-cover w-full h-full hover:scale-105 transition-transform duration-300"
                 loading="lazy"
               />
@@ -149,7 +151,9 @@ export function renderMemo(memo) {
         </div>
       ` : ''}
       <div class="mt-4 text-sm text-zinc-500">
-        <a href="/post/${memo.name}" class="hover:text-zinc-700 dark:hover:text-zinc-300">查看详情</a>
+        <a href="/post/${memo.name}" class="hover:text-zinc-700 dark:hover:text-zinc-300">
+          查看详情
+        </a>
       </div>
     </article>
   `
@@ -157,16 +161,13 @@ export function renderMemo(memo) {
 
 // 渲染基础 HTML 结构
 export function renderBaseHtml(c, title, content) {
-  const siteName = c.env.SITE_NAME || 'Memos Themes';
-  const footerText = c.env.FOOTER_TEXT || '© 2024 Memos Themes. All rights reserved.';
-  
   return html`
     <!DOCTYPE html>
     <html lang="zh-CN">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title} - ${siteName}</title>
+        <title>${title} - ${c.env.SITE_NAME}</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
         <script>
@@ -196,13 +197,29 @@ export function renderBaseHtml(c, title, content) {
         ${renderStyles()}
       </head>
       <body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 min-h-screen flex flex-col">
-        ${renderHeader(siteName, c.env.NAV_LINKS)}
+        <header class="border-b border-zinc-200 dark:border-zinc-800">
+          <div class="container mx-auto px-4 py-4 max-w-4xl">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+              <h1 class="text-2xl font-bold mb-4 md:mb-0">
+                <a href="/" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">
+                  ${c.env.SITE_NAME}
+                </a>
+              </h1>
+            </div>
+          </div>
+        </header>
         
-        <main class="flex-grow ${CONFIG.STYLES.CONTAINER} py-6">
+        <main class="flex-grow">
           ${content}
         </main>
 
-        ${renderFooter(footerText)}
+        <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
+          <div class="container mx-auto px-4 py-6 max-w-4xl">
+            <div class="text-center text-zinc-600 dark:text-zinc-400">
+              © 2024 Memos Themes. All rights reserved.
+            </div>
+          </div>
+        </footer>
         ${renderImageModal()}
         ${renderScripts()}
       </body>
