@@ -1,4 +1,5 @@
 import { html } from 'hono/html'
+import { simpleMarkdown } from './markdown.js'
 
 // 解析导航链接
 export function parseNavLinks(linksStr) {
@@ -139,6 +140,7 @@ export function renderScripts() {
 }
 
 // 渲染单个 memo
+// 渲染单个 memo
 export function renderMemo(memo) {
   return `
     <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm hover:shadow-md transition-shadow">
@@ -146,7 +148,7 @@ export function renderMemo(memo) {
         ${new Date(memo.createdTs * 1000).toLocaleString('zh-CN')}
       </div>
       <div class="text-lg leading-relaxed">
-        ${memo.content}
+        ${simpleMarkdown(memo.content)}
       </div>
       ${memo.resourceList.length > 0 ? `
         <div class="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
