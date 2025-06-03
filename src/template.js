@@ -1,4 +1,7 @@
 import { html } from 'hono/html'
+import utils from './utils.js';
+import CONFIG from './config.js';
+import { simpleMarkdown } from './markdown.js';
 
 // 解析导航链接
 export function parseNavLinks(linksStr) {
@@ -126,7 +129,7 @@ export function renderScripts() {
 }
 
 // 渲染单个 memo
-export function renderMemo(memo) {
+export function renderMemo(memo, isHomePage = false) {
   return `
     <article class="mb-8 p-6 bg-white dark:bg-zinc-900 rounded-lg shadow-sm hover:shadow-md transition-shadow">
       <div class="text-zinc-600 dark:text-zinc-400 text-sm mb-4">
@@ -158,70 +161,14 @@ export function renderMemo(memo) {
   `
 }
 
-// 渲染基础 HTML 结构
-export function renderBaseHtml(c, title, content) {
-  return html`
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>${title} - ${c.env.SITE_NAME}</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
-        <script>
-          tailwind.config = {
-            darkMode: 'class',
-            theme: {
-              extend: {
-                colors: {
-                  zinc: {
-                    50: '#fafafa',
-                    100: '#f4f4f5',
-                    200: '#e4e4e7',
-                    300: '#d4d4d8',
-                    400: '#a1a1aa',
-                    500: '#71717a',
-                    600: '#52525b',
-                    700: '#3f3f46',
-                    800: '#27272a',
-                    900: '#18181b',
-                    950: '#09090b',
-                  }
-                }
-              }
-            }
-          }
-        </script>
-        ${renderStyles()}
-      </head>
-      <body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 min-h-screen flex flex-col">
-        <header class="border-b border-zinc-200 dark:border-zinc-800">
-          <div class="container mx-auto px-4 py-4 max-w-4xl">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-              <h1 class="text-2xl font-bold mb-4 md:mb-0">
-                <a href="/" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">
-                  ${c.env.SITE_NAME}
-                </a>
-              </h1>
-            </div>
-          </div>
-        </header>
-        
-        <main class="flex-grow">
-          ${content}
-        </main>
+// 错误页面模板
+const htmlTemplates = {
+  // ... 直接粘贴 index.js 里的 htmlTemplates ...
+};
 
-        <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
-          <div class="container mx-auto px-4 py-6 max-w-4xl">
-            <div class="text-center text-zinc-600 dark:text-zinc-400">
-              © 2024 Memos Themes. All rights reserved.
-            </div>
-          </div>
-        </footer>
-        ${renderImageModal()}
-        ${renderScripts()}
-      </body>
-    </html>
-  `
-} 
+// 渲染基础 HTML
+export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
+  // ... 直接粘贴 index.js 里的 renderBaseHtml 实现 ...
+}
+
+export { renderMemo, htmlTemplates, renderBaseHtml }; 
