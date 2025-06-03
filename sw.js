@@ -1,6 +1,6 @@
 // 缓存版本号 - 修改此值以更新缓存
 const CACHE_VERSION = 'v1';
-const CACHE_NAME = `memos-themes-cache-${CACHE_VERSION}`;
+const CACHE_NAME = `imemos-cache-${CACHE_VERSION}`;
 
 // 需要缓存的资源
 const STATIC_CACHE_URLS = [
@@ -33,7 +33,7 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.filter((cacheName) => {
-          return cacheName.startsWith('memos-themes-cache-') && cacheName !== CACHE_NAME;
+          return cacheName.startsWith('imemos-cache-') && cacheName !== CACHE_NAME;
         }).map((cacheName) => {
           console.log(`删除旧缓存: ${cacheName}`);
           return caches.delete(cacheName);
