@@ -891,19 +891,6 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </button>
 
         <script>
-          // 注册Service Worker
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-              navigator.serviceWorker.register('/sw.js')
-                .then(registration => {
-                  console.log('Service Worker 注册成功:', registration.scope);
-                })
-                .catch(error => {
-                  console.error('Service Worker 注册失败:', error);
-                });
-            });
-          }
-          
           // 主题切换
           const themeBtn = document.querySelector('.theme-btn');
           const html = document.documentElement;
@@ -1300,19 +1287,6 @@ app.get('/', routes.home);
 app.get('/post/:name', routes.post);
 app.get('/tag/:tag', routes.tag);
 app.get('/api/v1/memo', routes.api);
-
-// Service Worker相关路由
-app.get('/sw.js', (c) => {
-  return new Response(
-    c.env.ASSETS.fetch(new Request('/sw.js')), 
-    {
-      headers: {
-        'Content-Type': 'application/javascript',
-        'Cache-Control': 'no-cache'
-      }
-    }
-  );
-});
 
 // 离线页面
 app.get('/offline.html', (c) => {
