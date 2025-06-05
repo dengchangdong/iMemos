@@ -1,5 +1,5 @@
 // 常量配置 - 集中管理所有常量
-const CONFIG = {
+export const CONFIG = {
   FOOTER_TEXT: '© 2024 Memos Themes. All rights reserved.',
   PAGE_LIMIT: '10',
   HEADERS: {
@@ -9,7 +9,7 @@ const CONFIG = {
   // 正则表达式预编译，提高性能
   REGEX: {
     YOUTUBE: /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:[&?].+)?/,
-    BILIBILI: /https?:\/\/(?:www\.)?bilibili\.com\/video\/(?:(av\d+)|(BV[a-zA-Z0-9]+))(?:[/?].+)?/,
+    BILIBILI: /https?:\/\/(?:www\.)?bilibili\.com\/video\/(?:(av\d+)|(BV[a-zA-Z0-9]+))(?:[\/?].+)?/,
     NETEASE: /https?:\/\/music\.163\.com\/(?:#\/)?song\?id=(\d+)(?:[&?].+)?/,
     GITHUB: /https?:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)(?:\/)?(?:[#?].+)?/,
     DOUYIN: /https?:\/\/(?:www\.)?douyin\.com\/(?:video\/([0-9]+)|.*vid=([0-9]+))(?:[?#].+)?/,
@@ -37,5 +37,3 @@ const CONFIG = {
     EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800'
   }
 }
-
-export default CONFIG; 
