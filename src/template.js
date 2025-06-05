@@ -1,10 +1,10 @@
 import { html } from 'hono/html'
-import CONFIG from './config.js'
-import utils from './utils.js'
+import { CONFIG } from './config.js'
+import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
 // 优化HTML模板渲染 - 减少重复代码
-const htmlTemplates = {
+export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
     return utils.createHtml`
@@ -36,7 +36,7 @@ const htmlTemplates = {
 }
 
 // 解析导航链接
-function parseNavLinks(linksStr) {
+export function parseNavLinks(linksStr) {
   if (!linksStr) return []
   
   try {
@@ -51,7 +51,7 @@ function parseNavLinks(linksStr) {
 }
 
 // 渲染单个 memo
-function renderMemo(memo, isHomePage = false) {
+export function renderMemo(memo, isHomePage = false) {
   try {
     const timestamp = memo.createTime 
       ? new Date(memo.createTime).getTime()
@@ -124,7 +124,7 @@ function renderMemo(memo, isHomePage = false) {
 }
 
 // 渲染基础 HTML - 优化CSS加载和脚本处理
-function renderBaseHtml(title, content, footerText, navLinks, siteName) {
+export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 解析导航链接
   const navItems = parseNavLinks(navLinks)
 
@@ -589,17 +589,4 @@ function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </body>
     </html>
   `
-}
-
-// 统一路由错误处理
-function renderErrorPage(error, c) {
-  return renderBaseHtml(
-    '错误', 
-    htmlTemplates.errorPage(error),
-    c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
-    c.env.NAV_LINKS,
-    c.env.SITE_NAME
-  )
-}
-
-export { renderMemo, renderBaseHtml, renderErrorPage, htmlTemplates, parseNavLinks } 
+} 
