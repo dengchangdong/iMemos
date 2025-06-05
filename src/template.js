@@ -14,7 +14,7 @@ export function parseNavLinks(linksStr) {
 // 渲染页头
 export function renderHeader(siteName, navLinks) {
   return `
-    <header class="border-b border-zinc-200 dark:border-zinc-800">
+    <header class="">
       <div class="container mx-auto px-4 py-4 max-w-4xl">
         <div class="flex flex-col md:flex-row justify-between items-center">
           <h1 class="text-2xl font-bold mb-4 md:mb-0">
@@ -42,7 +42,7 @@ export function renderHeader(siteName, navLinks) {
 // 渲染页脚
 export function renderFooter(footerText) {
   return `
-    <footer class="border-t border-zinc-200 dark:border-zinc-800 mt-8">
+    <footer class="">
       <div class="container mx-auto px-4 py-6 max-w-4xl">
         <div class="text-center text-zinc-600 dark:text-zinc-400">
           ${footerText}
@@ -524,7 +524,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </style>
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <header class="border-b border-gray-200 dark:border-gray-800">
+        <header class="">
           <div class="container mx-auto px-4 py-6 max-w-4xl">
             <div class="flex flex-col sm:flex-row justify-between items-center">
               <h1 class="text-2xl font-bold mb-4 sm:mb-0">
@@ -532,7 +532,13 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   ${siteName || 'Memos'}
                 </a>
               </h1>
-              ${navHtml}
+              <div class="flex items-center space-x-6">
+                ${navHtml}
+                <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                  <i id="theme-toggle-dark-icon" class="ti ti-moon hidden"></i>
+                  <i id="theme-toggle-light-icon" class="ti ti-sun hidden"></i>
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -543,7 +549,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           </div>
         </main>
 
-        <footer class="border-t border-gray-200 dark:border-gray-800">
+        <footer class="">
           <div class="container mx-auto px-4 py-6 max-w-4xl text-center text-gray-500 dark:text-gray-400 text-sm">
             ${footerText || CONFIG.FOOTER_TEXT}
           </div>
@@ -658,6 +664,48 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               });
 
               lazyImages.forEach(img => imageObserver.observe(img));
+            }
+            
+            // 深色模式切换功能
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+            const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+            // 根据当前主题显示对应图标
+            if (document.documentElement.classList.contains('dark')) {
+              themeToggleLightIcon.classList.remove('hidden');
+            } else {
+              themeToggleDarkIcon.classList.remove('hidden');
+            }
+
+            // 切换主题
+            themeToggleBtn.addEventListener('click', function() {
+              document.documentElement.classList.toggle('dark');
+              
+              // 更新图标
+              themeToggleDarkIcon.classList.toggle('hidden');
+              themeToggleLightIcon.classList.toggle('hidden');
+              
+              // 保存用户偏好到本地存储
+              if (document.documentElement.classList.contains('dark')) {
+                localStorage.setItem('theme', 'dark');
+              } else {
+                localStorage.setItem('theme', 'light');
+              }
+            });
+
+            // 初始化主题 - 优先使用用户偏好
+            const userTheme = localStorage.getItem('theme');
+            const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            
+            if (userTheme === 'dark' || (!userTheme && systemDarkMode)) {
+              document.documentElement.classList.add('dark');
+              themeToggleLightIcon.classList.remove('hidden');
+              themeToggleDarkIcon.classList.add('hidden');
+            } else {
+              document.documentElement.classList.remove('dark');
+              themeToggleLightIcon.classList.add('hidden');
+              themeToggleDarkIcon.classList.remove('hidden');
             }
           });
         </script>
