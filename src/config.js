@@ -1,5 +1,5 @@
 // 常量配置 - 集中管理所有常量
-export const CONFIG = {
+const CONFIG = {
   FOOTER_TEXT: '© 2024 Memos Themes. All rights reserved.',
   PAGE_LIMIT: '10',
   HEADERS: {
@@ -36,4 +36,6 @@ export const CONFIG = {
     LINK: 'text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors',
     EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800'
   }
-} 
+}
+
+export default CONFIG; 

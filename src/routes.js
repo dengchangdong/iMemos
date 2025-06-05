@@ -1,119 +1,236 @@
-import { CONFIG } from './config.js'
-import { utils } from './utils.js'
-import { renderBaseHtml, renderErrorPage, renderNotFoundPage, renderMemo } from './templates.js'
-import { fetchMemos, fetchMemo, fetchTags } from './api.js'
+import CONFIG from './config.js';
+import { renderMemo, renderBaseHtml, htmlTemplates, renderOfflinePage } from './template.js';
 
-// 错误处理中间件
-export function errorHandler(c, error) {
-  console.error('路由错误:', error)
-  return c.html(renderBaseHtml(c, '错误', renderErrorPage(error)))
+// 统一错误处理
+function renderErrorPage(error, c) {
+  return renderBaseHtml(
+    '错误', 
+    htmlTemplates.errorPage(error),
+    c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+    c.env.NAV_LINKS,
+    c.env.SITE_NAME
+  );
 }
 
-// 首页路由
-export async function home(c) {
-  try {
-    const data = await fetchMemos(c)
-    const content = data.data.map(memo => renderMemo(memo, true)).join('')
-    
-    return c.html(renderBaseHtml(c, '首页', `
-      <div class="container mx-auto px-4 py-8 max-w-4xl">
-        ${content}
-      </div>
-    `))
-  } catch (error) {
-    return errorHandler(c, error)
-  }
-}
+// API处理相关 - 优化HTTP请求和缓存
+const apiHandler = {
+  // 数据缓存
+  cache: new Map(),
+  
+  // 缓存TTL，默认1分钟（单位：毫秒）
+  cacheTTL: 60 * 1000,
 
-// 文章详情页路由
-export async function post(c) {
-  try {
-    const id = c.req.param('id')
-    const data = await fetchMemo(c, id)
-    const content = renderMemo(data)
-    
-    return c.html(renderBaseHtml(c, '文章详情', `
-      <div class="container mx-auto px-4 py-8 max-w-4xl">
-        ${content}
-      </div>
-    `))
-  } catch (error) {
-    if (error.message === 'Memo不存在') {
-      return c.html(renderBaseHtml(c, '404', renderNotFoundPage()))
+  // 获取memos数据
+  async fetchMemos(c, tag = '') {
+    try {
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const cacheKey = `memos_${tag}_${limit}`;
+      
+      // 检查缓存
+      const cachedData = this.cache.get(cacheKey);
+      if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
+        return cachedData.data;
+      }
+      
+      // 构建API URL
+      const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`;
+      console.log('请求 API:', apiUrl);
+
+      // 发送请求
+      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
+      if (!response.ok) {
+        throw new Error(`API 请求失败: ${response.status}`);
+      }
+
+      // 解析数据
+      const data = await response.json();
+      
+      // 更新缓存
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('获取 memos 数据失败:', error);
+      throw error;
     }
-    return errorHandler(c, error)
-  }
-}
+  },
+  
+  // 获取单条memo
+  async fetchMemo(c, name) {
+    try {
+      const cacheKey = `memo_${name}`;
+      
+      // 检查缓存
+      const cachedData = this.cache.get(cacheKey);
+      if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
+        return cachedData.data;
+      }
+      
+      // 构建API URL
+      const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`;
+      console.log('请求 API:', apiUrl);
 
-// 标签页路由
-export async function tag(c) {
-  try {
-    const tag = c.req.param('tag')
-    const data = await fetchMemos(c, tag)
-    const content = data.data.map(memo => renderMemo(memo, true)).join('')
-    
-    return c.html(renderBaseHtml(c, `标签: ${tag}`, `
-      <div class="container mx-auto px-4 py-8 max-w-4xl">
-        <div class="mb-8">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            标签: ${tag}
-          </h1>
-        </div>
-        ${content}
-      </div>
-    `))
-  } catch (error) {
-    return errorHandler(c, error)
-  }
-}
+      // 发送请求
+      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
+      if (!response.ok) {
+        return null;
+      }
 
-// API路由
-export async function api(c) {
-  try {
-    const path = c.req.path.replace('/api', '')
-    const response = await fetch(`${c.env.API_BASE_URL}${path}`, {
-      headers: CONFIG.HEADERS
-    })
-    
-    if (!response.ok) {
-      throw new Error(`API请求失败: ${response.status}`)
+      // 解析数据
+      const data = await response.json();
+      
+      // 更新缓存
+      this.cache.set(cacheKey, {
+        data,
+        timestamp: Date.now()
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('获取单条 memo 数据失败:', error);
+      return null;
     }
-    
-    const data = await response.json()
-    return c.json(data)
-  } catch (error) {
-    return c.json({ error: error.message }, 500)
   }
-}
+};
 
-// 离线页面路由
-export function offline(c) {
-  return c.html(`
-    <!DOCTYPE html>
-    <html lang="zh-CN">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>离线 - ${c.env.SITE_NAME}</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet">
-      </head>
-      <body class="bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 min-h-screen flex items-center justify-center">
-        <div class="text-center p-8">
-          <i class="ti ti-wifi-off text-5xl text-gray-400 mb-4"></i>
-          <h1 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">您当前处于离线状态</h1>
-          <p class="text-gray-500 dark:text-gray-400 mb-6">请检查网络连接后重试</p>
-          <button onclick="window.location.reload()" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors">
-            <i class="ti ti-refresh mr-2"></i>
-            重新加载
-          </button>
-        </div>
-      </body>
-    </html>
-  `, {
-    headers: {
-      'Content-Type': 'text/html;charset=UTF-8',
-      'Cache-Control': 'public, max-age=2592000'
+// 路由处理 - 优化路由模块化
+const routes = {
+  // 主页路由处理
+  async home(c) {
+    try {
+      const memos = await apiHandler.fetchMemos(c);
+      console.log('获取到 memos 数量:', memos.length);
+
+      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+
+      return new Response(renderBaseHtml(
+        c.env.SITE_NAME, 
+        memosHtml, 
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME
+      ), {
+        headers: {
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=300' // 5分钟缓存
+        }
+      });
+    } catch (error) {
+      console.error('渲染首页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
     }
-  })
-} 
+  },
+  
+  // 单页路由处理
+  async post(c) {
+    try {
+      const name = c.req.param('name');
+      const data = await apiHandler.fetchMemo(c, name);
+      
+      // 未找到数据
+      if (!data || !data.memo) {
+        return new Response(renderBaseHtml(
+          c.env.SITE_NAME, 
+          htmlTemplates.notFoundPage(),
+          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+          c.env.NAV_LINKS,
+          c.env.SITE_NAME
+        ), {
+          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          status: 404
+        });
+      }
+
+      const memoHtml = renderMemo(data.memo, false);
+
+      return new Response(renderBaseHtml(
+        c.env.SITE_NAME, 
+        memoHtml, 
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME
+      ), {
+        headers: {
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=1800' // 30分钟缓存
+        }
+      });
+    } catch (error) {
+      console.error('渲染文章页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
+    }
+  },
+  
+  // 标签页路由处理
+  async tag(c) {
+    try {
+      const tag = c.req.param('tag');
+      const memos = await apiHandler.fetchMemos(c, tag);
+      console.log('获取到标签页 memos 数量:', memos.length);
+
+      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+
+      return new Response(renderBaseHtml(
+        `${tag} - ${c.env.SITE_NAME}`, 
+        memosHtml, 
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME
+      ), {
+        headers: {
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=300' // 5分钟缓存
+        }
+      });
+    } catch (error) {
+      console.error('渲染标签页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
+    }
+  },
+  
+  // API代理 - 用于缓存资源
+  async api(c) {
+    try {
+      const memos = await apiHandler.fetchMemos(c);
+      return new Response(JSON.stringify(memos), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=2592000' // 30天缓存
+        }
+      });
+    } catch (error) {
+      console.error('API代理失败:', error);
+      return new Response(JSON.stringify({ error: error.message }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 500
+      });
+    }
+  },
+  
+  // 离线页面（包含离线图片占位符）
+  offline(c) {
+    // 提供简单的Base64编码的1x1像素透明PNG作为占位符
+    const transparentPixel = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+    
+    return new Response(renderOfflinePage(c.env.SITE_NAME || '博客', transparentPixel), {
+      headers: {
+        'Content-Type': 'text/html;charset=UTF-8',
+        'Cache-Control': 'public, max-age=2592000'
+      }
+    });
+  }
+};
+
+export { routes, apiHandler, renderErrorPage }; 
