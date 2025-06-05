@@ -15,9 +15,9 @@ export function parseNavLinks(linksStr) {
 export function renderHeader(siteName, navLinks) {
   return `
     <header class="">
-      <div class="container mx-auto px-4 py-4 max-w-4xl">
-        <div class="flex flex-col md:flex-row justify-between items-center">
-          <h1 class="text-2xl font-bold mb-4 md:mb-0">
+      <div class="container mx-auto px-4 py-4 max-w-3xl">
+        <div class="flex flex-row justify-between items-center">
+          <h1 class="text-2xl font-bold">
             <a href="/" class="hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors">
               ${siteName}
             </a>
@@ -43,7 +43,7 @@ export function renderHeader(siteName, navLinks) {
 export function renderFooter(footerText) {
   return `
     <footer class="">
-      <div class="container mx-auto px-4 py-6 max-w-4xl">
+      <div class="container mx-auto px-4 py-6 max-w-3xl">
         <div class="text-center text-zinc-600 dark:text-zinc-400">
           ${footerText}
         </div>
@@ -525,32 +525,46 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <header class="">
-          <div class="container mx-auto px-4 py-6 max-w-4xl">
-            <div class="flex flex-col sm:flex-row justify-between items-center">
-              <h1 class="text-2xl font-bold mb-4 sm:mb-0">
+          <div class="container mx-auto px-4 py-6 max-w-3xl">
+            <div class="flex flex-row justify-between items-center">
+              <h1 class="text-2xl font-bold">
                 <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                   ${siteName || 'Memos'}
                 </a>
               </h1>
-              <div class="flex items-center space-x-6">
+              <div class="flex items-center space-x-4">
                 ${navHtml}
-                <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                  <i id="theme-toggle-dark-icon" class="ti ti-moon hidden"></i>
-                  <i id="theme-toggle-light-icon" class="ti ti-sun hidden"></i>
-                </button>
+                <div class="relative group">
+                  <button id="theme-toggle" class="w-10 h-10 rounded-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                    <i id="theme-toggle-dark-icon" class="ti ti-moon hidden"></i>
+                    <i id="theme-toggle-light-icon" class="ti ti-sun hidden"></i>
+                    <i id="theme-toggle-system-icon" class="ti ti-device-desktop hidden"></i>
+                  </button>
+                  <div id="theme-dropdown" class="hidden absolute right-0 mt-2 py-2 w-40 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-10">
+                    <button id="theme-light" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
+                      <i class="ti ti-sun mr-2"></i> 浅色
+                    </button>
+                    <button id="theme-dark" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
+                      <i class="ti ti-moon mr-2"></i> 深色
+                    </button>
+                    <button id="theme-system" class="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center">
+                      <i class="ti ti-device-desktop mr-2"></i> 跟随系统
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </header>
 
-        <main class="container mx-auto px-4 py-8 max-w-4xl">
+        <main class="container mx-auto px-4 py-8 max-w-3xl">
           <div class="space-y-8">
             ${content}
           </div>
         </main>
 
         <footer class="">
-          <div class="container mx-auto px-4 py-6 max-w-4xl text-center text-gray-500 dark:text-gray-400 text-sm">
+          <div class="container mx-auto px-4 py-6 max-w-3xl text-center text-gray-500 dark:text-gray-400 text-sm">
             ${footerText || CONFIG.FOOTER_TEXT}
           </div>
         </footer>
@@ -668,45 +682,83 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             // 深色模式切换功能
             const themeToggleBtn = document.getElementById('theme-toggle');
+            const themeDropdown = document.getElementById('theme-dropdown');
             const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
             const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
-
-            // 根据当前主题显示对应图标
-            if (document.documentElement.classList.contains('dark')) {
-              themeToggleLightIcon.classList.remove('hidden');
-            } else {
-              themeToggleDarkIcon.classList.remove('hidden');
-            }
-
-            // 切换主题
+            const themeToggleSystemIcon = document.getElementById('theme-toggle-system-icon');
+            const themeLightBtn = document.getElementById('theme-light');
+            const themeDarkBtn = document.getElementById('theme-dark');
+            const themeSystemBtn = document.getElementById('theme-system');
+            
+            // 显示/隐藏下拉菜单
             themeToggleBtn.addEventListener('click', function() {
-              document.documentElement.classList.toggle('dark');
-              
-              // 更新图标
-              themeToggleDarkIcon.classList.toggle('hidden');
-              themeToggleLightIcon.classList.toggle('hidden');
-              
-              // 保存用户偏好到本地存储
-              if (document.documentElement.classList.contains('dark')) {
-                localStorage.setItem('theme', 'dark');
-              } else {
-                localStorage.setItem('theme', 'light');
+              themeDropdown.classList.toggle('hidden');
+            });
+            
+            // 点击外部区域关闭下拉菜单
+            document.addEventListener('click', function(e) {
+              if (!themeToggleBtn.contains(e.target) && !themeDropdown.contains(e.target)) {
+                themeDropdown.classList.add('hidden');
               }
             });
-
-            // 初始化主题 - 优先使用用户偏好
-            const userTheme = localStorage.getItem('theme');
-            const systemDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
             
-            if (userTheme === 'dark' || (!userTheme && systemDarkMode)) {
-              document.documentElement.classList.add('dark');
-              themeToggleLightIcon.classList.remove('hidden');
+            // 设置主题并更新图标
+            function setTheme(theme) {
+              // 隐藏所有图标
               themeToggleDarkIcon.classList.add('hidden');
-            } else {
-              document.documentElement.classList.remove('dark');
               themeToggleLightIcon.classList.add('hidden');
-              themeToggleDarkIcon.classList.remove('hidden');
+              themeToggleSystemIcon.classList.add('hidden');
+              
+              // 根据主题设置类和图标
+              if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                themeToggleLightIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'dark');
+              } else if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+                themeToggleDarkIcon.classList.remove('hidden');
+                localStorage.setItem('theme', 'light');
+              } else {
+                // 跟随系统
+                localStorage.removeItem('theme');
+                themeToggleSystemIcon.classList.remove('hidden');
+                
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              }
+              
+              // 隐藏下拉菜单
+              themeDropdown.classList.add('hidden');
             }
+            
+            // 绑定点击事件
+            themeLightBtn.addEventListener('click', () => setTheme('light'));
+            themeDarkBtn.addEventListener('click', () => setTheme('dark'));
+            themeSystemBtn.addEventListener('click', () => setTheme('system'));
+            
+            // 初始化主题
+            const userTheme = localStorage.getItem('theme');
+            if (userTheme === 'dark') {
+              setTheme('dark');
+            } else if (userTheme === 'light') {
+              setTheme('light');
+            } else {
+              setTheme('system');
+            }
+            
+            // 监听系统主题变化（仅当设置为跟随系统时）
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+              if (!localStorage.getItem('theme')) {
+                if (e.matches) {
+                  document.documentElement.classList.add('dark');
+                } else {
+                  document.documentElement.classList.remove('dark');
+                }
+              }
+            });
           });
         </script>
       </body>
