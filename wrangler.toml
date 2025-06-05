@@ -4,7 +4,7 @@ compatibility_date = "2024-02-20"
 
 [vars]
 SITE_NAME = "归零杂记"
-NAV_LINKS = "{'博客':'https://www.dengchangdong.com','头条':'https://news.dengchangdong.com'}"
+NAV_LINKS = "{'博客':'https://www.dengchangdong.com','热点':'https://news.dengchangdong.com'}"
 FOOTER_TEXT = "© 2025 归零杂记"
 PAGE_LIMIT = "10"
 API_HOST = "https://open.memos.dengchangdong.com"
