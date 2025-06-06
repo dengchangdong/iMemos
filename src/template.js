@@ -300,16 +300,23 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           }
 
           /* 毛玻璃效果header */
-          .glass-header {
+          .glass-header::before {
+            content: '';
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            background-color: rgba(255, 255, 255, 0.7);
-            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+            background-color: #F9FAFB; /* bg-gray-50的颜色 */
+            z-index: -1;
           }
-
-          .dark .glass-header {
-            background-color: rgba(17, 24, 39, 0.7);
-            border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+          
+          .dark .glass-header::before {
+            background-color: #111827; /* bg-gray-900的颜色 */
           }
 
           /* 抖音视频容器样式 */
