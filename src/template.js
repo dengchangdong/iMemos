@@ -8,10 +8,10 @@ export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
     return utils.createHtml`
-      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+      <div class="memo-card">
         <h2 class="text-lg font-semibold mb-2">加载失败</h2>
         <p class="text-sm">${error.message}</p>
-        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+        <a href="/" class="inline-flex items-center mt-4 text-sm nav-link">
           <i class="ti ti-arrow-left mr-1"></i>
           返回首页
         </a>
@@ -22,11 +22,11 @@ export const htmlTemplates = {
   // 404页面模板
   notFoundPage() {
     return utils.createHtml`
-      <div class="text-center py-12">
-        <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
+      <div class="memo-card text-center py-8">
+        <i class="ti ti-alert-circle text-4xl text-gray-400 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">未找到内容</h2>
         <p class="text-gray-500 dark:text-gray-400 mb-6">您访问的内容不存在或已被删除</p>
-        <a href="/" class="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+        <a href="/" class="nav-link inline-flex items-center">
           <i class="ti ti-arrow-left mr-1"></i>
           返回首页
         </a>
@@ -163,16 +163,17 @@ export function renderMemo(memo, isHomePage = false) {
       
       // 使用模板字符串生成HTML
       resourcesHtml = utils.createHtml`
-        <div class="grid ${gridCols} gap-4 mt-4">
+        <div class="grid ${gridCols} gap-4 mt-6">
           ${resources.map(resource => utils.createHtml`
-            <div class="group relative aspect-square overflow-hidden rounded-md bg-gray-100 dark:bg-gray-800 cursor-pointer" onclick="showImage(this.querySelector('img'))">
+            <div class="group relative aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 cursor-pointer" onclick="showImage(this.querySelector('img'))">
               <img 
                 src="${resource.externalLink || ''}" 
                 alt="${resource.filename || '图片'}"
-                class="absolute inset-0 w-full h-full object-cover rounded-md"
+                class="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 rounded-lg"
                 loading="lazy"
                 data-preview="true"
               />
+              <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-300 rounded-lg"></div>
             </div>
           `).join('')}
         </div>
@@ -181,18 +182,18 @@ export function renderMemo(memo, isHomePage = false) {
     
     // 根据页面类型生成时间HTML
     const timeHtml = isHomePage 
-      ? utils.createHtml`<time class="text-sm text-gray-500 dark:text-gray-400">
-           <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300">
+      ? utils.createHtml`<time class="memo-time">
+           <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
              ${date}
            </a>
          </time>`
-      : utils.createHtml`<time class="text-sm text-gray-500 dark:text-gray-400">${date}</time>`
+      : utils.createHtml`<time class="memo-time">${date}</time>`
     
-    // 组合最终HTML
+    // 组合最终HTML - 使用面条实验室风格
     return utils.createHtml`
-      <article class="mb-8 pb-8 border-b border-gray-100 dark:border-gray-800">
+      <article class="memo-card">
         ${timeHtml}
-        <div class="mt-2 memo-content">
+        <div class="memo-content prose">
           ${parsedContent}
         </div>
         ${resourcesHtml}
@@ -217,18 +218,18 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 导航链接HTML
   const navHtml = navItems.length > 0 
     ? utils.createHtml`
-      <div class="flex flex-wrap gap-4 mt-4">
+      <nav class="flex items-center justify-center space-x-6">
         ${navItems.map(item => utils.createHtml`
-          <a href="${item.url}" class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
+          <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
             ${item.text}
           </a>
         `).join('')}
-      </div>
+      </nav>
     ` : ''
 
   return utils.createHtml`
     <!DOCTYPE html>
-    <html lang="zh-CN">
+    <html lang="zh-CN" class="scroll-smooth">
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -240,113 +241,237 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             theme: {
               extend: {
                 fontFamily: {
-                  sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-                  mono: ['SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+                  sans: ['Inter var', 'system-ui', 'sans-serif'],
+                  serif: ['Noto Serif SC', 'serif'],
                 },
-                colors: {
-                  primary: {
-                    50: '#f0fdfa',
-                    100: '#ccfbf1',
-                    200: '#99f6e4',
-                    300: '#5eead4',
-                    400: '#2dd4bf',
-                    500: '#14b8a6',
-                    600: '#0d9488',
-                    700: '#0f766e',
-                    800: '#115e59',
-                    900: '#134e4a',
+                typography: {
+                  DEFAULT: {
+                    css: {
+                      maxWidth: 'none',
+                      color: 'inherit',
+                      a: {
+                        color: 'inherit',
+                        textDecoration: 'none',
+                        fontWeight: '500',
+                      },
+                      strong: {
+                        color: 'inherit',
+                      },
+                      code: {
+                        color: 'inherit',
+                      },
+                      h1: {
+                        color: 'inherit',
+                      },
+                      h2: {
+                        color: 'inherit',
+                      },
+                      h3: {
+                        color: 'inherit',
+                      },
+                      h4: {
+                        color: 'inherit',
+                      },
+                    },
                   },
-                }
+                },
               },
             },
           }
         </script>
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
         <style>
+          :root {
+            --bg-color: #ffffff;
+            --text-color: #374151;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-bg: #ffffff;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --header-bg: rgba(255, 255, 255, 0.8);
+          }
+
+          .dark {
+            --bg-color: #18181b;
+            --text-color: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --border-color: #27272a;
+            --card-bg: #27272a;
+            --accent-color: #3b82f6;
+            --accent-hover: #60a5fa;
+            --header-bg: rgba(24, 24, 27, 0.8);
+          }
+
           body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             line-height: 1.6;
           }
-          
-          .memo-content p {
-            margin-bottom: 1rem;
-          }
-          
-          .memo-content a {
-            color: #0969da;
-            text-decoration: none;
-          }
-          
-          .memo-content a:hover {
-            text-decoration: underline;
+
+          .prose {
+            color: var(--text-color);
+            max-width: 65ch;
           }
 
-          .memo-content code {
-            font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-            background-color: rgba(175, 184, 193, 0.2);
-            padding: 0.2em 0.4em;
-            border-radius: 6px;
-            font-size: 85%;
+          .prose p {
+            margin-top: 1.25em;
+            margin-bottom: 1.25em;
+          }
+
+          .prose a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+          }
+
+          .prose a:hover {
+            border-color: var(--accent-color);
+          }
+
+          /* 毛玻璃效果header */
+          .glass-header::before {
+            content: '';
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background-color: var(--header-bg);
+            z-index: -1;
+            border-bottom: 1px solid var(--border-color);
+          }
+
+          /* 抖音视频容器样式 */
+          .douyin-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            max-width: 100%;
+            margin: 1rem auto;
           }
           
-          .memo-content pre {
-            background-color: #f6f8fa;
-            border-radius: 6px;
-            padding: 16px;
-            overflow: auto;
-            margin-bottom: 16px;
+          .douyin-container iframe {
+            max-width: 100%;
+            border-radius: 8px;
           }
-          
-          .dark .memo-content pre {
-            background-color: #161b22;
+
+          .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 50;
+            opacity: 0;
+            transition: opacity 0.3s ease;
           }
-          
-          .dark .memo-content code {
-            background-color: rgba(110, 118, 129, 0.4);
+
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
           }
-          
-          .dark .memo-content a {
-            color: #58a6ff;
+
+          .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            margin: auto;
+            position: relative;
           }
-          
+
+          .image-modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+          }
+
+          .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0.5rem;
+          }
+
+          .image-modal-prev,
+          .image-modal-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 1rem;
+            user-select: none;
+          }
+
+          .image-modal-prev {
+            left: -60px;
+          }
+
+          .image-modal-next {
+            right: -60px;
+          }
+
+          @media (max-width: 768px) {
+            .image-modal-prev {
+              left: 10px;
+            }
+            .image-modal-next {
+              right: 10px;
+            }
+          }
+
           .theme-btn {
             position: relative;
-            width: 36px;
-            height: 36px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
           }
-          
+
           .theme-btn:hover {
             background: rgba(0, 0, 0, 0.05);
           }
-          
+
           .dark .theme-btn:hover {
             background: rgba(255, 255, 255, 0.1);
           }
-          
+
           .theme-btn i {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             font-size: 1.25rem;
             transition: all 0.3s ease;
           }
-          
+
           .theme-btn[data-theme="system"] i.ti-device-desktop,
           .theme-btn[data-theme="light"] i.ti-sun,
           .theme-btn[data-theme="dark"] i.ti-moon {
             opacity: 1;
           }
-          
+
           .theme-btn i.ti-device-desktop,
           .theme-btn i.ti-sun,
           .theme-btn i.ti-moon {
             opacity: 0;
-            position: absolute;
           }
-          
+
           .back-to-top {
             position: fixed;
             bottom: 2rem;
@@ -354,10 +479,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            color: #374151;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -367,74 +491,119 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             transition: all 0.3s ease;
             z-index: 40;
           }
-          
+
           .back-to-top.visible {
             opacity: 1;
             transform: translateY(0);
           }
-          
+
           .back-to-top:hover {
-            background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
           }
-          
-          .dark .back-to-top {
-            background: rgba(17, 24, 39, 0.8);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: #E5E7EB;
+
+          /* 面条实验室风格的卡片 */
+          .memo-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
           }
-          
-          .dark .back-to-top:hover {
-            background: rgba(17, 24, 39, 0.9);
+
+          .memo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
           }
-          
-          .footer-divider {
-            height: 1px;
-            background: rgba(0, 0, 0, 0.1);
+
+          .dark .memo-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
           }
-          
-          .dark .footer-divider {
-            background: rgba(255, 255, 255, 0.1);
+
+          .memo-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: block;
+          }
+
+          .memo-content {
+            margin-top: 0.5rem;
+          }
+
+          /* 导航样式 */
+          .nav-link {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-decoration: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s, color 0.2s;
+          }
+
+          .nav-link:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--text-color);
+          }
+
+          .dark .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
           }
         </style>
       </head>
-      <body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-        <div class="flex-grow">
-          <div class="max-w-2xl mx-auto px-4 py-8">
-            <header class="mb-8">
-              <h1 class="text-2xl font-bold">
-                <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
-                  ${siteName}
-                </a>
-              </h1>
-              ${navHtml}
-              <div class="flex justify-end mt-4">
-                <button class="theme-btn" data-theme="system">
-                  <i class="ti ti-device-desktop"></i>
-                  <i class="ti ti-sun"></i>
-                  <i class="ti ti-moon"></i>
-                </button>
+      <body class="min-h-screen flex flex-col">
+        <div class="flex-grow pt-16">
+          <header class="w-full fixed top-0 left-0 z-40 glass-header">
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-3">
+              <div class="flex items-center justify-between max-w-3xl mx-auto">
+                <h1 class="text-lg font-bold">
+                  <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
+                    ${siteName}
+                  </a>
+                </h1>
+                <div class="flex-1 flex justify-center">
+                  ${navItems.length > 0 
+                    ? utils.createHtml`
+                      <nav class="flex items-center space-x-1">
+                        ${navItems.map(item => utils.createHtml`
+                          <a href="${item.url}" class="nav-link">
+                            ${item.text}
+                          </a>
+                        `).join('')}
+                      </nav>
+                    ` : ''
+                  }
+                </div>
+                <div>
+                  <button class="theme-btn" data-theme="system">
+                    <i class="ti ti-device-desktop"></i>
+                    <i class="ti ti-sun"></i>
+                    <i class="ti ti-moon"></i>
+                  </button>
+                </div>
               </div>
-            </header>
-            <main class="space-y-8">
+            </div>
+          </header>
+          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main>
               ${content}
             </main>
           </div>
         </div>
 
-        <footer class="mt-12">
-          <div class="max-w-2xl mx-auto px-4 py-6">
-            <div class="footer-divider mb-6"></div>
-            <div class="text-sm text-gray-500 dark:text-gray-400">
+        <footer class="mt-8 border-t border-gray-200 dark:border-gray-800">
+          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center text-sm text-gray-500 dark:text-gray-400">
               <p>${footerText}</p>
-              <p class="mt-2">
-                <a href="#" id="backToTop" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                  返回顶部
-                </a>
-              </p>
             </div>
           </div>
         </footer>
+
+        <!-- 返回顶部按钮 -->
+        <button class="back-to-top" id="backToTop" aria-label="返回顶部">
+          <i class="ti ti-arrow-up text-xl"></i>
+        </button>
 
         <script>
           // 主题切换
@@ -486,8 +655,15 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           // 返回顶部
           const backToTop = document.getElementById('backToTop')
           
-          backToTop.addEventListener('click', (e) => {
-            e.preventDefault()
+          window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+              backToTop.classList.add('visible')
+            } else {
+              backToTop.classList.remove('visible')
+            }
+          })
+          
+          backToTop.addEventListener('click', () => {
             window.scrollTo({
               top: 0,
               behavior: 'smooth'
@@ -513,13 +689,27 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             closeBtn.className = 'absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-gray-800 hover:bg-gray-700 rounded-full w-10 h-10 flex items-center justify-center transition-colors'
             closeBtn.innerHTML = '<i class="ti ti-x"></i>'
             
+            const prevBtn = document.createElement('button')
+            prevBtn.className = 'absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800/50 hover:bg-gray-700/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors'
+            prevBtn.innerHTML = '<i class="ti ti-chevron-left"></i>'
+            
+            const nextBtn = document.createElement('button')
+            nextBtn.className = 'absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl cursor-pointer bg-gray-800/50 hover:bg-gray-700/70 rounded-full w-10 h-10 flex items-center justify-center transition-colors'
+            nextBtn.innerHTML = '<i class="ti ti-chevron-right"></i>'
+            
             modalContent.appendChild(modalImg)
             modalContent.appendChild(closeBtn)
+            modalContent.appendChild(prevBtn)
+            modalContent.appendChild(nextBtn)
             modal.appendChild(modalContent)
             document.body.appendChild(modal)
             
             // 禁止背景滚动
             document.body.style.overflow = 'hidden'
+            
+            // 获取所有可预览的图片
+            const allImages = Array.from(document.querySelectorAll('img[data-preview="true"]'))
+            let currentIndex = allImages.indexOf(img)
             
             // 关闭模态框
             function closeModal() {
@@ -527,7 +717,21 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               document.body.style.overflow = ''
             }
             
+            // 显示上一张图片
+            function showPrevImage() {
+              currentIndex = (currentIndex - 1 + allImages.length) % allImages.length
+              modalImg.src = allImages[currentIndex].src
+            }
+            
+            // 显示下一张图片
+            function showNextImage() {
+              currentIndex = (currentIndex + 1) % allImages.length
+              modalImg.src = allImages[currentIndex].src
+            }
+            
             closeBtn.addEventListener('click', closeModal)
+            prevBtn.addEventListener('click', showPrevImage)
+            nextBtn.addEventListener('click', showNextImage)
             
             modal.addEventListener('click', (e) => {
               if (e.target === modal) {
@@ -539,9 +743,35 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             document.addEventListener('keydown', function(e) {
               if (e.key === 'Escape') {
                 closeModal()
+              } else if (e.key === 'ArrowLeft') {
+                showPrevImage()
+              } else if (e.key === 'ArrowRight') {
+                showNextImage()
               }
             })
           }
+
+          // 图片懒加载 - 使用 Intersection Observer API
+          document.addEventListener('DOMContentLoaded', function() {
+            if ('IntersectionObserver' in window) {
+              const lazyImages = document.querySelectorAll('img[loading="lazy"]')
+              
+              const imageObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                    const img = entry.target
+                    if (img.dataset.src) {
+                      img.src = img.dataset.src
+                      img.removeAttribute('data-src')
+                    }
+                    imageObserver.unobserve(img)
+                  }
+                })
+              })
+
+              lazyImages.forEach(img => imageObserver.observe(img))
+            }
+          })
         </script>
       </body>
     </html>
