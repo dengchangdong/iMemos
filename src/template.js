@@ -470,8 +470,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
         <div class="flex-grow">
-          <header class="w-full bg-white dark:bg-gray-800 shadow-sm mb-12">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <header class="w-full mb-12">
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-4">
               <div class="flex items-center justify-between">
                 <h1 class="text-1xl font-bold tracking-tight">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
