@@ -220,7 +220,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   // 导航链接HTML
   const navHtml = navItems.length > 0 
     ? utils.createHtml`
-      <nav class="flex items-center space-x-6">
+      <nav class="flex items-center justify-center space-x-6">
         ${navItems.map(item => utils.createHtml`
           <a href="${item.url}" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
             ${item.text}
@@ -470,16 +470,18 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
         <div class="flex-grow">
-          <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <header class="mb-12">
+          <header class="w-full bg-white dark:bg-gray-800 shadow-sm mb-12">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
               <div class="flex items-center justify-between">
-                <h1 class="text-2xl font-bold tracking-tight">
+                <h1 class="text-1xl font-bold tracking-tight">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     ${siteName}
                   </a>
                 </h1>
-                <div class="flex items-center space-x-6">
+                <div class="flex-1 flex justify-center">
                   ${navHtml}
+                </div>
+                <div>
                   <button class="theme-btn" data-theme="system">
                     <i class="ti ti-device-desktop"></i>
                     <i class="ti ti-sun"></i>
@@ -487,7 +489,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   </button>
                 </div>
               </div>
-            </header>
+            </div>
+          </header>
+          <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <main class="space-y-8">
               ${content}
             </main>
