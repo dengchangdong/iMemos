@@ -388,21 +388,16 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.05);
             cursor: pointer;
             transition: all 0.3s ease;
           }
 
           .theme-btn:hover {
-            background: rgba(0, 0, 0, 0.1);
-          }
-
-          .dark .theme-btn {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.05);
           }
 
           .dark .theme-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
           }
 
           .theme-btn i {
@@ -473,7 +468,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <header class="w-full mb-12">
             <div class="w-full px-4 sm:px-6 lg:px-8 py-4">
               <div class="flex items-center justify-between">
-                <h1 class="text-1xl font-bold tracking-tight">
+                <h1 class="text-lg font-bold tracking-tight">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     ${siteName}
                   </a>
