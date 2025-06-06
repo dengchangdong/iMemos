@@ -299,6 +299,19 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             color: #E5E7EB;
           }
 
+          /* 毛玻璃效果header */
+          .glass-header {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.7);
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+          }
+
+          .dark .glass-header {
+            background-color: rgba(17, 24, 39, 0.7);
+            border-bottom: 1px solid rgba(55, 65, 81, 0.5);
+          }
+
           /* 抖音视频容器样式 */
           .douyin-container {
             display: flex;
@@ -464,8 +477,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </style>
       </head>
       <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
-        <div class="flex-grow">
-          <header class="w-full mb-12">
+        <div class="flex-grow pt-16">
+          <header class="w-full fixed top-0 left-0 z-40 glass-header">
             <div class="w-full px-4 sm:px-6 lg:px-8 py-4">
               <div class="flex items-center justify-between">
                 <h1 class="text-lg font-bold tracking-tight">
