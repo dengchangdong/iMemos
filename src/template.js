@@ -8,10 +8,10 @@ export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
     return utils.createHtml`
-      <div class="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-6 rounded-lg">
+      <div class="memo-card">
         <h2 class="text-lg font-semibold mb-2">加载失败</h2>
         <p class="text-sm">${error.message}</p>
-        <a href="/" class="inline-flex items-center mt-4 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
+        <a href="/" class="inline-flex items-center mt-4 text-sm nav-link">
           <i class="ti ti-arrow-left mr-1"></i>
           返回首页
         </a>
@@ -22,11 +22,11 @@ export const htmlTemplates = {
   // 404页面模板
   notFoundPage() {
     return utils.createHtml`
-      <div class="text-center py-12">
-        <i class="ti ti-alert-circle text-5xl text-gray-400 mb-4"></i>
-        <h2 class="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">未找到内容</h2>
+      <div class="memo-card text-center py-8">
+        <i class="ti ti-alert-circle text-4xl text-gray-400 mb-4"></i>
+        <h2 class="text-xl font-semibold mb-2">未找到内容</h2>
         <p class="text-gray-500 dark:text-gray-400 mb-6">您访问的内容不存在或已被删除</p>
-        <a href="/" class="inline-flex items-center text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
+        <a href="/" class="nav-link inline-flex items-center">
           <i class="ti ti-arrow-left mr-1"></i>
           返回首页
         </a>
@@ -182,23 +182,21 @@ export function renderMemo(memo, isHomePage = false) {
     
     // 根据页面类型生成时间HTML
     const timeHtml = isHomePage 
-      ? utils.createHtml`<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">
+      ? utils.createHtml`<time class="memo-time">
            <a href="/post/${memo.name}" class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">
              ${date}
            </a>
          </time>`
-      : utils.createHtml`<time class="text-sm text-gray-500 dark:text-gray-400 font-medium tracking-wide">${date}</time>`
+      : utils.createHtml`<time class="memo-time">${date}</time>`
     
-    // 组合最终HTML
+    // 组合最终HTML - 使用面条实验室风格
     return utils.createHtml`
-      <article class="${CONFIG.CSS.CARD}">
-        <div class="p-6 sm:p-8">
-          ${timeHtml}
-          <div class="mt-4 ${CONFIG.CSS.PROSE}">
-            ${parsedContent}
-          </div>
-          ${resourcesHtml}
+      <article class="memo-card">
+        ${timeHtml}
+        <div class="memo-content prose">
+          ${parsedContent}
         </div>
+        ${resourcesHtml}
       </article>
     `
   } catch (error) {
@@ -285,9 +283,38 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&display=swap">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
         <style>
+          :root {
+            --bg-color: #ffffff;
+            --text-color: #374151;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-bg: #ffffff;
+            --accent-color: #2563eb;
+            --accent-hover: #1d4ed8;
+            --header-bg: rgba(255, 255, 255, 0.8);
+          }
+
+          .dark {
+            --bg-color: #18181b;
+            --text-color: #e5e7eb;
+            --text-secondary: #9ca3af;
+            --border-color: #27272a;
+            --card-bg: #27272a;
+            --accent-color: #3b82f6;
+            --accent-hover: #60a5fa;
+            --header-bg: rgba(24, 24, 27, 0.8);
+          }
+
+          body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+          }
+
           .prose {
+            color: var(--text-color);
             max-width: 65ch;
-            color: #374151;
           }
 
           .prose p {
@@ -295,8 +322,15 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             margin-bottom: 1.25em;
           }
 
-          .dark .prose {
-            color: #E5E7EB;
+          .prose a {
+            color: var(--accent-color);
+            text-decoration: none;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+          }
+
+          .prose a:hover {
+            border-color: var(--accent-color);
           }
 
           /* 毛玻璃效果header */
@@ -311,12 +345,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             opacity: 0.8;
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            background-color: #F9FAFB; /* bg-gray-50的颜色 */
+            background-color: var(--header-bg);
             z-index: -1;
-          }
-          
-          .dark .glass-header::before {
-            background-color: #111827; /* bg-gray-900的颜色 */
+            border-bottom: 1px solid var(--border-color);
           }
 
           /* 抖音视频容器样式 */
@@ -448,10 +479,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             width: 40px;
             height: 40px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(8px);
-            border: 2px solid rgba(0, 0, 0, 0.1);
-            color: #374151;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -468,33 +498,82 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           }
 
           .back-to-top:hover {
-            background: rgba(255, 255, 255, 0.9);
             transform: translateY(-2px);
           }
 
-          .dark .back-to-top {
-            background: rgba(17, 24, 39, 0.8);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: #E5E7EB;
+          /* 面条实验室风格的卡片 */
+          .memo-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
           }
 
-          .dark .back-to-top:hover {
-            background: rgba(17, 24, 39, 0.9);
+          .memo-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+          }
+
+          .dark .memo-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+          }
+
+          .memo-time {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            display: block;
+          }
+
+          .memo-content {
+            margin-top: 0.5rem;
+          }
+
+          /* 导航样式 */
+          .nav-link {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-decoration: none;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s, color 0.2s;
+          }
+
+          .nav-link:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+            color: var(--text-color);
+          }
+
+          .dark .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            color: var(--text-color);
           }
         </style>
       </head>
-      <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col">
+      <body class="min-h-screen flex flex-col">
         <div class="flex-grow pt-16">
           <header class="w-full fixed top-0 left-0 z-40 glass-header">
-            <div class="w-full px-4 sm:px-6 lg:px-8 py-4">
-              <div class="flex items-center justify-between">
-                <h1 class="text-lg font-bold tracking-tight">
+            <div class="w-full px-4 sm:px-6 lg:px-8 py-3">
+              <div class="flex items-center justify-between max-w-3xl mx-auto">
+                <h1 class="text-lg font-bold">
                   <a href="/" class="hover:text-gray-600 dark:hover:text-gray-300 transition-colors">
                     ${siteName}
                   </a>
                 </h1>
                 <div class="flex-1 flex justify-center">
-                  ${navHtml}
+                  ${navItems.length > 0 
+                    ? utils.createHtml`
+                      <nav class="flex items-center space-x-1">
+                        ${navItems.map(item => utils.createHtml`
+                          <a href="${item.url}" class="nav-link">
+                            ${item.text}
+                          </a>
+                        `).join('')}
+                      </nav>
+                    ` : ''
+                  }
                 </div>
                 <div>
                   <button class="theme-btn" data-theme="system">
@@ -506,15 +585,15 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               </div>
             </div>
           </header>
-          <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-            <main class="space-y-8">
+          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <main>
               ${content}
             </main>
           </div>
         </div>
 
-        <footer class="mt-12">
-          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <footer class="mt-8 border-t border-gray-200 dark:border-gray-800">
+          <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div class="text-center text-sm text-gray-500 dark:text-gray-400">
               <p>${footerText}</p>
             </div>
