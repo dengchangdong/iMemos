@@ -3,6 +3,48 @@ import { CONFIG } from './config.js'
 import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
+// 压缩HTML、JS和CSS的工具函数
+const minify = {
+  // HTML压缩 - 移除多余空白、注释等
+  html: (html) => {
+    if (!html) return '';
+    return html
+      .replace(/<!--[\s\S]*?-->/g, '') // 移除HTML注释
+      .replace(/\s+/g, ' ') // 合并多个空白为一个
+      .replace(/>\s+</g, '><') // 移除标签间的空白
+      .replace(/\s+>/g, '>') // 移除结束标签前的空白
+      .replace(/<\s+/g, '<') // 移除开始标签后的空白
+      .trim();
+  },
+  
+  // CSS压缩 - 移除注释、空白和不必要的分号
+  css: (css) => {
+    if (!css) return '';
+    return css
+      .replace(/\/\*[\s\S]*?\*\//g, '') // 移除CSS注释
+      .replace(/\s+/g, ' ') // 合并多个空白为一个
+      .replace(/\s*{\s*/g, '{') // 移除选择器和大括号间的空白
+      .replace(/\s*}\s*/g, '}') // 移除大括号后的空白
+      .replace(/\s*:\s*/g, ':') // 移除属性和值之间的空白
+      .replace(/\s*;\s*/g, ';') // 移除分号后的空白
+      .replace(/;\}/g, '}') // 移除最后一个分号
+      .trim();
+  },
+  
+  // JS压缩 - 移除注释和多余空白
+  js: (js) => {
+    if (!js) return '';
+    return js
+      .replace(/\/\/.*?(\n|$)/g, '$1') // 移除单行注释
+      .replace(/\/\*[\s\S]*?\*\//g, '') // 移除多行注释
+      .replace(/\s+/g, ' ') // 合并多个空白为一个
+      .replace(/\s*{\s*/g, '{') // 移除大括号前后的空白
+      .replace(/\s*}\s*/g, '}') // 移除大括号后的空白
+      .replace(/;\s*/g, ';') // 移除分号后的空白
+      .trim();
+  }
+};
+
 // 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
   // 错误页面模板
@@ -262,8 +304,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
     articlesHtml = content;
   }
 
-  // 返回基于index.html模板的HTML
-  return utils.createHtml`
+  // 生成HTML模板
+  const htmlTemplate = utils.createHtml`
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
       <head>
@@ -407,9 +449,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             max-width: 90%;
             max-height: 90%;
             position: relative;
-            background-color: #f0f0f0;
-            border-radius: 8px;
-            padding: 8px;
           }
 
           .image-modal-content img {
@@ -743,4 +782,17 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </body>
     </html>
   `;
+  
+  // 应用压缩
+  // 提取HTML中的<style>和<script>标签内容进行压缩
+  const compressedHtml = htmlTemplate
+    .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, p1) => {
+      return `<style>${minify.css(p1)}</style>`;
+    })
+    .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, (match, p1) => {
+      return `<script>${minify.js(p1)}</script>`;
+    });
+  
+  // 压缩整个HTML
+  return minify.html(compressedHtml);
 } 
