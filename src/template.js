@@ -314,23 +314,31 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
       <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
         <script>
-          tailwind.config = {
+          // 防止tailwind未定义错误
+          window.tailwindConfig = {
             darkMode: 'class',
             theme: {
               extend: {
-              backgroundImage: {
-                'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
-              },
-              colors: {
-                'indigo-timeline': '#4e5ed3',
-                'indigo-shadow': '#bab5f8',
-              },
+                backgroundImage: {
+                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                },
+                colors: {
+                  'indigo-timeline': '#4e5ed3',
+                  'indigo-shadow': '#bab5f8',
+                },
+              }
             }
-          }
-          }
+          };
+
+          // 等待页面加载完成后应用配置
+          document.addEventListener('DOMContentLoaded', () => {
+            if (typeof tailwind !== 'undefined') {
+              tailwind.config = window.tailwindConfig;
+            }
+          });
         </script>
       <style type="text/tailwindcss">
         @layer utilities {
@@ -569,215 +577,234 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           </div>
 
         <script>
-        // 主题切换功能
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const html = document.documentElement;
-        
-        // 主题模式
-        const themes = ['system', 'light', 'dark'];
-        let currentTheme = 0; // 默认跟随系统
-        
-        // 更新图标
-        function updateIcon(theme) {
-          if (theme === 'light') {
-            themeIcon.className = 'ri-sun-fill text-lg';
-          } else if (theme === 'dark') {
-            themeIcon.className = 'ri-moon-fill text-lg';
-          } else {
-            themeIcon.className = 'ri-contrast-fill text-lg';
-          }
-        }
-        
-        // 初始化主题
-        function applyTheme(theme) {
-          if (theme === 'light') {
-            html.classList.remove('dark');
-            localStorage.theme = 'light';
-          } else if (theme === 'dark') {
-            html.classList.add('dark');
-            localStorage.theme = 'dark';
-          } else {
-            // 跟随系统
-            localStorage.removeItem('theme');
-            if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-              html.classList.add('dark');
-            } else {
-              html.classList.remove('dark');
-            }
-          }
-          updateIcon(theme);
-        }
-        
-        // 检查本地存储的主题
-        if (localStorage.theme === 'dark') {
-          html.classList.add('dark');
-          currentTheme = 2; // dark
-          updateIcon('dark');
-        } else if (localStorage.theme === 'light') {
-          html.classList.remove('dark');
-          currentTheme = 1; // light
-          updateIcon('light');
-        } else {
-          // 跟随系统
-          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            html.classList.add('dark');
-          }
-          updateIcon('system');
-        }
-        
-        // 点击切换主题
-        themeToggle.addEventListener('click', () => {
-          currentTheme = (currentTheme + 1) % 3;
-          const newTheme = themes[currentTheme];
-          applyTheme(newTheme);
-        });
-
-          // 监听系统主题变化
-        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-          if (!localStorage.theme) { // 只在跟随系统模式下响应
-            if (e.matches) {
-              html.classList.add('dark');
-            } else {
-              html.classList.remove('dark');
-            }
-          }
-        });
-
-        // 返回顶部功能
-        const backToTop = document.getElementById('back-to-top');
-        
-        // 监听滚动事件
-          window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-            backToTop.classList.add('visible');
-            } else {
-            backToTop.classList.remove('visible');
-            }
-        });
-          
-        // 点击返回顶部
-          backToTop.addEventListener('click', () => {
-            window.scrollTo({
-              top: 0,
-              behavior: 'smooth'
+        // 所有功能封装到一个自执行函数中，避免污染全局作用域
+        (function() {
+          // 页面加载完成后执行所有初始化
+          document.addEventListener('DOMContentLoaded', function() {
+            initThemeToggle();
+            initBackToTop();
+            initImageViewer();
           });
-        });
-
-        // 检查初始滚动位置
-        if (window.scrollY > 300) {
-          backToTop.classList.add('visible');
-        }
-        
-        // 图片点击放大功能
-        document.addEventListener('DOMContentLoaded', () => {
-          const modal = document.getElementById('imageModal');
-          const modalImg = document.getElementById('modalImage');
-          const closeBtn = modal.querySelector('.image-modal-close');
-          const prevBtn = modal.querySelector('.image-modal-prev');
-          const nextBtn = modal.querySelector('.image-modal-next');
           
-          let allImages = [];
-          let currentIndex = 0;
-          
-          // 获取所有可点击图片
-          function collectImages() {
-            allImages = Array.from(document.querySelectorAll('.article-content img, .mt-4 img'));
-            return allImages;
-          }
-          
-          // 为所有图片添加点击事件
-          function setupImageClickHandlers() {
-            collectImages().forEach((img, index) => {
-              img.style.cursor = 'pointer';
-              img.addEventListener('click', () => {
-                showImage(img, index);
+          // 主题切换功能
+          function initThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const html = document.documentElement;
+            
+            // 主题模式
+            const themes = ['system', 'light', 'dark'];
+            let currentTheme = 0; // 默认跟随系统
+            
+            // 更新图标
+            function updateIcon(theme) {
+              if (theme === 'light') {
+                themeIcon.className = 'ri-sun-fill text-lg';
+              } else if (theme === 'dark') {
+                themeIcon.className = 'ri-moon-fill text-lg';
+              } else {
+                themeIcon.className = 'ri-contrast-fill text-lg';
+              }
+            }
+            
+            // 初始化主题
+            function applyTheme(theme) {
+              if (theme === 'light') {
+                html.classList.remove('dark');
+                localStorage.theme = 'light';
+              } else if (theme === 'dark') {
+                html.classList.add('dark');
+                localStorage.theme = 'dark';
+              } else {
+                // 跟随系统
+                localStorage.removeItem('theme');
+                if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                  html.classList.add('dark');
+                } else {
+                  html.classList.remove('dark');
+                }
+              }
+              updateIcon(theme);
+            }
+            
+            // 检查本地存储的主题
+            if (localStorage.theme === 'dark') {
+              html.classList.add('dark');
+              currentTheme = 2; // dark
+              updateIcon('dark');
+            } else if (localStorage.theme === 'light') {
+              html.classList.remove('dark');
+              currentTheme = 1; // light
+              updateIcon('light');
+            } else {
+              // 跟随系统
+              if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                html.classList.add('dark');
+              }
+              updateIcon('system');
+            }
+            
+            // 点击切换主题
+            if (themeToggle) {
+              themeToggle.addEventListener('click', () => {
+                currentTheme = (currentTheme + 1) % 3;
+                const newTheme = themes[currentTheme];
+                applyTheme(newTheme);
               });
+            }
+
+            // 监听系统主题变化
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+              if (!localStorage.theme) { // 只在跟随系统模式下响应
+                if (e.matches) {
+                  html.classList.add('dark');
+                } else {
+                  html.classList.remove('dark');
+                }
+              }
             });
           }
           
-          // 显示图片
-          function showImage(img, index) {
-            modalImg.src = img.src;
-            modal.classList.add('active');
-            currentIndex = index;
-            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+          // 返回顶部功能
+          function initBackToTop() {
+            const backToTop = document.getElementById('back-to-top');
+            if (!backToTop) return;
             
-            updateNavigationButtons();
+            // 监听滚动事件
+            window.addEventListener('scroll', () => {
+              if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+              } else {
+                backToTop.classList.remove('visible');
+              }
+            });
+              
+            // 点击返回顶部
+            backToTop.addEventListener('click', () => {
+              window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+              });
+            });
+
+            // 检查初始滚动位置
+            if (window.scrollY > 300) {
+              backToTop.classList.add('visible');
+            }
           }
           
-          // 更新导航按钮显示状态
-          function updateNavigationButtons() {
-            if (allImages.length <= 1) {
-              prevBtn.style.display = 'none';
-              nextBtn.style.display = 'none';
-              return;
+          // 图片点击放大功能
+          function initImageViewer() {
+            const modal = document.getElementById('imageModal');
+            if (!modal) return;
+            
+            const modalImg = document.getElementById('modalImage');
+            const closeBtn = modal.querySelector('.image-modal-close');
+            const prevBtn = modal.querySelector('.image-modal-prev');
+            const nextBtn = modal.querySelector('.image-modal-next');
+            
+            let allImages = [];
+            let currentIndex = 0;
+            
+            // 获取所有可点击图片
+            function collectImages() {
+              allImages = Array.from(document.querySelectorAll('.article-content img, .mt-4 img'));
+              return allImages;
             }
             
-            prevBtn.style.display = 'block';
-            nextBtn.style.display = 'block';
-          }
-          
-          // 显示上一张图片
-          function showPreviousImage() {
-            if (allImages.length <= 1) return;
+            // 为所有图片添加点击事件
+            function setupImageClickHandlers() {
+              collectImages().forEach((img, index) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                  showImage(img, index);
+                });
+              });
+            }
             
-            currentIndex = (currentIndex - 1 + allImages.length) % allImages.length;
-            modalImg.src = allImages[currentIndex].src;
-          }
-          
-          // 显示下一张图片
-          function showNextImage() {
-            if (allImages.length <= 1) return;
+            // 显示图片
+            function showImage(img, index) {
+              modalImg.src = img.src;
+              modal.classList.add('active');
+              currentIndex = index;
+              document.body.style.overflow = 'hidden'; // 禁止背景滚动
+              
+              updateNavigationButtons();
+            }
             
-            currentIndex = (currentIndex + 1) % allImages.length;
-            modalImg.src = allImages[currentIndex].src;
-          }
+            // 更新导航按钮显示状态
+            function updateNavigationButtons() {
+              if (allImages.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                return;
+              }
+              
+              prevBtn.style.display = 'block';
+              nextBtn.style.display = 'block';
+            }
             
+            // 显示上一张图片
+            function showPreviousImage() {
+              if (allImages.length <= 1) return;
+              
+              currentIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+              modalImg.src = allImages[currentIndex].src;
+            }
+            
+            // 显示下一张图片
+            function showNextImage() {
+              if (allImages.length <= 1) return;
+              
+              currentIndex = (currentIndex + 1) % allImages.length;
+              modalImg.src = allImages[currentIndex].src;
+            }
+                
             // 关闭模态框
             function closeModal() {
-            modal.classList.remove('active');
-            document.body.style.overflow = ''; // 恢复背景滚动
-          }
-          
-          // 绑定事件
-          closeBtn.addEventListener('click', closeModal);
-          prevBtn.addEventListener('click', showPreviousImage);
-          nextBtn.addEventListener('click', showNextImage);
-          
-          // 点击背景关闭
-          modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-              closeModal();
+              modal.classList.remove('active');
+              document.body.style.overflow = ''; // 恢复背景滚动
             }
-          });
-          
-          // 键盘事件
-          document.addEventListener('keydown', (e) => {
-            if (!modal.classList.contains('active')) return;
             
+            // 绑定事件
+            closeBtn.addEventListener('click', closeModal);
+            prevBtn.addEventListener('click', showPreviousImage);
+            nextBtn.addEventListener('click', showNextImage);
+            
+            // 点击背景关闭
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                closeModal();
+              }
+            });
+            
+            // 键盘事件
+            document.addEventListener('keydown', (e) => {
+              if (!modal.classList.contains('active')) return;
+              
               if (e.key === 'Escape') {
-              closeModal();
+                closeModal();
               } else if (e.key === 'ArrowLeft') {
-              showPreviousImage();
+                showPreviousImage();
               } else if (e.key === 'ArrowRight') {
-              showNextImage();
-            }
-          });
-          
-          // 初始化
-          setupImageClickHandlers();
-          
-          // 监听DOM变化，为新添加的图片绑定事件
-          const observer = new MutationObserver(() => {
+                showNextImage();
+              }
+            });
+            
+            // 初始化
             setupImageClickHandlers();
-          });
-          
-          observer.observe(document.body, { 
-            childList: true, 
-            subtree: true 
-          });
-        });
+            
+            // 监听DOM变化，为新添加的图片绑定事件
+            const observer = new MutationObserver(() => {
+              setupImageClickHandlers();
+            });
+            
+            observer.observe(document.body, { 
+              childList: true, 
+              subtree: true 
+            });
+          }
+        })();
         </script>
       </body>
     </html>
