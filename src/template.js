@@ -3,48 +3,6 @@ import { CONFIG } from './config.js'
 import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
-// 压缩HTML、JS和CSS的工具函数
-const minify = {
-  // HTML压缩 - 移除多余空白、注释等
-  html: (html) => {
-    if (!html) return '';
-    return html
-      .replace(/<!--[\s\S]*?-->/g, '') // 移除HTML注释
-      .replace(/\s+/g, ' ') // 合并多个空白为一个
-      .replace(/>\s+</g, '><') // 移除标签间的空白
-      .replace(/\s+>/g, '>') // 移除结束标签前的空白
-      .replace(/<\s+/g, '<') // 移除开始标签后的空白
-      .trim();
-  },
-  
-  // CSS压缩 - 移除注释、空白和不必要的分号
-  css: (css) => {
-    if (!css) return '';
-    return css
-      .replace(/\/\*[\s\S]*?\*\//g, '') // 移除CSS注释
-      .replace(/\s+/g, ' ') // 合并多个空白为一个
-      .replace(/\s*{\s*/g, '{') // 移除选择器和大括号间的空白
-      .replace(/\s*}\s*/g, '}') // 移除大括号后的空白
-      .replace(/\s*:\s*/g, ':') // 移除属性和值之间的空白
-      .replace(/\s*;\s*/g, ';') // 移除分号后的空白
-      .replace(/;\}/g, '}') // 移除最后一个分号
-      .trim();
-  },
-  
-  // JS压缩 - 移除注释和多余空白
-  js: (js) => {
-    if (!js) return '';
-    return js
-      .replace(/\/\/.*?(\n|$)/g, '$1') // 移除单行注释
-      .replace(/\/\*[\s\S]*?\*\//g, '') // 移除多行注释
-      .replace(/\s+/g, ' ') // 合并多个空白为一个
-      .replace(/\s*{\s*/g, '{') // 移除大括号前后的空白
-      .replace(/\s*}\s*/g, '}') // 移除大括号后的空白
-      .replace(/;\s*/g, ';') // 移除分号后的空白
-      .trim();
-  }
-};
-
 // 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
   // 错误页面模板
@@ -304,8 +262,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
     articlesHtml = content;
   }
 
-  // 生成HTML模板
-  const htmlTemplate = utils.createHtml`
+  // 返回基于index.html模板的HTML
+  return utils.createHtml`
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
       <head>
@@ -314,31 +272,23 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
       <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-        <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+        <script src="https://cdn.tailwindcss.com"></script>
         <script>
-          // 防止tailwind未定义错误
-          window.tailwindConfig = {
+          tailwind.config = {
             darkMode: 'class',
             theme: {
               extend: {
-                backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
-                },
-                colors: {
-                  'indigo-timeline': '#4e5ed3',
-                  'indigo-shadow': '#bab5f8',
-                },
-              }
+              backgroundImage: {
+                'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+              },
+              colors: {
+                'indigo-timeline': '#4e5ed3',
+                'indigo-shadow': '#bab5f8',
+              },
             }
-          };
-
-          // 等待页面加载完成后应用配置
-          document.addEventListener('DOMContentLoaded', () => {
-            if (typeof tailwind !== 'undefined') {
-              tailwind.config = window.tailwindConfig;
-            }
-          });
+          }
+          }
         </script>
       <style type="text/tailwindcss">
         @layer utilities {
@@ -440,10 +390,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             left: 0;
             width: 100%;
             height: 100%;
-          background-color: rgba(0, 0, 0, 0.9);
-          z-index: 100;
-          justify-content: center;
-          align-items: center;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
             opacity: 0;
             transition: opacity 0.3s ease;
           }
@@ -471,11 +421,11 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             top: -40px;
             right: 0;
             color: white;
-          font-size: 24px;
+            font-size: 24px;
             cursor: pointer;
-          background: none;
-          border: none;
-          padding: 8px;
+            background: none;
+            border: none;
+            padding: 8px;
           }
 
           .image-modal-prev,
@@ -577,15 +527,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           </div>
 
         <script>
-        // 所有功能封装到一个自执行函数中，避免污染全局作用域
+        // 使用自执行函数封装所有代码，避免污染全局作用域
         (function() {
-          // 页面加载完成后执行所有初始化
-          document.addEventListener('DOMContentLoaded', function() {
-            initThemeToggle();
-            initBackToTop();
-            initImageViewer();
-          });
-          
           // 主题切换功能
           function initThemeToggle() {
             const themeToggle = document.getElementById('theme-toggle');
@@ -607,7 +550,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               }
             }
             
-            // 初始化主题
+            // 应用主题
             function applyTheme(theme) {
               if (theme === 'light') {
                 html.classList.remove('dark');
@@ -645,13 +588,11 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             }
             
             // 点击切换主题
-            if (themeToggle) {
-              themeToggle.addEventListener('click', () => {
-                currentTheme = (currentTheme + 1) % 3;
-                const newTheme = themes[currentTheme];
-                applyTheme(newTheme);
-              });
-            }
+            themeToggle.addEventListener('click', () => {
+              currentTheme = (currentTheme + 1) % 3;
+              const newTheme = themes[currentTheme];
+              applyTheme(newTheme);
+            });
 
             // 监听系统主题变化
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
@@ -664,11 +605,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               }
             });
           }
-          
+
           // 返回顶部功能
           function initBackToTop() {
             const backToTop = document.getElementById('back-to-top');
-            if (!backToTop) return;
             
             // 监听滚动事件
             window.addEventListener('scroll', () => {
@@ -692,12 +632,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               backToTop.classList.add('visible');
             }
           }
-          
-          // 图片点击放大功能
+        
+          // 图片预览功能
           function initImageViewer() {
             const modal = document.getElementById('imageModal');
-            if (!modal) return;
-            
             const modalImg = document.getElementById('modalImage');
             const closeBtn = modal.querySelector('.image-modal-close');
             const prevBtn = modal.querySelector('.image-modal-prev');
@@ -759,7 +697,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               currentIndex = (currentIndex + 1) % allImages.length;
               modalImg.src = allImages[currentIndex].src;
             }
-                
+              
             // 关闭模态框
             function closeModal() {
               modal.classList.remove('active');
@@ -804,22 +742,16 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               subtree: true 
             });
           }
+
+          // 页面加载完成后初始化所有功能
+          document.addEventListener('DOMContentLoaded', () => {
+            initThemeToggle();
+            initBackToTop();
+            initImageViewer();
+          });
         })();
         </script>
       </body>
     </html>
   `;
-  
-  // 应用压缩
-  // 提取HTML中的<style>和<script>标签内容进行压缩
-  const compressedHtml = htmlTemplate
-    .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (match, p1) => {
-      return `<style>${minify.css(p1)}</style>`;
-    })
-    .replace(/<script[^>]*>([\s\S]*?)<\/script>/gi, (match, p1) => {
-      return `<script>${minify.js(p1)}</script>`;
-    });
-  
-  // 压缩整个HTML
-  return minify.html(compressedHtml);
 } 
