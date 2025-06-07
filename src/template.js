@@ -169,6 +169,7 @@ export function renderMemo(memo, isHomePage = false) {
                 class="rounded-lg w-full hover:opacity-95 transition-opacity"
                 loading="lazy"
                 data-preview="true"
+                onload="this.classList.add('loaded')"
               />
             </div>
           </div>
@@ -186,6 +187,7 @@ export function renderMemo(memo, isHomePage = false) {
                     class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity"
                     loading="lazy"
                     data-preview="true"
+                    onload="this.classList.add('loaded')"
                   />
                 </div>
               `).join('')}
@@ -205,6 +207,7 @@ export function renderMemo(memo, isHomePage = false) {
                     class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity"
                     loading="lazy"
                     data-preview="true"
+                    onload="this.classList.add('loaded')"
                   />
             </div>
           `).join('')}
@@ -390,10 +393,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
+          background-color: rgba(0, 0, 0, 0.9);
+          z-index: 100;
+          justify-content: center;
+          align-items: center;
             opacity: 0;
             transition: opacity 0.3s ease;
           }
@@ -413,7 +416,39 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             max-width: 100%;
             max-height: 90vh;
             object-fit: contain;
-          border-radius: 4px;
+            border-radius: 4px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+          
+          .image-modal-content img.loaded {
+            opacity: 1;
+          }
+          
+          .image-loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+          }
+          
+          .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+          }
+          
+          @keyframes spin {
+            to { transform: rotate(360deg); }
           }
 
           .image-modal-close {
@@ -472,12 +507,18 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             cursor: pointer;
           transition: opacity 0.2s;
           background-color: #f0f0f0;
+          opacity: 0;
+        }
+        
+        .article-content img.loaded, 
+        .mt-4 img.loaded {
+          opacity: 1;
         }
         
         .article-content img:hover, 
         .mt-4 img:hover {
           opacity: 0.9;
-          }
+        }
         </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -516,6 +557,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <button class="image-modal-close">
             <i class="ri-close-line"></i>
           </button>
+          <div class="image-loading">
+            <div class="spinner"></div>
+            <span>加载中...</span>
+          </div>
           <img id="modalImage" src="" alt="预览图片" loading="lazy">
           <button class="image-modal-prev">
             <i class="ri-arrow-left-s-line"></i>
@@ -523,8 +568,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <button class="image-modal-next">
             <i class="ri-arrow-right-s-line"></i>
           </button>
-            </div>
-          </div>
+        </div>
+      </div>
 
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
@@ -640,6 +685,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             const closeBtn = modal.querySelector('.image-modal-close');
             const prevBtn = modal.querySelector('.image-modal-prev');
             const nextBtn = modal.querySelector('.image-modal-next');
+            const loadingIndicator = modal.querySelector('.image-loading');
             
             let allImages = [];
             let currentIndex = 0;
@@ -648,6 +694,29 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             function collectImages() {
               allImages = Array.from(document.querySelectorAll('.article-content img, .mt-4 img'));
               return allImages;
+            }
+            
+            // 为所有图片添加加载事件
+            function setupImageLoadHandlers() {
+              collectImages().forEach((img) => {
+                if (!img.classList.contains('loaded')) {
+                  // 如果图片已经加载完成
+                  if (img.complete) {
+                    img.classList.add('loaded');
+                  } else {
+                    // 否则等待加载
+                    img.addEventListener('load', function() {
+                      img.classList.add('loaded');
+                    });
+                    
+                    // 处理加载错误
+                    img.addEventListener('error', function() {
+                      img.classList.add('loaded');
+                      img.classList.add('error');
+                    });
+                  }
+                }
+              });
             }
             
             // 为所有图片添加点击事件
@@ -662,10 +731,31 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             // 显示图片
             function showImage(img, index) {
+              // 显示加载指示器
+              loadingIndicator.style.display = 'flex';
+              modalImg.classList.remove('loaded');
+              
+              // 设置图片源
               modalImg.src = img.src;
               modal.classList.add('active');
               currentIndex = index;
               document.body.style.overflow = 'hidden'; // 禁止背景滚动
+              
+              // 图片加载完成后隐藏加载指示器
+              if (modalImg.complete) {
+                modalImg.classList.add('loaded');
+                loadingIndicator.style.display = 'none';
+              } else {
+                modalImg.onload = function() {
+                  modalImg.classList.add('loaded');
+                  loadingIndicator.style.display = 'none';
+                };
+                
+                modalImg.onerror = function() {
+                  loadingIndicator.style.display = 'none';
+                  // 可以在这里显示错误信息
+                };
+              }
               
               updateNavigationButtons();
             }
@@ -687,7 +777,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               if (allImages.length <= 1) return;
               
               currentIndex = (currentIndex - 1 + allImages.length) % allImages.length;
-              modalImg.src = allImages[currentIndex].src;
+              showImage(allImages[currentIndex], currentIndex);
             }
             
             // 显示下一张图片
@@ -695,7 +785,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               if (allImages.length <= 1) return;
               
               currentIndex = (currentIndex + 1) % allImages.length;
-              modalImg.src = allImages[currentIndex].src;
+              showImage(allImages[currentIndex], currentIndex);
             }
               
             // 关闭模态框
@@ -730,10 +820,12 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             });
             
             // 初始化
+            setupImageLoadHandlers();
             setupImageClickHandlers();
             
             // 监听DOM变化，为新添加的图片绑定事件
             const observer = new MutationObserver(() => {
+              setupImageLoadHandlers();
               setupImageClickHandlers();
             });
             
