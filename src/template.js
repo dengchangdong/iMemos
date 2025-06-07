@@ -264,7 +264,17 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             @apply border-transparent;
           }
           .nav-link {
-            @apply px-3 py-1.5 rounded-md transition-colors text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 hover:bg-indigo-100/70 dark:hover:bg-indigo-900/50 text-sm font-medium;
+            @apply px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium;
+            color: #209cff;
+          }
+          .dark .nav-link {
+            color: #68e0cf;
+          }
+          .nav-link:hover {
+            color: #0c7cd5;
+          }
+          .dark .nav-link:hover {
+            color: #8eeee0;
           }
           .article-content p {
             line-height: 1.5;
@@ -301,8 +311,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           align-items: center;
           justify-content: center;
           border-radius: 9999px;
-          background-color: rgba(224, 231, 255, 1);
-          color: rgb(79, 70, 229);
+          background-color: #209cff;
+          color: white;
           box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
           cursor: pointer;
           z-index: 50;
@@ -312,19 +322,19 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         }
         
         .dark .back-to-top {
-          background-color: rgba(79, 70, 229, 0.2);
-          color: rgb(199, 210, 254);
+          background-color: #209cff;
+          color: white;
         }
         
         .back-to-top:hover {
-          background-color: rgba(199, 210, 254, 1);
-          color: rgb(67, 56, 202);
+          background-color: #0c7cd5;
+          color: white;
           transform: translateY(-2px);
         }
         
         .dark .back-to-top:hover {
-          background-color: rgba(79, 70, 229, 0.4);
-          color: rgb(224, 231, 255);
+          background-color: #0c7cd5;
+          color: white;
         }
         
         .back-to-top.visible {
@@ -348,7 +358,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   ${navItemsHtml}
                 </ul>
               </nav>
-              <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-100/80 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/50 text-indigo-500 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-200 focus:outline-none transition-colors shadow-sm">
+              <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-[#209cff] dark:text-[#68e0cf] hover:text-[#0c7cd5] dark:hover:text-[#8eeee0] focus:outline-none transition-colors shadow-sm">
                 <i class="ri-sun-fill text-lg" id="theme-icon"></i>
               </button>
             </div>
