@@ -506,7 +506,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         .mt-4 img {
           cursor: pointer;
           transition: opacity 0.2s;
-          background-color: #eee;
+          background-color: #0c7cd51c;
           opacity: 0;
         }
         
