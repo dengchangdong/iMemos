@@ -478,57 +478,44 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           opacity: 0.9;
         }
         
-        /* 图片占位符和加载动画样式 */
+        /* 图片懒加载样式 */
         .img-placeholder {
           background-color: #f0f0f0;
           display: flex;
           align-items: center;
           justify-content: center;
+          width: 100%;
+          height: 100%;
+          min-height: 120px;
+          border-radius: 8px;
           position: relative;
-          overflow: hidden;
         }
         
         .dark .img-placeholder {
           background-color: #2a2a2a;
         }
         
-        .img-placeholder::before {
-          content: '\ea8b'; /* 使用Remix Icon的图片图标 */
-          font-family: 'remixicon';
+        .img-placeholder i {
           font-size: 24px;
           color: #aaa;
         }
         
-        .img-loading {
-          position: relative;
+        .dark .img-placeholder i {
+          color: #666;
         }
         
-        .img-loading::after {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-          animation: shimmer 1.5s infinite;
-          transform: translateX(-100%);
+        .fade-in {
+          animation: fadeIn 0.5s ease-in;
         }
         
-        .dark .img-loading::after {
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-        }
-        
-        @keyframes shimmer {
-          100% {
-            transform: translateX(100%);
-          }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-      <!-- 添加默认1x1像素透明图片作为懒加载占位符 -->
-      <img id="placeholder" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" style="display:none;" alt="placeholder" />
+      <!-- 删除原有的占位图片 -->
       <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
         <div class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
           <header class="flex items-center justify-between sm:flex-row flex-row">
@@ -682,7 +669,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           const closeBtn = modal.querySelector('.image-modal-close');
           const prevBtn = modal.querySelector('.image-modal-prev');
           const nextBtn = modal.querySelector('.image-modal-next');
-          const placeholderSrc = document.getElementById('placeholder').src;
           
           let allImages = [];
           let currentIndex = 0;
@@ -698,44 +684,48 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             const lazyImages = document.querySelectorAll('img[loading="lazy"]');
             lazyImages.forEach(img => {
               // 保存原始图片URL
-              const originalSrc = img.src;
+              const originalSrc = img.getAttribute('src');
               
-              // 创建包装容器
-              const wrapper = document.createElement('div');
-              wrapper.className = 'img-placeholder img-loading';
-              wrapper.style.width = '100%';
-              wrapper.style.height = img.height > 0 ? img.height + 'px' : '200px';
+              // 创建占位符容器
+              const placeholder = document.createElement('div');
+              placeholder.className = 'img-placeholder';
               
-              // 替换图片并添加到DOM
-              img.parentNode.insertBefore(wrapper, img);
-              wrapper.appendChild(img);
+              // 创建图标
+              const icon = document.createElement('i');
+              icon.className = 'ri-image-line';
+              placeholder.appendChild(icon);
               
-              // 设置占位图
-              img.src = placeholderSrc;
-              img.style.opacity = '0';
-              img.style.transition = 'opacity 0.3s ease';
+              // 替换图片为占位符
+              img.parentNode.insertBefore(placeholder, img);
+              img.style.display = 'none';
+              img.removeAttribute('src');
               
-              // 创建IntersectionObserver监听图片是否进入视口
+              // 创建IntersectionObserver监听占位符是否进入视口
               const observer = new IntersectionObserver((entries, observer) => {
                 entries.forEach(entry => {
                   if (entry.isIntersecting) {
-                    const image = entry.target;
-                    // 恢复原始图片URL
-                    image.src = originalSrc;
+                    // 加载图片
+                    img.setAttribute('src', originalSrc);
                     
-                    // 图片加载完成后显示图片并移除占位样式
-                    image.onload = () => {
-                      image.style.opacity = '1';
-                      wrapper.classList.remove('img-placeholder', 'img-loading');
-                      observer.unobserve(image);
+                    // 图片加载完成后显示
+                    img.onload = () => {
+                      img.classList.add('fade-in');
+                      img.style.display = 'block';
+                      placeholder.remove();
+                      observer.unobserve(entry.target);
                     };
                     
-                    observer.unobserve(image);
+                    // 图片加载失败时显示错误
+                    img.onerror = () => {
+                      icon.className = 'ri-error-warning-line';
+                      icon.style.color = '#e53e3e';
+                      observer.unobserve(entry.target);
+                    };
                   }
                 });
               });
               
-              observer.observe(img);
+              observer.observe(placeholder);
             });
           }
           
