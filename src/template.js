@@ -339,17 +339,13 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <header class="flex items-center justify-between sm:flex-row flex-row">
             <div class="flex items-center">
               <a href="/" class="flex items-center">
-                <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName || '归零杂记'}</h1>
+                <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
               </a>
             </div>
             <div class="flex items-center space-x-4">
               <nav class="mr-1">
                 <ul class="flex space-x-2">
-                  ${navItemsHtml || `
-                    <li><a href="/" class="nav-link">首页</a></li>
-                    <li><a href="#" class="nav-link">归档</a></li>
-                    <li><a href="#" class="nav-link">关于</a></li>
-                  `}
+                  ${navItemsHtml}
                 </ul>
               </nav>
               <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-indigo-100/80 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-800/50 text-indigo-500 dark:text-indigo-300 hover:text-indigo-700 dark:hover:text-indigo-200 focus:outline-none transition-colors shadow-sm">
@@ -364,7 +360,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </div>
 
       <div id="back-to-top" class="back-to-top">
-        <i class="ri-arrow-up-fill text-xl"></i>
+        <i class="ri-skip-up-fill text-xl"></i>
       </div>
 
       <script>
@@ -384,7 +380,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           } else if (theme === 'dark') {
             themeIcon.className = 'ri-moon-fill text-lg';
           } else {
-            themeIcon.className = 'ri-computer-fill text-lg';
+            themeIcon.className = 'ri-progress-4-line text-lg';
           }
         }
         
