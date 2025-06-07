@@ -12,9 +12,9 @@ export const htmlTemplates = {
         <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
         <div class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-          <p class="text-sm">${error.message}</p>
+        <p class="text-sm">${error.message}</p>
           <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-        </div>
+      </div>
       </article>
     `
   },
@@ -28,7 +28,7 @@ export const htmlTemplates = {
           <p class="font-medium">未找到内容</p>
           <p>您访问的内容不存在或已被删除</p>
           <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-        </div>
+      </div>
       </article>
     `
   },
@@ -160,7 +160,7 @@ export function renderMemo(memo, isHomePage = false) {
       // 根据图片数量决定布局
       if (resources.length === 1) {
         // 单张图片 - 100%宽度
-        resourcesHtml = utils.createHtml`
+      resourcesHtml = utils.createHtml`
           <div class="mt-4">
             <div class="w-full">
               <img 
@@ -206,9 +206,9 @@ export function renderMemo(memo, isHomePage = false) {
                     loading="lazy"
                     data-preview="true"
                   />
-                </div>
-              `).join('')}
             </div>
+          `).join('')}
+        </div>
           </div>
         `;
       }
@@ -224,7 +224,7 @@ export function renderMemo(memo, isHomePage = false) {
           <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
         </a>
         <div class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-          ${parsedContent}
+            ${parsedContent}
           ${resourcesHtml}
         </div>
       </article>
@@ -236,7 +236,7 @@ export function renderMemo(memo, isHomePage = false) {
         <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
         <div class="text-red-500 dark:text-red-400 leading-relaxed mt-1 md:text-base text-sm">
           <p>渲染失败: ${error.message}</p>
-        </div>
+      </div>
       </article>
     `
   }
@@ -266,18 +266,18 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
   return utils.createHtml`
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
-    <head>
-      <meta charset="UTF-8">
+      <head>
+        <meta charset="UTF-8">
       <title>${title}</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
       <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-      <script src="https://cdn.tailwindcss.com"></script>
-      <script>
-        tailwind.config = {
-          darkMode: 'class',
-          theme: {
-            extend: {
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            darkMode: 'class',
+            theme: {
+              extend: {
               backgroundImage: {
                 'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
                 'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
@@ -288,8 +288,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               },
             }
           }
-        }
-      </script>
+          }
+        </script>
       <style type="text/tailwindcss">
         @layer utilities {
           article::before {
@@ -383,74 +383,84 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         }
         
         /* 图片预览模态框样式 */
-        .image-modal {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
+          .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
           background-color: rgba(0, 0, 0, 0.9);
           z-index: 100;
           justify-content: center;
           align-items: center;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        
-        .image-modal.active {
-          display: flex;
-          opacity: 1;
-        }
-        
-        .image-modal-content {
-          max-width: 90%;
-          max-height: 90%;
-          position: relative;
-        }
-        
-        .image-modal-content img {
-          max-width: 100%;
-          max-height: 90vh;
-          object-fit: contain;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+          }
+
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
+          }
+
+          .image-modal-content {
+            max-width: 90%;
+            max-height: 90%;
+            position: relative;
+          }
+
+          .image-modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
           border-radius: 4px;
-        }
-        
-        .image-modal-close {
-          position: absolute;
-          top: -40px;
-          right: 0;
-          color: white;
+          }
+
+          .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            color: white;
           font-size: 24px;
-          cursor: pointer;
+            cursor: pointer;
           background: none;
           border: none;
           padding: 8px;
-        }
-        
-        .image-modal-prev,
-        .image-modal-next {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          background: rgba(0, 0, 0, 0.5);
-          color: white;
-          border: none;
-          font-size: 24px;
-          padding: 16px 8px;
-          cursor: pointer;
-          border-radius: 4px;
-        }
-        
-        .image-modal-prev {
-          left: 10px;
-        }
-        
-        .image-modal-next {
-          right: 10px;
-        }
-        
-        @media (max-width: 768px) {
+          }
+
+          .image-modal-prev,
+          .image-modal-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background-color 0.2s;
+          }
+
+          .image-modal-prev:hover,
+          .image-modal-next:hover {
+            background: rgba(0, 0, 0, 0.7);
+          }
+
+          .image-modal-prev {
+            left: 10px;
+          }
+
+          .image-modal-next {
+            right: 10px;
+          }
+
+          @media (max-width: 768px) {
           .image-modal-content {
             max-width: 95%;
           }
@@ -459,17 +469,19 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         /* 添加图片点击样式 */
         .article-content img, 
         .mt-4 img {
-          cursor: pointer;
+            cursor: pointer;
           transition: opacity 0.2s;
         }
         
         .article-content img:hover, 
         .mt-4 img:hover {
           opacity: 0.9;
-        }
-      </style>
-    </head>
+          }
+        </style>
+      </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+      <!-- 添加默认1x1像素透明图片作为懒加载占位符 -->
+      <img id="placeholder" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" style="display:none;" alt="placeholder" />
       <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
         <div class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
           <header class="flex items-center justify-between sm:flex-row flex-row">
@@ -477,7 +489,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               <a href="/" class="flex items-center">
                 <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
               </a>
-            </div>
+                </div>
             <div class="flex items-center space-x-4">
               <nav class="mr-1">
                 <ul class="flex space-x-2">
@@ -486,14 +498,14 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               </nav>
               <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-[#209cff] dark:text-[#68e0cf] hover:text-[#0c7cd5] dark:hover:text-[#8eeee0] focus:outline-none transition-colors shadow-sm">
                 <i class="ri-sun-fill text-lg" id="theme-icon"></i>
-              </button>
+                  </button>
             </div>
           </header>
           <main class="mt-8 relative">
             ${articlesHtml}
-          </main>
+            </main>
+          </div>
         </div>
-      </div>
 
       <div id="back-to-top" class="back-to-top">
         <i class="ri-skip-up-fill text-xl"></i>
@@ -512,10 +524,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <button class="image-modal-next">
             <i class="ri-arrow-right-s-line"></i>
           </button>
-        </div>
-      </div>
+            </div>
+          </div>
 
-      <script>
+        <script>
         // 主题切换功能
         const themeToggle = document.getElementById('theme-toggle');
         const themeIcon = document.getElementById('theme-icon');
@@ -579,8 +591,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           const newTheme = themes[currentTheme];
           applyTheme(newTheme);
         });
-        
-        // 监听系统主题变化
+
+          // 监听系统主题变化
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
           if (!localStorage.theme) { // 只在跟随系统模式下响应
             if (e.matches) {
@@ -595,19 +607,19 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         const backToTop = document.getElementById('back-to-top');
         
         // 监听滚动事件
-        window.addEventListener('scroll', () => {
-          if (window.scrollY > 300) {
+          window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
             backToTop.classList.add('visible');
-          } else {
+            } else {
             backToTop.classList.remove('visible');
-          }
+            }
         });
-        
+          
         // 点击返回顶部
-        backToTop.addEventListener('click', () => {
-          window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
+          backToTop.addEventListener('click', () => {
+            window.scrollTo({
+              top: 0,
+              behavior: 'smooth'
           });
         });
 
@@ -623,6 +635,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           const closeBtn = modal.querySelector('.image-modal-close');
           const prevBtn = modal.querySelector('.image-modal-prev');
           const nextBtn = modal.querySelector('.image-modal-next');
+          const placeholderSrc = document.getElementById('placeholder').src;
           
           let allImages = [];
           let currentIndex = 0;
@@ -631,6 +644,33 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           function collectImages() {
             allImages = Array.from(document.querySelectorAll('.article-content img, .mt-4 img'));
             return allImages;
+          }
+          
+          // 为所有图片添加懒加载功能
+          function setupLazyLoading() {
+            const lazyImages = document.querySelectorAll('img[loading="lazy"]');
+            lazyImages.forEach(img => {
+              // 保存原始图片URL
+              const originalSrc = img.src;
+              // 设置占位图
+              img.src = placeholderSrc;
+              
+              // 创建IntersectionObserver监听图片是否进入视口
+              const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                  if (entry.isIntersecting) {
+                    const image = entry.target;
+                    // 恢复原始图片URL
+                    image.src = originalSrc;
+                    // 图片加载完成后移除观察
+                    image.onload = () => observer.unobserve(image);
+                    observer.unobserve(image);
+                  }
+                });
+              });
+              
+              observer.observe(img);
+            });
           }
           
           // 为所有图片添加点击事件
@@ -680,9 +720,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             currentIndex = (currentIndex + 1) % allImages.length;
             modalImg.src = allImages[currentIndex].src;
           }
-          
-          // 关闭模态框
-          function closeModal() {
+            
+            // 关闭模态框
+            function closeModal() {
             modal.classList.remove('active');
             document.body.style.overflow = ''; // 恢复背景滚动
           }
@@ -703,21 +743,23 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           document.addEventListener('keydown', (e) => {
             if (!modal.classList.contains('active')) return;
             
-            if (e.key === 'Escape') {
+              if (e.key === 'Escape') {
               closeModal();
-            } else if (e.key === 'ArrowLeft') {
+              } else if (e.key === 'ArrowLeft') {
               showPreviousImage();
-            } else if (e.key === 'ArrowRight') {
+              } else if (e.key === 'ArrowRight') {
               showNextImage();
             }
           });
           
           // 初始化
           setupImageClickHandlers();
+          setupLazyLoading();
           
           // 监听DOM变化，为新添加的图片绑定事件
           const observer = new MutationObserver(() => {
             setupImageClickHandlers();
+            setupLazyLoading();
           });
           
           observer.observe(document.body, { 
@@ -725,8 +767,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             subtree: true 
           });
         });
-      </script>
-    </body>
+        </script>
+      </body>
     </html>
   `;
 } 
