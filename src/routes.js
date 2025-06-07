@@ -3,6 +3,7 @@ import { renderMemo } from './template.js';
 import { renderBaseHtml } from './template.js';
 import { simpleMarkdown } from './markdown.js';
 import { htmlTemplates } from './template.js';
+import { getLogo, getFavicon } from './template.js';
 
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
@@ -252,6 +253,26 @@ export const routes = {
     return new Response(Buffer.from(htmlTemplates.offlineImage(), 'base64'), {
       headers: {
         'Content-Type': 'image/png',
+        'Cache-Control': 'public, max-age=2592000'
+      }
+    });
+  },
+
+  // Logo SVG路由
+  logo(c) {
+    return new Response(getLogo(), {
+      headers: {
+        'Content-Type': 'image/svg+xml',
+        'Cache-Control': 'public, max-age=2592000'
+      }
+    });
+  },
+
+  // Favicon路由
+  favicon(c) {
+    return new Response(getFavicon(), {
+      headers: {
+        'Content-Type': 'image/svg+xml',
         'Cache-Control': 'public, max-age=2592000'
       }
     });
