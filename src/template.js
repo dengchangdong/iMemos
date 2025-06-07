@@ -436,6 +436,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             flex-direction: column;
             align-items: center;
             gap: 10px;
+            background-color: #0c7cd51c;
           }
           
           .spinner {
@@ -506,7 +507,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         .mt-4 img {
           cursor: pointer;
           transition: opacity 0.2s;
-          background-color: #0c7cd51c;
+          background-color: #f0f0f0;
           opacity: 0;
         }
         
