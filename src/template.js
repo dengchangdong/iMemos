@@ -393,10 +393,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             left: 0;
             width: 100%;
             height: 100%;
-          background-color: rgba(0, 0, 0, 0.9);
-          z-index: 100;
-          justify-content: center;
-          align-items: center;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
             opacity: 0;
             transition: opacity 0.3s ease;
           }
@@ -504,9 +504,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         /* 添加图片点击样式 */
         .article-content img, 
         .mt-4 img {
-            cursor: pointer;
+          cursor: pointer;
           transition: opacity 0.2s;
-          background-color: #f0f0f0;
+          background-color: #eee;
           opacity: 0;
         }
         
