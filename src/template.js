@@ -380,7 +380,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           } else if (theme === 'dark') {
             themeIcon.className = 'ri-moon-fill text-lg';
           } else {
-            themeIcon.className = 'ri-progress-4-line text-lg';
+            themeIcon.className = 'ri-contrast-fill text-lg';
           }
         }
         
