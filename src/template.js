@@ -476,7 +476,54 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         .article-content img:hover, 
         .mt-4 img:hover {
           opacity: 0.9;
+        }
+        
+        /* 图片占位符和加载动画样式 */
+        .img-placeholder {
+          background-color: #f0f0f0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+        }
+        
+        .dark .img-placeholder {
+          background-color: #2a2a2a;
+        }
+        
+        .img-placeholder::before {
+          content: '\ea8b'; /* 使用Remix Icon的图片图标 */
+          font-family: 'remixicon';
+          font-size: 24px;
+          color: #aaa;
+        }
+        
+        .img-loading {
+          position: relative;
+        }
+        
+        .img-loading::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+          animation: shimmer 1.5s infinite;
+          transform: translateX(-100%);
+        }
+        
+        .dark .img-loading::after {
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+        }
+        
+        @keyframes shimmer {
+          100% {
+            transform: translateX(100%);
           }
+        }
         </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -652,8 +699,21 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             lazyImages.forEach(img => {
               // 保存原始图片URL
               const originalSrc = img.src;
+              
+              // 创建包装容器
+              const wrapper = document.createElement('div');
+              wrapper.className = 'img-placeholder img-loading';
+              wrapper.style.width = '100%';
+              wrapper.style.height = img.height > 0 ? img.height + 'px' : '200px';
+              
+              // 替换图片并添加到DOM
+              img.parentNode.insertBefore(wrapper, img);
+              wrapper.appendChild(img);
+              
               // 设置占位图
               img.src = placeholderSrc;
+              img.style.opacity = '0';
+              img.style.transition = 'opacity 0.3s ease';
               
               // 创建IntersectionObserver监听图片是否进入视口
               const observer = new IntersectionObserver((entries, observer) => {
@@ -662,8 +722,14 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                     const image = entry.target;
                     // 恢复原始图片URL
                     image.src = originalSrc;
-                    // 图片加载完成后移除观察
-                    image.onload = () => observer.unobserve(image);
+                    
+                    // 图片加载完成后显示图片并移除占位样式
+                    image.onload = () => {
+                      image.style.opacity = '1';
+                      wrapper.classList.remove('img-placeholder', 'img-loading');
+                      observer.unobserve(image);
+                    };
+                    
                     observer.unobserve(image);
                   }
                 });
