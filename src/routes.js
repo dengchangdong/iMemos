@@ -107,7 +107,14 @@ export const routes = {
       const memos = await apiHandler.fetchMemos(c);
       console.log('获取到 memos 数量:', memos.length);
 
-      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+      // 按时间降序排序memos
+      const sortedMemos = [...memos].sort((a, b) => {
+        const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
+        const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
+        return timeB - timeA; // 降序排列
+      });
+
+      const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
 
       return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
@@ -180,7 +187,14 @@ export const routes = {
       const memos = await apiHandler.fetchMemos(c, tag);
       console.log('获取到标签页 memos 数量:', memos.length);
 
-      const memosHtml = memos.map(memo => renderMemo(memo, true)).join('');
+      // 按时间降序排序memos
+      const sortedMemos = [...memos].sort((a, b) => {
+        const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
+        const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
+        return timeB - timeA; // 降序排列
+      });
+
+      const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
 
       return new Response(renderBaseHtml(
         `${tag} - ${c.env.SITE_NAME}`, 
