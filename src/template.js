@@ -407,6 +407,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             max-width: 90%;
             max-height: 90%;
             position: relative;
+            background-color: #f0f0f0;
+            border-radius: 8px;
+            padding: 8px;
           }
 
           .image-modal-content img {
@@ -437,13 +440,13 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             color: white;
             border: none;
             font-size: 24px;
-            width: 48px;
-            height: 48px;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            border-radius: 50%;
             transition: background-color 0.2s;
           }
 
@@ -471,51 +474,16 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         .mt-4 img {
             cursor: pointer;
           transition: opacity 0.2s;
+          background-color: #f0f0f0;
         }
         
         .article-content img:hover, 
         .mt-4 img:hover {
           opacity: 0.9;
-        }
-        
-        /* 图片懒加载样式 */
-        .img-placeholder {
-          background-color: #f0f0f0;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 100%;
-          height: 100%;
-          min-height: 120px;
-          border-radius: 8px;
-          position: relative;
-        }
-        
-        .dark .img-placeholder {
-          background-color: #2a2a2a;
-        }
-        
-        .img-placeholder i {
-          font-size: 24px;
-          color: #aaa;
-        }
-        
-        .dark .img-placeholder i {
-          color: #666;
-        }
-        
-        .fade-in {
-          animation: fadeIn 0.5s ease-in;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
+          }
         </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-      <!-- 删除原有的占位图片 -->
       <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
         <div class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
           <header class="flex items-center justify-between sm:flex-row flex-row">
@@ -551,7 +519,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <button class="image-modal-close">
             <i class="ri-close-line"></i>
           </button>
-          <img id="modalImage" src="" alt="预览图片">
+          <img id="modalImage" src="" alt="预览图片" loading="lazy">
           <button class="image-modal-prev">
             <i class="ri-arrow-left-s-line"></i>
           </button>
@@ -679,56 +647,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             return allImages;
           }
           
-          // 为所有图片添加懒加载功能
-          function setupLazyLoading() {
-            const lazyImages = document.querySelectorAll('img[loading="lazy"]');
-            lazyImages.forEach(img => {
-              // 保存原始图片URL
-              const originalSrc = img.getAttribute('src');
-              
-              // 创建占位符容器
-              const placeholder = document.createElement('div');
-              placeholder.className = 'img-placeholder';
-              
-              // 创建图标
-              const icon = document.createElement('i');
-              icon.className = 'ri-image-line';
-              placeholder.appendChild(icon);
-              
-              // 替换图片为占位符
-              img.parentNode.insertBefore(placeholder, img);
-              img.style.display = 'none';
-              img.removeAttribute('src');
-              
-              // 创建IntersectionObserver监听占位符是否进入视口
-              const observer = new IntersectionObserver((entries, observer) => {
-                entries.forEach(entry => {
-                  if (entry.isIntersecting) {
-                    // 加载图片
-                    img.setAttribute('src', originalSrc);
-                    
-                    // 图片加载完成后显示
-                    img.onload = () => {
-                      img.classList.add('fade-in');
-                      img.style.display = 'block';
-                      placeholder.remove();
-                      observer.unobserve(entry.target);
-                    };
-                    
-                    // 图片加载失败时显示错误
-                    img.onerror = () => {
-                      icon.className = 'ri-error-warning-line';
-                      icon.style.color = '#e53e3e';
-                      observer.unobserve(entry.target);
-                    };
-                  }
-                });
-              });
-              
-              observer.observe(placeholder);
-            });
-          }
-          
           // 为所有图片添加点击事件
           function setupImageClickHandlers() {
             collectImages().forEach((img, index) => {
@@ -810,12 +728,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           
           // 初始化
           setupImageClickHandlers();
-          setupLazyLoading();
           
           // 监听DOM变化，为新添加的图片绑定事件
           const observer = new MutationObserver(() => {
             setupImageClickHandlers();
-            setupLazyLoading();
           });
           
           observer.observe(document.body, { 
