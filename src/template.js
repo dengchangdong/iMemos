@@ -157,21 +157,61 @@ export function renderMemo(memo, isHomePage = false) {
     let resourcesHtml = ''
     
     if (resources.length > 0) {
-      // 使用单列布局
-      resourcesHtml = utils.createHtml`
-        <div class="mt-4">
-          ${resources.map(resource => utils.createHtml`
-            <div class="mb-4 last:mb-0">
+      // 根据图片数量决定布局
+      if (resources.length === 1) {
+        // 单张图片 - 100%宽度
+        resourcesHtml = utils.createHtml`
+          <div class="mt-4">
+            <div class="w-full">
               <img 
-                src="${resource.externalLink || ''}" 
-                alt="${resource.filename || '图片'}"
-                class="rounded-lg max-w-full hover:opacity-95 transition-opacity"
+                src="${resources[0].externalLink || ''}" 
+                alt="${resources[0].filename || '图片'}"
+                class="rounded-lg w-full hover:opacity-95 transition-opacity"
                 loading="lazy"
+                data-preview="true"
               />
             </div>
-          `).join('')}
-        </div>
-      `
+          </div>
+        `;
+      } else if (resources.length === 2) {
+        // 两张图片 - 各50%宽度
+        resourcesHtml = utils.createHtml`
+          <div class="mt-4">
+            <div class="flex flex-wrap gap-1">
+              ${resources.map(resource => utils.createHtml`
+                <div class="w-[calc(50%-2px)]">
+                  <img 
+                    src="${resource.externalLink || ''}" 
+                    alt="${resource.filename || '图片'}"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity"
+                    loading="lazy"
+                    data-preview="true"
+                  />
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      } else {
+        // 三张或更多图片 - 九宫格布局
+        resourcesHtml = utils.createHtml`
+          <div class="mt-4">
+            <div class="grid grid-cols-3 gap-1">
+              ${resources.map(resource => utils.createHtml`
+                <div class="aspect-square">
+                  <img 
+                    src="${resource.externalLink || ''}" 
+                    alt="${resource.filename || '图片'}"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity"
+                    loading="lazy"
+                    data-preview="true"
+                  />
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
     }
     
     // 文章URL
@@ -341,6 +381,92 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           opacity: 1;
           visibility: visible;
         }
+        
+        /* 图片预览模态框样式 */
+        .image-modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.9);
+          z-index: 100;
+          justify-content: center;
+          align-items: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+        
+        .image-modal.active {
+          display: flex;
+          opacity: 1;
+        }
+        
+        .image-modal-content {
+          max-width: 90%;
+          max-height: 90%;
+          position: relative;
+        }
+        
+        .image-modal-content img {
+          max-width: 100%;
+          max-height: 90vh;
+          object-fit: contain;
+          border-radius: 4px;
+        }
+        
+        .image-modal-close {
+          position: absolute;
+          top: -40px;
+          right: 0;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 8px;
+        }
+        
+        .image-modal-prev,
+        .image-modal-next {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.5);
+          color: white;
+          border: none;
+          font-size: 24px;
+          padding: 16px 8px;
+          cursor: pointer;
+          border-radius: 4px;
+        }
+        
+        .image-modal-prev {
+          left: 10px;
+        }
+        
+        .image-modal-next {
+          right: 10px;
+        }
+        
+        @media (max-width: 768px) {
+          .image-modal-content {
+            max-width: 95%;
+          }
+        }
+        
+        /* 添加图片点击样式 */
+        .article-content img, 
+        .mt-4 img {
+          cursor: pointer;
+          transition: opacity 0.2s;
+        }
+        
+        .article-content img:hover, 
+        .mt-4 img:hover {
+          opacity: 0.9;
+        }
       </style>
     </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -371,6 +497,22 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
 
       <div id="back-to-top" class="back-to-top">
         <i class="ri-skip-up-fill text-xl"></i>
+      </div>
+      
+      <!-- 图片预览模态框 -->
+      <div id="imageModal" class="image-modal">
+        <div class="image-modal-content">
+          <button class="image-modal-close">
+            <i class="ri-close-line"></i>
+          </button>
+          <img id="modalImage" src="" alt="预览图片">
+          <button class="image-modal-prev">
+            <i class="ri-arrow-left-s-line"></i>
+          </button>
+          <button class="image-modal-next">
+            <i class="ri-arrow-right-s-line"></i>
+          </button>
+        </div>
       </div>
 
       <script>
@@ -473,6 +615,116 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         if (window.scrollY > 300) {
           backToTop.classList.add('visible');
         }
+        
+        // 图片点击放大功能
+        document.addEventListener('DOMContentLoaded', () => {
+          const modal = document.getElementById('imageModal');
+          const modalImg = document.getElementById('modalImage');
+          const closeBtn = modal.querySelector('.image-modal-close');
+          const prevBtn = modal.querySelector('.image-modal-prev');
+          const nextBtn = modal.querySelector('.image-modal-next');
+          
+          let allImages = [];
+          let currentIndex = 0;
+          
+          // 获取所有可点击图片
+          function collectImages() {
+            allImages = Array.from(document.querySelectorAll('.article-content img, .mt-4 img'));
+            return allImages;
+          }
+          
+          // 为所有图片添加点击事件
+          function setupImageClickHandlers() {
+            collectImages().forEach((img, index) => {
+              img.style.cursor = 'pointer';
+              img.addEventListener('click', () => {
+                showImage(img, index);
+              });
+            });
+          }
+          
+          // 显示图片
+          function showImage(img, index) {
+            modalImg.src = img.src;
+            modal.classList.add('active');
+            currentIndex = index;
+            document.body.style.overflow = 'hidden'; // 禁止背景滚动
+            
+            updateNavigationButtons();
+          }
+          
+          // 更新导航按钮显示状态
+          function updateNavigationButtons() {
+            if (allImages.length <= 1) {
+              prevBtn.style.display = 'none';
+              nextBtn.style.display = 'none';
+              return;
+            }
+            
+            prevBtn.style.display = 'block';
+            nextBtn.style.display = 'block';
+          }
+          
+          // 显示上一张图片
+          function showPreviousImage() {
+            if (allImages.length <= 1) return;
+            
+            currentIndex = (currentIndex - 1 + allImages.length) % allImages.length;
+            modalImg.src = allImages[currentIndex].src;
+          }
+          
+          // 显示下一张图片
+          function showNextImage() {
+            if (allImages.length <= 1) return;
+            
+            currentIndex = (currentIndex + 1) % allImages.length;
+            modalImg.src = allImages[currentIndex].src;
+          }
+          
+          // 关闭模态框
+          function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // 恢复背景滚动
+          }
+          
+          // 绑定事件
+          closeBtn.addEventListener('click', closeModal);
+          prevBtn.addEventListener('click', showPreviousImage);
+          nextBtn.addEventListener('click', showNextImage);
+          
+          // 点击背景关闭
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              closeModal();
+            }
+          });
+          
+          // 键盘事件
+          document.addEventListener('keydown', (e) => {
+            if (!modal.classList.contains('active')) return;
+            
+            if (e.key === 'Escape') {
+              closeModal();
+            } else if (e.key === 'ArrowLeft') {
+              showPreviousImage();
+            } else if (e.key === 'ArrowRight') {
+              showNextImage();
+            }
+          });
+          
+          // 初始化
+          setupImageClickHandlers();
+          
+          // 监听DOM变化，为新添加的图片绑定事件
+          const observer = new MutationObserver(() => {
+            setupImageClickHandlers();
+          });
+          
+          observer.observe(document.body, { 
+            childList: true, 
+            subtree: true 
+          });
+        });
       </script>
     </body>
     </html>
