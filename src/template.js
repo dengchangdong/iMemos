@@ -3,75 +3,6 @@ import { CONFIG } from './config.js'
 import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
-// 保存logo SVG内容
-export const LOGO_SVG = `<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="500px" height="500px" viewBox="0 0 500 500" enable-background="new 0 0 500 500" xml:space="preserve">  <image id="image0" width="500" height="500" x="0" y="0"
-    xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAfQAAAH0CAQAAABh3xcBAAAAIGNIUk0AAHolAACAgwAA+f8AAIDp
-AAB1MAAA6mAAADqYAAAXb5JfxUYAAAACYktHRAD/h4/MvwAAAAlwSFlzAAAHsQAAB7EBBsVhhgAA
-OeNJREFUeNrtnXeAVdW1hz+GOihdEBiK0qtIExQLKiAoYEGwV8SoMTEmmqbJM00TzUt8Jmo0dhAV
-EKUIiCgIiEgXFJXeq1KVXt4f4zjtzsy956x91jnnru/+o+Octdc+3t/stvZapTCiT2mqUZVKnER1
-qlKNqpxIJU6kAplUoAKZlKcspSlFWUpRFjjMcQ5znKMc5jAHOcg+9rGPb9nLt+xiJ7vYwdfsZRc7
-OardQcMvpbQdMDxQk3rUoyb1ySKLapxEdao7+X95nB3s4Gt2spGNrGc7G9jAdu0XYKSKCT0aZFGP
-FpxCAxrTgBpUVvRlD9+wjpWsYw1fsoGN2i/HKBkTenhpQCNO5XQa0pwmlNF2pwiOsIKvWMtiVrOK
-ddruGIkxoYeLDOrTmSZ0pimNqajtTorsYyXLmcsK5rKeY9ruGLmY0MNBQ5pyDs3pSj1KazsjwFE2
-MJuvmMFy1mo7Y5jQtWlJR87mNDpQXtsVRxxkAYuZyXy+0HYlnTGh69Cc7nSkO021HQmQ5UxjPtP4
-StuRdMSEHiwNOYNedKGttiOKLOETJjPHpvRBYkIPhjKcxXn0oiOZ2q6EhP3MZzIfMosj2q6kAyZ0
-19ThXPpwAfW1HQkp6/mAiUxns7Yj8caE7o5G9KQv51FJ25EIsJcPGc97rNJ2JK6Y0GVqQl/60jnW
-YzcM7GE8Y/mQ1dqOxA8TugxVuISB9IpcNFtY2cdkRvIOu7UdiQcmdAn6cC19qartRozZxXiGM1Hb
-jehjQvdLS65iIK203Yg5SxnJGxZZ5wcTulfKMoAb6aPtRhoxkVd4k8PabkQTE7oXmnED19JI2400
-ZBXDGcoybTeihwk9VfowmMticcMsqhzlbV5ggrYb0cKEnhxVuJ7BtNd2wwBgIc8zzPbkk8WEnhzN
-uZUbqa3thpGPLbzCC3YbzpChG8M4xnH7hPJzjFfppv0VMaJOT8apf5XtU/JnHD21vypGVOnLFPUv
-sH2S/0yhr/ZXxogaV/Ox+hfXPql/PuZq7a+OERUGMVf9C2sf75+5DNL+ChlhZwCz1L+o9vH/mcUA
-7a+SEVb62XQ9Vp+P6af9lTLCRjfGqn8x7SP/GWtHb0YOzXlD/QtpH3efETTX/orpk+4x2yfxEC9z
-mrYbhkNaczuVWcg+bUc0SW+h380Ieqb5O0gHStONW9jPHG1H9EjfWPd+PEwbbSeMQPmM3zJO2wkd
-MrQdUKE5rzHWZJ52tGEsr6Xnij39pq0VeJARaV0SKb1pw11k2MFdO9s3g2u+o3kMJ7GNaYSdyvfL
-7DfVTF95/B+mUeNTJwvZNgAAAAZiS0dEAAAAAAAA+UO7fwAAAAlwSFlzAAALEwAACxMBAJqcGAAA
-AW9pVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6
-bWV0YS8iIHg6eG1wdGs9IlhNUCBDb3JlIDUuMS4yIj4KICAgPHJkZjpSREYgeG1sbnM6cmRmPSJo
-dHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4KICAgICAgPHJkZjpE
-ZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIKICAgICAgICAgICAgeG1sbnM6dGlmZj0iaHR0cDovL25z
-LmFkb2JlLmNvbS90aWZmLzEuMC8iPgogICAgICAgICA8dGlmZjpPcmllbnRhdGlvbj4xPC90aWZm
-Ok9yaWVudGF0aW9uPgogICAgICA8L3JkZjpEZXNjcmlwdGlvbj4KICAgPC9yZGY6UkRGPgo8L3g6
-eG1wbWV0YT4KTMInWQAABTFJREFUeNrt3T1Km1EYhuF3GlFRiR81pDIBVy5C3IiLcQcuwG25AUdT
-JLgB02liQBsVRCKJxpLBKAil+Xx5n3Nd/+CnM7eHM3NmJjUBAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBRtdAByWp2Zqr61+h4v8dYuAUCmqP9a3X/p6jyu7RwA
-9OOyFuqpnqur5/FkFwHgf7qKKuq5nup7d3EVh3YVAN5yGot1V2/1Ujd1HnvxYHcB4Hf9+KTu67Vu
-6jBO487uAsCvtJiot3qs+zqKY/+mA8BQ9CKOKL36MRmT0dRZdPYeAMaiF0txFrd1Fyt2GwDa6Mcf
-8VLnseEsBIC2+nEY39Z/dh0ABuOPeLS7APCn3uO7nQaAwTxgAwD+kKQDQELSDgDJSDoAJCTpAJCQ
-pANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIO
-AAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAk
-JOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCk
-A0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4A
-CUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk
-6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQD
-QEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJ
-SToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTp
-AJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANA
-QpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJ
-OgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkA
-kJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BC
-kg4ACUk6ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6
-ACQk6QCQkKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQ
-kKQDQEKSDgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQEKS
-DgAJSToAJCTpAJCQpANAQpIOAAlJOgAkJOkAkJCkA0BCkg4ACUk6ACQk6QCQkKQDQELtSGfgPZt1
-GTOxHXN2CACGYz6+xlrdxm5cwpSt+QmRImuEkn5dBQAAAABJRU5ErkJggg==" />
-</svg> `
-
-// 获取logo的函数
-export function getLogo() {
-  return LOGO_SVG;
-}
-
-// 获取favicon的函数
-export function getFavicon() {
-  return LOGO_SVG;
-}
-
 // 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
   // 错误页面模板
@@ -213,13 +144,9 @@ export function renderMemo(memo, isHomePage = false) {
     const timestamp = memo.createTime 
       ? new Date(memo.createTime).getTime()
       : memo.createdTs * 1000
-    const date = utils.formatTime(timestamp)
     
-    // 提取小时和分钟
-    const dateObj = new Date(timestamp)
-    const hours = dateObj.getHours().toString().padStart(2, '0')
-    const minutes = dateObj.getMinutes().toString().padStart(2, '0')
-    const timeStr = `${hours}:${minutes}`
+    // 使用utils中的时间格式化函数
+    const formattedTime = utils.formatTime(timestamp)
     
     // 使用简易Markdown渲染内容
     const content = memo.content || ''
@@ -254,7 +181,7 @@ export function renderMemo(memo, isHomePage = false) {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
         <a href="${articleUrl}" class="block">
-          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${timeStr}</time>
+          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
         </a>
         <div class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           ${parsedContent}
@@ -305,7 +232,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
       <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-      <link rel="icon" href="/favicon.ico" type="image/svg+xml">
       <script src="https://cdn.tailwindcss.com"></script>
       <script>
         tailwind.config = {
@@ -413,7 +339,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           <header class="flex items-center justify-between sm:flex-row flex-row">
             <div class="flex items-center">
               <a href="/" class="flex items-center">
-                <img src="/logo.svg" alt="${siteName}Logo" class="w-8 h-8 mr-2" width="32" height="32">
                 <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName || '归零杂记'}</h1>
               </a>
             </div>

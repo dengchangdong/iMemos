@@ -25,8 +25,4 @@ app.get('/offline.html', routes.offline)
 // 离线图片占位符
 app.get('/offline-image.png', routes.offlineImage)
 
-// Logo和Favicon路由
-app.get('/logo.svg', routes.logo)
-app.get('/favicon.ico', routes.favicon)
-
 export default app 
