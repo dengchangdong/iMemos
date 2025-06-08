@@ -360,7 +360,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           
           /* TailwindCSS化：返回顶部按钮 */
           .back-to-top {
-            @apply fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-[#209cff] text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 transform translate-z-0;
+            @apply fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-[#209cff] text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 transform;
+            transform: translateZ(0);
             will-change: opacity, transform;
           }
           
@@ -392,7 +393,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           }
           
           .image-modal-content {
-            @apply max-w-[90%] max-h-[90%] relative transform translate-z-0;
+            @apply max-w-[90%] max-h-[90%] relative;
+            transform: translateZ(0);
             will-change: transform;
           }
           
@@ -483,12 +485,14 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           
           /* TailwindCSS化：图片容器点击样式 */
           .image-container {
-            @apply cursor-pointer relative z-[1] transform translate-z-0;
+            @apply cursor-pointer relative z-[1];
+            transform: translateZ(0);
             will-change: transform;
           }
           
           .image-container img {
-            @apply z-[2] transform translate-z-0;
+            @apply z-[2];
+            transform: translateZ(0);
           }
           
           .image-placeholder {
