@@ -369,18 +369,21 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           background: rgba(255, 255, 255, 0);
           border-radius: 10px;
         }
+
         html::-webkit-scrollbar-thumb, 
         body::-webkit-scrollbar-thumb,
         pre::-webkit-scrollbar-thumb {
           background: rgba(0, 0, 0, 0.1);
           border-radius: 10px;
         }
+
         html::-webkit-scrollbar-thumb:hover, 
         body::-webkit-scrollbar-thumb:hover,
         pre::-webkit-scrollbar-thumb:hover {
           background: rgba(0, 0, 0, 0.11);
           border-radius: 10px; 
         }
+          
         html::-webkit-scrollbar-track:hover, 
         body::-webkit-scrollbar-track:hover,
         pre::-webkit-scrollbar-track:hover {
@@ -392,6 +395,15 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           .image-modal-content {
             max-width: 95%;
           }
+        }
+
+        .image-modal.active {
+          display: flex;
+          opacity: 1;
+        }
+
+        .image-modal-content img.loaded {
+          opacity: 1;
         }
         
         /* 添加图片点击样式 */
