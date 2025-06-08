@@ -112,7 +112,7 @@ export const markdownRenderer = {
     
     // 处理图片 - 添加懒加载和预览支持
     html = html.replace(CONFIG.REGEX.MD_IMAGE, 
-      '<img src="$2" alt="$1" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />'
+      '<img src="data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 1 1\'%3E%3C/svg%3E" data-src="$2" alt="$1" class="rounded-lg max-w-full my-4 lazy-image" loading="lazy" data-preview="true" />'
     );
     
     // 处理链接 - 排除微信链接（由特殊链接处理器处理）
