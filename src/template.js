@@ -383,7 +383,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           background: rgba(0, 0, 0, 0.11);
           border-radius: 10px; 
         }
-          
+
         html::-webkit-scrollbar-track:hover, 
         body::-webkit-scrollbar-track:hover,
         pre::-webkit-scrollbar-track:hover {
@@ -404,6 +404,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         .image-modal-content img.loaded {
           opacity: 1;
+        }
+
+        .back-to-top.visible {
+          opacity: 1;
+          visibility: visible;
         }
         
         /* 添加图片点击样式 */
