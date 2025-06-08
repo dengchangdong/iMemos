@@ -410,7 +410,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           opacity: 1;
           visibility: visible;
         }
-        
+          
         /* 添加图片点击样式 */
         .article-content img, 
         .mt-4 img {
@@ -418,7 +418,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           transition: opacity 0.2s;
           background-color: #0c7cd51c;
           opacity: 0.5;
-          will-change: opacity;
         }
         
         .article-content img.loaded, 
@@ -435,7 +434,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         .image-placeholder {
           opacity: 1;
           transition: opacity 0.3s ease;
-          will-change: opacity;
         }
         
         div.loaded .image-placeholder {
@@ -461,13 +459,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           cursor: pointer;
           position: relative;
           z-index: 1;
-          transform: translateZ(0);
-          will-change: transform;
         }
         
         .image-container img {
           z-index: 2;
-          transform: translateZ(0);
         }
         
         .image-placeholder {
