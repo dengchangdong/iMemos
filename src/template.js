@@ -657,24 +657,24 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       <!-- 图片预览模态框 -->
       <div 
         id="imageModal" 
-        class="fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
+        class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
         aria-modal="true" 
         aria-label="图片预览"
       >
-        <div class="relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+        <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
           <button 
-            class="absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+            class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
             aria-label="关闭预览"
           >
             <i class="ri-close-line" aria-hidden="true"></i>
           </button>
           
           <div 
-            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
+            class="image-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
             role="status" 
             aria-live="polite"
           >
-            <div class="w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+            <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
             <span>加载中...</span>
           </div>
           
@@ -689,14 +689,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </figure>
           
           <button 
-            class="absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+            class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
             aria-label="上一张"
           >
             <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
           </button>
           
           <button 
-            class="absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+            class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
             aria-label="下一张"
           >
             <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
