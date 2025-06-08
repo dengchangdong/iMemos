@@ -1,3 +1,4 @@
+import { html } from 'hono/html';
 import { CONFIG } from './config.js';
 import { renderMemo } from './template.js';
 import { renderBaseHtml } from './template.js';
@@ -7,13 +8,13 @@ import { utils } from './utils.js';
 
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
-  return utils.minifyHtml(renderBaseHtml(
-    '错误', 
-    htmlTemplates.errorPage(error),
+  return renderBaseHtml(
+    c.env.SITE_NAME, 
+    htmlTemplates.errorPage(error), 
     c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
     c.env.NAV_LINKS,
     c.env.SITE_NAME
-  ));
+  );
 }
 
 // API处理相关 - 优化HTTP请求和缓存
@@ -116,9 +117,9 @@ export const routes = {
       });
 
       const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
-
-      // 使用HTML压缩
-      const html = utils.minifyHtml(renderBaseHtml(
+      
+      // 生成HTML并压缩
+      const htmlContent = utils.minifyHtml(renderBaseHtml(
         c.env.SITE_NAME, 
         memosHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
@@ -126,7 +127,7 @@ export const routes = {
         c.env.SITE_NAME
       ));
 
-      return new Response(html, {
+      return new Response(htmlContent, {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
@@ -134,7 +135,7 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染首页失败:', error);
-      return new Response(renderErrorPage(error, c), {
+      return new Response(utils.minifyHtml(renderErrorPage(error, c)), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
@@ -149,15 +150,13 @@ export const routes = {
       
       // 未找到数据
       if (!data || !data.memo) {
-        const html = utils.minifyHtml(renderBaseHtml(
+        return new Response(utils.minifyHtml(renderBaseHtml(
           c.env.SITE_NAME, 
           htmlTemplates.notFoundPage(),
           c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
           c.env.NAV_LINKS,
           c.env.SITE_NAME
-        ));
-        
-        return new Response(html, {
+        )), {
           headers: { 'Content-Type': 'text/html;charset=UTF-8' },
           status: 404
         });
@@ -165,8 +164,8 @@ export const routes = {
 
       const memoHtml = renderMemo(data.memo, false);
       
-      // 使用HTML压缩
-      const html = utils.minifyHtml(renderBaseHtml(
+      // 生成HTML并压缩
+      const htmlContent = utils.minifyHtml(renderBaseHtml(
         c.env.SITE_NAME, 
         memoHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
@@ -174,7 +173,7 @@ export const routes = {
         c.env.SITE_NAME
       ));
 
-      return new Response(html, {
+      return new Response(htmlContent, {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Cache-Control': 'public, max-age=1800' // 30分钟缓存
@@ -182,7 +181,7 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染文章页失败:', error);
-      return new Response(renderErrorPage(error, c), {
+      return new Response(utils.minifyHtml(renderErrorPage(error, c)), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
@@ -205,8 +204,8 @@ export const routes = {
 
       const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
       
-      // 使用HTML压缩
-      const html = utils.minifyHtml(renderBaseHtml(
+      // 生成HTML并压缩
+      const htmlContent = utils.minifyHtml(renderBaseHtml(
         `${tag} - ${c.env.SITE_NAME}`, 
         memosHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
@@ -214,7 +213,7 @@ export const routes = {
         c.env.SITE_NAME
       ));
 
-      return new Response(html, {
+      return new Response(htmlContent, {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
@@ -222,7 +221,7 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染标签页失败:', error);
-      return new Response(renderErrorPage(error, c), {
+      return new Response(utils.minifyHtml(renderErrorPage(error, c)), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
@@ -248,56 +247,13 @@ export const routes = {
     }
   },
 
-  // 分页API - 支持无限滚动
-  async pageApi(c) {
-    try {
-      const pageNum = parseInt(c.req.param('page'), 10) || 1;
-      if (pageNum < 1) {
-        return new Response(JSON.stringify({ error: '无效的页码' }), {
-          headers: { 'Content-Type': 'application/json' },
-          status: 400
-        });
-      }
-      
-      const limit = parseInt(c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT, 10);
-      const offset = (pageNum - 1) * limit;
-      
-      // 构建API URL
-      const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&limit=${limit}&offset=${offset}`;
-      
-      // 发送请求
-      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
-      if (!response.ok) {
-        throw new Error(`API 请求失败: ${response.status}`);
-      }
-
-      // 解析数据
-      const data = await response.json();
-      
-      return new Response(JSON.stringify({ 
-        data, 
-        page: pageNum, 
-        limit
-      }), {
-        headers: { 
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=60' // 1分钟缓存
-        }
-      });
-    } catch (error) {
-      console.error('获取分页数据失败:', error);
-      return new Response(JSON.stringify({ error: error.message }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 500
-      });
-    }
-  },
-
   // 离线页面
   offline(c) {
-    const html = utils.minifyHtml(htmlTemplates.offlinePage(c.env.SITE_NAME));
-    return new Response(html, {
-      headers: { 'Content-Type': 'text/html;charset=UTF-8' }
+    return new Response(htmlTemplates.offlinePage(c.env.SITE_NAME), {
+      headers: {
+        'Content-Type': 'text/html;charset=UTF-8',
+        'Cache-Control': 'public, max-age=2592000'
+      }
     });
   },
 

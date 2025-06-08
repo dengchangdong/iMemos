@@ -176,7 +176,7 @@ export function renderMemo(memo, isHomePage = false) {
             onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
           />
           <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-            <i class="ri-image-line ${resources.length > 2 ? 'text-2xl' : 'text-3xl'}"></i>
+            <i class="ri-image-line text-3xl"></i>
           </div>
         </div>
       `;
@@ -271,6 +271,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName} - 博客">
         <meta name="theme-color" content="#209cff">
+        <meta name="api-host" content="${c.env?.API_HOST || window.location.origin}">
         
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
@@ -652,8 +653,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           position: absolute;
           top: 5px;
           right: 5px;
-          width: 30px;
-          height: 30px;
+          width: 32px;
+          height: 32px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -692,20 +693,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         .dark .copy-btn.copied {
           background-color: #059669;
         }
-
-        /* 无限滚动加载样式 */
-        .loading-container {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 20px 0;
-        }
-
-        .infinite-scroll-sentinel {
-          width: 1px;
-          height: 1px;
-          margin-top: 20px;
-        }
       </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -730,6 +717,16 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           </header>
           <main class="mt-8 relative">
             ${articlesHtml}
+            <div id="loading-more" class="my-6 text-center hidden">
+              <div class="inline-flex items-center justify-center space-x-2">
+                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+              </div>
+            </div>
+            <div id="end-of-content" class="my-6 text-center hidden">
+              <p class="text-gray-500 dark:text-gray-400 text-sm">— 已加载全部内容 —</p>
+            </div>
             </main>
           </section>
         </div>
@@ -766,6 +763,31 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
         (function() {
+          // 使全局访问时间格式化和markdown函数
+          window.simpleMarkdown = function(text) {
+            // 简化的Markdown渲染，仅供JS内部使用
+            if (!text) return '';
+            
+            // 段落处理
+            let html = text
+              .replace(/```([a-z]*)\n([\s\S]*?)\n```/g, '<pre data-language="$1" class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-$1">$2</code></pre>')
+              .replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">$1</code>')
+              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+              .replace(/\*(.*?)\*/g, '<em>$1</em>')
+              .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />')
+              .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">$1</a>')
+              .replace(/#([a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '<a href="/tag/$1" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">#$1</a>');
+            
+            // 将多个换行符转换为段落分隔
+            const paragraphs = html.split('\n\n');
+            return paragraphs.map(para => {
+              if (para.trim() === '' || /^<(h[1-6]|pre|blockquote|ul|ol|div|p)/.test(para)) {
+                return para;
+              }
+              return `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${para.replace(/\n/g, '<br>')}</p>`;
+            }).join('\n');
+          };
+
           // 性能优化：使用变量缓存DOM元素和计算结果
           // 主题切换功能
           function initThemeToggle() {
@@ -1171,6 +1193,38 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             setupImageLoadHandlers();
           }
 
+          // 性能优化：使用requestIdleCallback在浏览器空闲时初始化非关键功能
+          function initOnIdle() {
+            // 定义空闲回调
+            const idleCallback = () => {
+              // 初始化返回顶部按钮
+              initBackToTop();
+            };
+            
+            // 使用requestIdleCallback或setTimeout作为降级处理
+            if ('requestIdleCallback' in window) {
+              requestIdleCallback(idleCallback);
+            } else {
+              setTimeout(idleCallback, 200);
+            }
+          }
+
+          // 页面加载完成后初始化所有功能
+          document.addEventListener('DOMContentLoaded', () => {
+            // 立即初始化关键功能
+            initThemeToggle();
+            initImageViewer();
+            
+            // 初始化Markdown增强和代码复制功能
+            enhanceMarkdown();
+            
+            // 初始化自动分页加载功能
+            initInfiniteScroll();
+            
+            // 延迟初始化非关键功能
+            initOnIdle();
+          });
+
           // 初始化代码复制功能
           function initCodeCopyButtons() {
             // 找到所有pre元素
@@ -1214,7 +1268,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                       button.innerHTML = '<i class="ri-check-line"></i>';
                       button.classList.add('copied');
                     } catch (e) {
-                      button.innerHTML = '<i class="ri-close-line"></i>';
+                      button.innerHTML = '<i class="ri-error-warning-line"></i>';
                       console.error('复制失败:', e);
                     }
                     
@@ -1273,184 +1327,234 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             // 初始化现有代码块
             initCodeCopyButtons();
           }
-          
-          // 实现自动无限滚动加载功能
+
+          // 自动分页加载功能
           function initInfiniteScroll() {
-            // 检查是否在首页
-            const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html';
-            if (!isHomePage) return; // 只在首页启用
+            // 确保在首页才初始化无限滚动
+            if (window.location.pathname !== '/' && !window.location.pathname.includes('/tag/')) {
+              return;
+            }
             
-            // 创建哨兵元素和加载动画
-            const sentinel = document.createElement('div');
-            sentinel.className = 'infinite-scroll-sentinel';
+            const mainContent = document.querySelector('main');
+            const loadingIndicator = document.getElementById('loading-more');
+            const endOfContent = document.getElementById('end-of-content');
             
-            const loadingContainer = document.createElement('div');
-            loadingContainer.className = 'loading-container';
-            loadingContainer.innerHTML = 
-              '<div class="loading-animation">' + 
-                '<div class="dot"></div>' + 
-                '<div class="dot"></div>' + 
-                '<div class="dot"></div>' + 
-              '</div>';
-            loadingContainer.style.display = 'none';
+            if (!mainContent || !loadingIndicator || !endOfContent) {
+              return;
+            }
             
-            // 获取文章容器
-            const main = document.querySelector('main');
-            if (!main) return;
-            
-            // 添加哨兵和加载容器
-            main.appendChild(loadingContainer);
-            main.appendChild(sentinel);
-            
-            // 当前页码和加载状态
-            let currentPage = 1;
+            let page = 1;
             let isLoading = false;
             let hasMoreContent = true;
+            let apiHost = '';
+            let pageLimit = 10;
+            let currentTag = '';
             
-            // 加载更多文章的函数
-            async function loadMorePosts() {
+            // 从URL中提取tag参数（如果有）
+            if (window.location.pathname.includes('/tag/')) {
+              currentTag = window.location.pathname.split('/tag/')[1] || '';
+            }
+            
+            // 尝试从环境变量或页面中获取API主机
+            try {
+              // 尝试从meta标签获取API主机
+              const apiHostMeta = document.querySelector('meta[name="api-host"]');
+              if (apiHostMeta) {
+                apiHost = apiHostMeta.getAttribute('content');
+              }
+            } catch (error) {
+              console.error('获取API主机失败:', error);
+            }
+            
+            // 如果未设置apiHost，尝试使用当前域名
+            if (!apiHost) {
+              apiHost = window.location.origin;
+            }
+            
+            // 获取下一页内容的函数
+            async function loadMoreContent() {
               if (isLoading || !hasMoreContent) return;
               
               isLoading = true;
-              loadingContainer.style.display = 'flex';
+              loadingIndicator.classList.remove('hidden');
               
               try {
-                // 构建下一页URL
-                const nextPage = currentPage + 1;
-                const url = '/api/page/' + nextPage;
+                // 计算偏移量
+                const offset = page * pageLimit;
                 
-                // 获取下一页数据
-                const response = await fetch(url);
-                if (!response.ok) {
-                  throw new Error('网络请求失败');
-                }
+                // 构建API URL
+                const apiUrl = `${apiHost}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${currentTag}&limit=${pageLimit}&offset=${offset}`;
                 
-                const data = await response.json();
-                
-                // 如果没有更多文章，停止加载
-                if (!data || !data.data || data.data.length === 0) {
-                  hasMoreContent = false;
-                  sentinel.remove();
-                  loadingContainer.remove();
-                  return;
-                }
-                
-                // 渲染新文章
-                const fragment = document.createDocumentFragment();
-                data.data.forEach(memo => {
-                  // 创建文章元素 - 这里使用简化的渲染方式
-                  // 注意：实际实现可能需要根据后端API返回的数据结构调整
-                  const article = document.createElement('article');
-                  article.className = 'pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0';
-                  
-                  // 渲染时间戳
-                  const timestamp = memo.createTime 
-                    ? new Date(memo.createTime).getTime()
-                    : memo.createdTs * 1000;
-                  
-                  const formattedTime = new Date(timestamp).toLocaleDateString('zh-CN', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                  });
-                  
-                  // 构建文章内容HTML
-                  article.innerHTML = 
-                    '<header>' +
-                      '<a href="/post/' + (memo.name || memo.id) + '" class="block">' +
-                        '<time datetime="' + new Date(timestamp).toISOString() + '" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">' + formattedTime + '</time>' +
-                      '</a>' +
-                    '</header>' +
-                    '<section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">' +
-                      memo.content +
-                    '</section>';
-                  
-                  fragment.appendChild(article);
-                });
-                
-                // 将新文章添加到页面
-                loadingContainer.before(fragment);
-                
-                // 更新页码
-                currentPage = nextPage;
-                
-                // 处理新加载的内容中的图片和代码块
-                enhanceMarkdown();
-                
-                // 处理新加载的图片
-                document.querySelectorAll('[data-preview="true"]').forEach(img => {
-                  if (!img.classList.contains('loaded')) {
-                    if (img.complete) {
-                      img.classList.add('loaded');
-                      if (img.parentNode) {
-                        img.parentNode.classList.add('loaded');
-                      }
-                    } else {
-                      img.addEventListener('load', function() {
-                        img.classList.add('loaded');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
-                      }, { once: true });
-                    }
+                // 发送请求
+                const response = await fetch(apiUrl, {
+                  headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
                   }
                 });
                 
+                if (!response.ok) {
+                  throw new Error(`API请求失败: ${response.status}`);
+                }
+                
+                // 解析数据
+                const memos = await response.json();
+                
+                // 检查是否还有更多内容
+                if (!memos || memos.length === 0) {
+                  hasMoreContent = false;
+                  endOfContent.classList.remove('hidden');
+                  loadingIndicator.classList.add('hidden');
+                  return;
+                }
+                
+                // 增加页码
+                page++;
+                
+                // 创建新内容的容器
+                const tempContainer = document.createElement('div');
+                
+                // 按时间降序排序memos
+                const sortedMemos = [...memos].sort((a, b) => {
+                  const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
+                  const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
+                  return timeB - timeA;
+                });
+                
+                // 渲染新的memo内容
+                for (const memo of sortedMemos) {
+                  const article = document.createElement('article');
+                  article.className = 'pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0';
+                  
+                  const timestamp = memo.createTime ? new Date(memo.createTime).getTime() : memo.createdTs * 1000;
+                  const formattedTime = formatTime(timestamp);
+                  
+                  // 根据是否在首页决定链接
+                  const articleUrl = `/post/${memo.name}`;
+                  
+                  // 创建文章HTML
+                  article.innerHTML = `
+                    <header>
+                      <a href="${articleUrl}" class="block">
+                        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+                      </a>
+                    </header>
+                    <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+                      ${simpleMarkdown(memo.content || '')}
+                    </section>
+                  `;
+                  
+                  // 添加资源(图片)处理
+                  const resources = memo.resources || memo.resourceList || [];
+                  if (resources.length > 0) {
+                    const resourcesContainer = document.createElement('figure');
+                    resourcesContainer.className = 'mt-4';
+                    
+                    // 根据图片数量决定布局
+                    if (resources.length === 1) {
+                      // 单张图片
+                      resourcesContainer.innerHTML = createImageHTML(resources[0], 'w-full aspect-video');
+                    } else if (resources.length === 2) {
+                      // 两张图片
+                      const imagesContainer = document.createElement('div');
+                      imagesContainer.className = 'flex flex-wrap gap-1';
+                      resources.forEach(resource => {
+                        imagesContainer.innerHTML += createImageHTML(resource, 'w-[calc(50%-2px)] aspect-square');
+                      });
+                      resourcesContainer.appendChild(imagesContainer);
+                    } else {
+                      // 三张或更多图片
+                      const imagesContainer = document.createElement('div');
+                      imagesContainer.className = 'grid grid-cols-3 gap-1';
+                      resources.forEach(resource => {
+                        imagesContainer.innerHTML += createImageHTML(resource);
+                      });
+                      resourcesContainer.appendChild(imagesContainer);
+                    }
+                    
+                    article.querySelector('.article-content').appendChild(resourcesContainer);
+                  }
+                  
+                  // 添加到临时容器
+                  tempContainer.appendChild(article);
+                }
+                
+                // 将新内容添加到主内容区域
+                Array.from(tempContainer.children).forEach(child => {
+                  mainContent.insertBefore(child, loadingIndicator);
+                });
+                
+                // 重新初始化图片查看器等功能
+                setupImageLoadHandlers();
+                enhanceMarkdown();
+                
               } catch (error) {
                 console.error('加载更多内容失败:', error);
-                // 可以在这里添加重试逻辑或错误提示
+                hasMoreContent = false;
+                endOfContent.classList.remove('hidden');
               } finally {
                 isLoading = false;
-                loadingContainer.style.display = 'none';
+                loadingIndicator.classList.add('hidden');
               }
             }
             
-            // 使用Intersection Observer监听哨兵元素
+            // 创建单个图片HTML的函数
+            function createImageHTML(resource, size = '') {
+              return `
+                <div class="${size} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden ${size ? '' : 'aspect-square'} image-container">
+                  <img 
+                    src="${resource.externalLink || ''}" 
+                    alt="${resource.filename || '图片'}"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                    loading="lazy"
+                    data-preview="true"
+                    onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
+                  />
+                  <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                    <i class="ri-image-line text-3xl"></i>
+                  </div>
+                </div>
+              `;
+            }
+            
+            // 简易版时间格式化函数
+            function formatTime(timestamp) {
+              const now = new Date();
+              const date = new Date(timestamp);
+              const diff = now - date;
+              const minutes = Math.floor(diff / (1000 * 60));
+              const hours = Math.floor(diff / (1000 * 60 * 60));
+              
+              if (minutes < 1) return '刚刚';
+              if (minutes < 60) return `${minutes} 分钟前`;
+              if (hours < 24 && date.getDate() === now.getDate()) return `${hours} 小时前`;
+              
+              if (date.getFullYear() === now.getFullYear()) {
+                return date.toLocaleString('zh-CN', {
+                  month: '2-digit', day: '2-digit', hour: '2-digit', 
+                  minute: '2-digit', hour12: false
+                }).replace(/\//g, '-');
+              }
+              
+              return date.toLocaleString('zh-CN', {
+                year: 'numeric', month: '2-digit', day: '2-digit', 
+                hour: '2-digit', minute: '2-digit', hour12: false
+              }).replace(/\//g, '-');
+            }
+            
+            // 使用Intersection Observer监听滚动位置
             const observer = new IntersectionObserver((entries) => {
-              if (entries[0].isIntersecting && !isLoading) {
-                loadMorePosts();
+              if (entries[0].isIntersecting && !isLoading && hasMoreContent) {
+                loadMoreContent();
               }
-            }, {
-              rootMargin: '200px' // 提前200px触发加载
-            });
+            }, { rootMargin: '200px' });
             
-            // 开始观察哨兵元素
-            observer.observe(sentinel);
+            // 开始观察加载指示器
+            observer.observe(loadingIndicator);
           }
-
-          // 性能优化：使用requestIdleCallback在浏览器空闲时初始化非关键功能
-          function initOnIdle() {
-            // 定义空闲回调
-            const idleCallback = () => {
-              // 初始化返回顶部按钮
-              initBackToTop();
-              // 初始化无限滚动加载
-              initInfiniteScroll();
-            };
-            
-            // 使用requestIdleCallback或setTimeout作为降级处理
-            if ('requestIdleCallback' in window) {
-              requestIdleCallback(idleCallback);
-            } else {
-              setTimeout(idleCallback, 200);
-            }
-          }
-
-          // 页面加载完成后初始化所有功能
-          document.addEventListener('DOMContentLoaded', () => {
-            // 立即初始化关键功能
-            initThemeToggle();
-            initImageViewer();
-            
-            // 初始化Markdown增强和代码复制功能
-            enhanceMarkdown();
-            
-            // 延迟初始化非关键功能
-            initOnIdle();
-          });
         })();
         </script>
       </body>
     </html>
   `;
-} 
+}

@@ -55,22 +55,35 @@ export const utils = {
     return String.raw({ raw: strings }, ...values);
   },
   
-  // HTML压缩函数
+  // 压缩HTML代码
   minifyHtml(html) {
     if (!html) return '';
     
     return html
       // 删除HTML注释
-      .replace(/<!--(?!<!)[^\[>].*?-->/g, '')
-      // 删除SCRIPT中的注释
-      .replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '')
-      // 删除换行符、制表符和多余空格
-      .replace(/\r?\n|\r|\t/g, '')
-      // 删除多余空格
+      .replace(/<!--(?![\s\S]*?sortable)[\s\S]*?-->/g, '')
+      // 删除CSS/JS注释
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      // 压缩CSS (简单压缩)
+      .replace(/([^0-9a-zA-Z\.#])\s+\{/g, '$1{')
+      .replace(/\;\s*\}/g, '}')
+      .replace(/\s*\:\s*/g, ':')
+      .replace(/\s*\;\s*/g, ';')
+      // 压缩JS (简单压缩)
+      .replace(/([,;{}()])\s+/g, '$1')
+      .replace(/\s+([,;{}()])/g, '$1')
+      // 合并多个空格
       .replace(/\s{2,}/g, ' ')
-      // 删除>和<之间的空格
-      .replace(/>\s+</g, '><')
-      // 修剪前后空白
-      .trim();
+      // 合并多个空行
+      .replace(/\n{2,}/g, '\n')
+      // 删除行首尾空格
+      .replace(/^\s+|\s+$/gm, '')
+      // 删除标签间的空白(保留内联元素内的单个空格)
+      .replace(/>\s{2,}</g, '> <')
+      // 安全压缩 - 保留script和pre内容不变
+      .replace(/(<(pre|script|style|textarea)[^>]*>)([\s\S]*?)(<\/\2>)/gi, (match, start, tag, content, end) => {
+        // 保留pre和script标签内的内容不压缩
+        return start + content + end;
+      });
   }
 }; 
