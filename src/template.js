@@ -931,30 +931,46 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   }
                   
                   if (!img.classList.contains('loaded')) {
-                    // 如果图片已经加载完成
-                    if (img.complete && img.naturalWidth !== 0) {
-                      img.classList.add('loaded');
-                      if (img.parentNode) {
-                        img.parentNode.classList.add('loaded');
+                    // 检查图片是否已经加载完成
+                    const checkAndMarkLoaded = () => {
+                      // 确保图片不仅加载完成而且已经渲染可见
+                      if (img.complete && img.naturalWidth > 0 && img.offsetWidth > 0) {
+                        // 使用requestAnimationFrame确保在浏览器渲染周期后执行
+                        requestAnimationFrame(() => {
+                          img.classList.add('loaded');
+                          if (img.parentNode) {
+                            img.parentNode.classList.add('loaded');
+                          }
+                        });
+                        return true;
                       }
-                    } else {
-                      // 否则等待加载
-                      img.addEventListener('load', function onLoad() {
-                        img.classList.add('loaded');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
-                        img.removeEventListener('load', onLoad);
-                      }, { once: true });
+                      return false;
+                    };
+
+                    // 立即检查一次
+                    if (!checkAndMarkLoaded()) {
+                      // 添加临时类表示正在加载
+                      img.classList.add('loading');
                       
-                      // 处理加载错误
-                      img.addEventListener('error', function onError() {
-                        img.classList.add('loaded', 'error');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
-                        img.removeEventListener('error', onError);
-                      }, { once: true });
+                      // 设置加载和错误事件监听器
+                      const onLoadOrError = () => {
+                        // 使用双重requestAnimationFrame确保图片已渲染
+                        requestAnimationFrame(() => {
+                          requestAnimationFrame(() => {
+                            if (checkAndMarkLoaded() || img.classList.contains('error')) {
+                              img.classList.remove('loading');
+                              img.removeEventListener('load', onLoadOrError);
+                              img.removeEventListener('error', onLoadOrError);
+                            }
+                          });
+                        });
+                      };
+
+                      img.addEventListener('load', onLoadOrError);
+                      img.addEventListener('error', () => {
+                        img.classList.add('error');
+                        onLoadOrError();
+                      });
                     }
                   }
                 });
