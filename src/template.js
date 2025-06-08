@@ -176,7 +176,7 @@ export function renderMemo(memo, isHomePage = false) {
             onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
           />
           <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-            <span class="icon-image-line ${resources.length > 2 ? 'text-2xl' : 'text-3xl'}"></span>
+            <i class="ri-image-line ${resources.length > 2 ? 'text-2xl' : 'text-3xl'}"></i>
           </div>
         </div>
       `;
@@ -271,10 +271,26 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName} - 博客">
         <meta name="theme-color" content="#209cff">
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
+        <meta property="og:title" content="${title}">
+        <meta property="og:description" content="${siteName} - 博客">
+        <meta property="og:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
+        
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
+        <meta property="twitter:title" content="${title}">
+        <meta property="twitter:description" content="${siteName} - 博客">
+        <meta property="twitter:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
+        
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
           tailwind.config = {
@@ -345,87 +361,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </style>
       <!-- 使用常规CSS避免循环依赖 -->
       <style>
-        /* 定义内联SVG图标，避免网络依赖 */
-        .icon-contrast-fill {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 21.9967C6.47715 21.9967 2 17.5196 2 11.9967C2 6.47386 6.47715 1.9967 12 1.9967C17.5228 1.9967 22 6.47386 22 11.9967C22 17.5196 17.5228 21.9967 12 21.9967ZM12 19.9967V3.9967C7.58172 3.9967 4 7.57843 4 11.9967C4 16.415 7.58172 19.9967 12 19.9967Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-moon-fill {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M11.3807 2.01886C9.91573 3.38768 9 5.3369 9 7.49999C9 11.6421 12.3579 15 16.5 15C18.6631 15 20.6123 14.0843 21.9811 12.6193C21.6613 17.8537 17.3149 22 12 22C6.47715 22 2 17.5228 2 12C2 6.68514 6.14629 2.33869 11.3807 2.01886Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-sun-fill {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-skip-up-fill {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M6 7 18 7V9L6 9 6 7ZM12 11 6 17H18L12 11Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-image-line {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M5 11.1005L7 9.1005L12.5 14.6005L16 11.1005L19 14.1005V5H5V11.1005ZM5 13.9289V19H8.1005L11.0858 16.0147L7 11.9289L5 13.9289ZM10.9289 19H19V16.9289L16 13.9289L10.9289 19ZM4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3ZM15.5 10C14.6716 10 14 9.32843 14 8.5C14 7.67157 14.6716 7 15.5 7C16.3284 7 17 7.67157 17 8.5C17 9.32843 16.3284 10 15.5 10Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-close-line {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 10.5858L16.2929 6.29289L17.7071 7.70711L13.4142 12L17.7071 16.2929L16.2929 17.7071L12 13.4142L7.70711 17.7071L6.29289 16.2929L10.5858 12L6.29289 7.70711L7.70711 6.29289L12 10.5858Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-arrow-left-line {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
-        .icon-arrow-right-line {
-          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M16.1716 10.9999H4V12.9999H16.1716L10.8076 18.3638L12.2218 19.778L20 11.9999L12.2218 4.22168L10.8076 5.63589L16.1716 10.9999Z'%3E%3C/path%3E%3C/svg%3E");
-          display: inline-block;
-          width: 1.2em;
-          height: 1.2em;
-          background-size: cover;
-          background-position: center;
-          vertical-align: middle;
-        }
-
         .back-to-top {
           position: fixed;
           bottom: 24px;
@@ -513,46 +448,31 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           opacity: 1;
         }
         
-        /* 改进的加载动画 */
         .image-loading {
           position: absolute;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 60px;
-          height: 60px;
+          color: white;
+          font-size: 16px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
         }
         
         .spinner {
           width: 40px;
           height: 40px;
-          position: relative;
-          margin: 0 auto;
-        }
-        
-        .double-bounce1, .double-bounce2 {
-          width: 100%;
-          height: 100%;
+          border: 3px solid rgba(255, 255, 255, 0.3);
           border-radius: 50%;
-          background-color: #fff;
-          opacity: 0.6;
-          position: absolute;
-          top: 0;
-          left: 0;
-          animation: sk-bounce 2.0s infinite ease-in-out;
-          will-change: transform, opacity;
+          border-top-color: white;
+          animation: spin 1s ease-in-out infinite;
+          will-change: transform;
         }
         
-        .double-bounce2 {
-          animation-delay: -1.0s;
-        }
-        
-        @keyframes sk-bounce {
-          0%, 100% { 
-            transform: scale(0.0);
-          } 50% { 
-            transform: scale(1.0);
-          }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
 
         .image-modal-close {
@@ -669,6 +589,106 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         .image-placeholder {
           z-index: 1;
         }
+        
+        /* 加载动画样式 */
+        .loading-animation {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 6px;
+        }
+        
+        .loading-animation .dot {
+          width: 8px;
+          height: 8px;
+          background-color: white;
+          border-radius: 50%;
+          opacity: 0.7;
+          animation: pulse 1.5s infinite ease-in-out;
+        }
+        
+        .loading-animation .dot:nth-child(2) {
+          animation-delay: 0.2s;
+        }
+        
+        .loading-animation .dot:nth-child(3) {
+          animation-delay: 0.4s;
+        }
+        
+        @keyframes pulse {
+          0%, 100% { 
+            transform: scale(0.8);
+            opacity: 0.5;
+          }
+          50% { 
+            transform: scale(1.2);
+            opacity: 1;
+          }
+        }
+        
+        /* 代码块样式 */
+        pre {
+          position: relative;
+          background-color: #f8f9fa;
+          border-radius: 6px;
+          margin: 1rem 0;
+          padding: 1rem;
+          overflow: auto;
+        }
+        
+        .dark pre {
+          background-color: #1e293b;
+        }
+        
+        pre code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.9rem;
+          line-height: 1.5;
+          white-space: pre;
+        }
+        
+        /* 代码复制按钮 */
+        .copy-btn {
+          position: absolute;
+          top: 5px;
+          right: 5px;
+          padding: 4px 8px;
+          font-size: 12px;
+          color: #4b5563;
+          background-color: #e5e7eb;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+          opacity: 0;
+          transition: opacity 0.2s, background-color 0.2s;
+          z-index: 5;
+        }
+        
+        .dark .copy-btn {
+          color: #e5e7eb;
+          background-color: #374151;
+        }
+        
+        pre:hover .copy-btn {
+          opacity: 1;
+        }
+        
+        .copy-btn:hover {
+          background-color: #d1d5db;
+        }
+        
+        .dark .copy-btn:hover {
+          background-color: #4b5563;
+        }
+        
+        .copy-btn.copied {
+          background-color: #10b981;
+          color: white;
+        }
+        
+        .dark .copy-btn.copied {
+          background-color: #059669;
+        }
       </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -687,7 +707,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                 </ul>
               </nav>
                 <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-[#209cff] dark:text-[#68e0cf] hover:text-[#0c7cd5] dark:hover:text-[#8eeee0] focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
-                  <span class="icon-sun-fill text-lg" id="theme-icon" aria-hidden="true"></span>
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                   </button>
             </div>
           </header>
@@ -698,32 +718,33 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </div>
 
         <button id="back-to-top" class="back-to-top" aria-label="返回顶部">
-          <span class="icon-skip-up-fill text-xl" aria-hidden="true"></span>
+          <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
         </button>
       
       <!-- 图片预览模态框 -->
         <div id="imageModal" class="image-modal" aria-modal="true" aria-label="图片预览">
-        <div class="image-modal-content">
+          <div class="image-modal-content">
             <button class="image-modal-close" aria-label="关闭预览">
-              <span class="icon-close-line" aria-hidden="true"></span>
-          </button>
+              <i class="ri-close-line" aria-hidden="true"></i>
+            </button>
             <div class="image-loading" role="status" aria-live="polite">
-              <div class="spinner">
-                <div class="double-bounce1"></div>
-                <div class="double-bounce2"></div>
+              <div class="loading-animation">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
               </div>
             </div>
             <figure class="w-full h-full flex items-center justify-center">
               <img id="modalImage" src="" alt="预览图片" loading="lazy" class="max-w-full max-h-[90vh] object-contain">
             </figure>
             <button class="image-modal-prev" aria-label="上一张">
-              <span class="icon-arrow-left-line" aria-hidden="true"></span>
-          </button>
+              <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
+            </button>
             <button class="image-modal-next" aria-label="下一张">
-              <span class="icon-arrow-right-line" aria-hidden="true"></span>
-          </button>
+              <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
+            </button>
+          </div>
         </div>
-      </div>
 
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
@@ -743,10 +764,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             function updateIcon(theme) {
               // 使用一次赋值操作
               themeIcon.className = theme === 'light' 
-                ? 'icon-sun-fill text-lg' 
+                ? 'ri-sun-fill text-lg' 
                 : theme === 'dark' 
-                  ? 'icon-moon-fill text-lg' 
-                  : 'icon-contrast-fill text-lg';
+                  ? 'ri-moon-fill text-lg' 
+                  : 'ri-contrast-fill text-lg';
               
               themeToggle.setAttribute('aria-label', 
                 theme === 'light' 
@@ -1155,9 +1176,115 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             initThemeToggle();
             initImageViewer();
             
+            // 初始化Markdown增强和代码复制功能
+            enhanceMarkdown();
+            
             // 延迟初始化非关键功能
             initOnIdle();
           });
+
+          // 初始化代码复制功能
+          function initCodeCopyButtons() {
+            // 找到所有pre元素
+            document.querySelectorAll('pre').forEach(block => {
+              // 确保每个代码块只添加一个按钮
+              if (!block.querySelector('.copy-btn')) {
+                // 创建复制按钮
+                const button = document.createElement('button');
+                button.className = 'copy-btn';
+                button.textContent = '复制';
+                button.setAttribute('aria-label', '复制代码');
+                button.setAttribute('type', 'button');
+                
+                // 添加复制功能
+                button.addEventListener('click', () => {
+                  // 获取代码文本
+                  const code = block.querySelector('code')?.textContent || block.textContent;
+                  
+                  // 使用Clipboard API复制
+                  navigator.clipboard.writeText(code).then(() => {
+                    // 复制成功
+                    button.textContent = '已复制!';
+                    button.classList.add('copied');
+                    
+                    // 2秒后恢复原状
+                    setTimeout(() => {
+                      button.textContent = '复制';
+                      button.classList.remove('copied');
+                    }, 2000);
+                  }).catch(err => {
+                    // 复制失败，使用传统方法
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    textarea.style.position = 'fixed';
+                    textarea.style.opacity = '0';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    
+                    try {
+                      document.execCommand('copy');
+                      button.textContent = '已复制!';
+                      button.classList.add('copied');
+                    } catch (e) {
+                      button.textContent = '复制失败';
+                      console.error('复制失败:', e);
+                    }
+                    
+                    document.body.removeChild(textarea);
+                    
+                    // 恢复按钮状态
+                    setTimeout(() => {
+                      button.textContent = '复制';
+                      button.classList.remove('copied');
+                    }, 2000);
+                  });
+                });
+                
+                // 将按钮添加到代码块
+                block.appendChild(button);
+              }
+            });
+          }
+          
+          // 增强的Markdown处理，添加代码复制按钮
+          function enhanceMarkdown() {
+            // 使用MutationObserver监听DOM变化
+            const observer = new MutationObserver((mutations) => {
+              let hasNewCodeBlocks = false;
+              
+              for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                  for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                      // 检查是否有新的pre元素添加
+                      if (node.querySelector('pre') || node.matches('pre')) {
+                        hasNewCodeBlocks = true;
+                        break;
+                      }
+                    }
+                  }
+                  
+                  if (hasNewCodeBlocks) break;
+                }
+              }
+              
+              // 只有在确实有新代码块添加时才更新
+              if (hasNewCodeBlocks) {
+                initCodeCopyButtons();
+              }
+            });
+            
+            // 监控文档变化
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true,
+              attributes: false,
+              characterData: false
+            });
+            
+            // 初始化现有代码块
+            initCodeCopyButtons();
+          }
         })();
         </script>
       </body>
