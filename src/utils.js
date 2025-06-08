@@ -53,5 +53,24 @@ export const utils = {
   // 创建HTML元素（用于模板）
   createHtml(strings, ...values) {
     return String.raw({ raw: strings }, ...values);
+  },
+  
+  // HTML压缩函数
+  minifyHtml(html) {
+    if (!html) return '';
+    
+    return html
+      // 删除HTML注释
+      .replace(/<!--(?!<!)[^\[>].*?-->/g, '')
+      // 删除SCRIPT中的注释
+      .replace(/\/\*(?:(?!\*\/)[\s\S])*\*\//g, '')
+      // 删除换行符、制表符和多余空格
+      .replace(/\r?\n|\r|\t/g, '')
+      // 删除多余空格
+      .replace(/\s{2,}/g, ' ')
+      // 删除>和<之间的空格
+      .replace(/>\s+</g, '><')
+      // 修剪前后空白
+      .trim();
   }
 }; 

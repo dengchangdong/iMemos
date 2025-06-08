@@ -18,6 +18,7 @@ app.get('/', routes.home)
 app.get('/post/:name', routes.post)
 app.get('/tag/:tag', routes.tag)
 app.get('/api/v1/memo', routes.api)
+app.get('/api/page/:page', routes.pageApi)
 
 // 离线页面
 app.get('/offline.html', routes.offline)

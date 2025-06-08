@@ -652,8 +652,11 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           position: absolute;
           top: 5px;
           right: 5px;
-          padding: 4px 8px;
-          font-size: 12px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
           color: #4b5563;
           background-color: #e5e7eb;
           border: none;
@@ -688,6 +691,20 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         
         .dark .copy-btn.copied {
           background-color: #059669;
+        }
+
+        /* 无限滚动加载样式 */
+        .loading-container {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding: 20px 0;
+        }
+
+        .infinite-scroll-sentinel {
+          width: 1px;
+          height: 1px;
+          margin-top: 20px;
         }
       </style>
       </head>
@@ -1154,35 +1171,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             setupImageLoadHandlers();
           }
 
-          // 性能优化：使用requestIdleCallback在浏览器空闲时初始化非关键功能
-          function initOnIdle() {
-            // 定义空闲回调
-            const idleCallback = () => {
-              // 初始化返回顶部按钮
-              initBackToTop();
-            };
-            
-            // 使用requestIdleCallback或setTimeout作为降级处理
-            if ('requestIdleCallback' in window) {
-              requestIdleCallback(idleCallback);
-            } else {
-              setTimeout(idleCallback, 200);
-            }
-          }
-
-          // 页面加载完成后初始化所有功能
-          document.addEventListener('DOMContentLoaded', () => {
-            // 立即初始化关键功能
-            initThemeToggle();
-            initImageViewer();
-            
-            // 初始化Markdown增强和代码复制功能
-            enhanceMarkdown();
-            
-            // 延迟初始化非关键功能
-            initOnIdle();
-          });
-
           // 初始化代码复制功能
           function initCodeCopyButtons() {
             // 找到所有pre元素
@@ -1192,7 +1180,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                 // 创建复制按钮
                 const button = document.createElement('button');
                 button.className = 'copy-btn';
-                button.textContent = '复制';
+                button.innerHTML = '<i class="ri-file-copy-line"></i>';
                 button.setAttribute('aria-label', '复制代码');
                 button.setAttribute('type', 'button');
                 
@@ -1204,12 +1192,12 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   // 使用Clipboard API复制
                   navigator.clipboard.writeText(code).then(() => {
                     // 复制成功
-                    button.textContent = '已复制!';
+                    button.innerHTML = '<i class="ri-check-line"></i>';
                     button.classList.add('copied');
                     
                     // 2秒后恢复原状
                     setTimeout(() => {
-                      button.textContent = '复制';
+                      button.innerHTML = '<i class="ri-file-copy-line"></i>';
                       button.classList.remove('copied');
                     }, 2000);
                   }).catch(err => {
@@ -1223,10 +1211,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                     
                     try {
                       document.execCommand('copy');
-                      button.textContent = '已复制!';
+                      button.innerHTML = '<i class="ri-check-line"></i>';
                       button.classList.add('copied');
                     } catch (e) {
-                      button.textContent = '复制失败';
+                      button.innerHTML = '<i class="ri-close-line"></i>';
                       console.error('复制失败:', e);
                     }
                     
@@ -1234,7 +1222,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                     
                     // 恢复按钮状态
                     setTimeout(() => {
-                      button.textContent = '复制';
+                      button.innerHTML = '<i class="ri-file-copy-line"></i>';
                       button.classList.remove('copied');
                     }, 2000);
                   });
@@ -1285,6 +1273,183 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             // 初始化现有代码块
             initCodeCopyButtons();
           }
+          
+          // 实现自动无限滚动加载功能
+          function initInfiniteScroll() {
+            // 检查是否在首页
+            const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index.html';
+            if (!isHomePage) return; // 只在首页启用
+            
+            // 创建哨兵元素和加载动画
+            const sentinel = document.createElement('div');
+            sentinel.className = 'infinite-scroll-sentinel';
+            
+            const loadingContainer = document.createElement('div');
+            loadingContainer.className = 'loading-container';
+            loadingContainer.innerHTML = `
+              <div class="loading-animation">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+              </div>
+            `;
+            loadingContainer.style.display = 'none';
+            
+            // 获取文章容器
+            const main = document.querySelector('main');
+            if (!main) return;
+            
+            // 添加哨兵和加载容器
+            main.appendChild(loadingContainer);
+            main.appendChild(sentinel);
+            
+            // 当前页码和加载状态
+            let currentPage = 1;
+            let isLoading = false;
+            let hasMoreContent = true;
+            
+            // 加载更多文章的函数
+            async function loadMorePosts() {
+              if (isLoading || !hasMoreContent) return;
+              
+              isLoading = true;
+              loadingContainer.style.display = 'flex';
+              
+              try {
+                // 构建下一页URL
+                const nextPage = currentPage + 1;
+                const url = `/api/page/${nextPage}`;
+                
+                // 获取下一页数据
+                const response = await fetch(url);
+                if (!response.ok) {
+                  throw new Error('网络请求失败');
+                }
+                
+                const data = await response.json();
+                
+                // 如果没有更多文章，停止加载
+                if (!data || !data.data || data.data.length === 0) {
+                  hasMoreContent = false;
+                  sentinel.remove();
+                  loadingContainer.remove();
+                  return;
+                }
+                
+                // 渲染新文章
+                const fragment = document.createDocumentFragment();
+                data.data.forEach(memo => {
+                  // 创建文章元素 - 这里使用简化的渲染方式
+                  // 注意：实际实现可能需要根据后端API返回的数据结构调整
+                  const article = document.createElement('article');
+                  article.className = 'pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0';
+                  
+                  // 渲染时间戳
+                  const timestamp = memo.createTime 
+                    ? new Date(memo.createTime).getTime()
+                    : memo.createdTs * 1000;
+                  
+                  const formattedTime = new Date(timestamp).toLocaleDateString('zh-CN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  });
+                  
+                  // 构建文章内容HTML
+                  article.innerHTML = `
+                    <header>
+                      <a href="/post/${memo.name || memo.id}" class="block">
+                        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+                      </a>
+                    </header>
+                    <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+                      ${memo.content}
+                    </section>
+                  `;
+                  
+                  fragment.appendChild(article);
+                });
+                
+                // 将新文章添加到页面
+                loadingContainer.before(fragment);
+                
+                // 更新页码
+                currentPage = nextPage;
+                
+                // 处理新加载的内容中的图片和代码块
+                enhanceMarkdown();
+                
+                // 处理新加载的图片
+                document.querySelectorAll('[data-preview="true"]').forEach(img => {
+                  if (!img.classList.contains('loaded')) {
+                    if (img.complete) {
+                      img.classList.add('loaded');
+                      if (img.parentNode) {
+                        img.parentNode.classList.add('loaded');
+                      }
+                    } else {
+                      img.addEventListener('load', function() {
+                        img.classList.add('loaded');
+                        if (img.parentNode) {
+                          img.parentNode.classList.add('loaded');
+                        }
+                      }, { once: true });
+                    }
+                  }
+                });
+                
+              } catch (error) {
+                console.error('加载更多内容失败:', error);
+                // 可以在这里添加重试逻辑或错误提示
+              } finally {
+                isLoading = false;
+                loadingContainer.style.display = 'none';
+              }
+            }
+            
+            // 使用Intersection Observer监听哨兵元素
+            const observer = new IntersectionObserver((entries) => {
+              if (entries[0].isIntersecting && !isLoading) {
+                loadMorePosts();
+              }
+            }, {
+              rootMargin: '200px' // 提前200px触发加载
+            });
+            
+            // 开始观察哨兵元素
+            observer.observe(sentinel);
+          }
+
+          // 性能优化：使用requestIdleCallback在浏览器空闲时初始化非关键功能
+          function initOnIdle() {
+            // 定义空闲回调
+            const idleCallback = () => {
+              // 初始化返回顶部按钮
+              initBackToTop();
+              // 初始化无限滚动加载
+              initInfiniteScroll();
+            };
+            
+            // 使用requestIdleCallback或setTimeout作为降级处理
+            if ('requestIdleCallback' in window) {
+              requestIdleCallback(idleCallback);
+            } else {
+              setTimeout(idleCallback, 200);
+            }
+          }
+
+          // 页面加载完成后初始化所有功能
+          document.addEventListener('DOMContentLoaded', () => {
+            // 立即初始化关键功能
+            initThemeToggle();
+            initImageViewer();
+            
+            // 初始化Markdown增强和代码复制功能
+            enhanceMarkdown();
+            
+            // 延迟初始化非关键功能
+            initOnIdle();
+          });
         })();
         </script>
       </body>
