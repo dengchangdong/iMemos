@@ -172,7 +172,7 @@ export function renderMemo(memo, isHomePage = false) {
               <img 
                 src="${resources[0].externalLink || ''}" 
                 alt="${resources[0].filename || '图片'}"
-                class="rounded-lg w-full h-full object-contain hover:opacity-95 transition-opacity absolute inset-0"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0"
                 loading="lazy"
                 data-preview="true"
                 onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
@@ -591,7 +591,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             <main class="mt-8 relative">
               ${articlesHtml}
             </main>
-            ${footerText ? utils.createHtml`<footer class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">${footerText}</footer>` : ''}
           </section>
         </div>
 
@@ -609,8 +608,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               <div class="spinner" aria-hidden="true"></div>
               <span>加载中...</span>
             </div>
-            <figure>
-              <img id="modalImage" src="" alt="预览图片" loading="lazy">
+            <figure class="w-full h-full flex items-center justify-center">
+              <img id="modalImage" src="" alt="预览图片" loading="lazy" class="max-w-full max-h-[90vh] object-contain">
             </figure>
             <button class="image-modal-prev" aria-label="上一张">
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
