@@ -931,31 +931,57 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   }
                   
                   if (!img.classList.contains('loaded')) {
-                    // 如果图片已经加载完成
+                    // 首先检查图片是否已经加载完成
                     if (img.complete && img.naturalWidth !== 0) {
-                      img.classList.add('loaded');
-                      if (img.parentNode) {
-                        img.parentNode.classList.add('loaded');
-                      }
+                      // 确保图片是真正加载完成，而不是缓存的空白图片
+                      handleImageLoaded(img);
                     } else {
-                      // 否则等待加载
-                      img.addEventListener('load', function onLoad() {
-                        img.classList.add('loaded');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
-                        img.removeEventListener('load', onLoad);
-                      }, { once: true });
+                      // 设置临时占位样式
+                      img.classList.add('loading');
+                      if (img.parentNode) {
+                        img.parentNode.classList.add('loading');
+                      }
                       
-                      // 处理加载错误
-                      img.addEventListener('error', function onError() {
-                        img.classList.add('loaded', 'error');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
+                      // 使用一次性事件监听器
+                      const onLoad = () => {
+                        handleImageLoaded(img);
+                        img.removeEventListener('load', onLoad);
                         img.removeEventListener('error', onError);
-                      }, { once: true });
+                      };
+                      
+                      const onError = () => {
+                        handleImageError(img);
+                        img.removeEventListener('load', onLoad);
+                        img.removeEventListener('error', onError);
+                      };
+                      
+                      img.addEventListener('load', onLoad);
+                      img.addEventListener('error', onError);
                     }
+                  }
+
+                  // 处理图片加载完成的公共函数
+                  function handleImageLoaded(img) {
+                    img.classList.remove('loading');
+                    img.classList.add('loaded');
+                    
+                    if (img.parentNode) {
+                      img.parentNode.classList.remove('loading');
+                      img.parentNode.classList.add('loaded');
+                    }
+                  }
+
+                  // 处理图片加载错误的公共函数
+                  function handleImageError(img) {
+                    img.classList.remove('loading');
+                    img.classList.add('loaded', 'error');
+                    
+                    if (img.parentNode) {
+                      img.parentNode.classList.remove('loading');
+                      img.parentNode.classList.add('loaded', 'error');
+                    }
+                    
+                    console.error('图片加载失败:', img.src);
                   }
                 });
               });
