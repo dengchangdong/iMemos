@@ -612,14 +612,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             ${isHomePage ? 
               (currentPage === 1 ?
                 utils.createHtml`
-                <div class="pagination flex justify-center items-center mt-8 pt-4 border-t dark:border-gray-700">
+                <div class="pagination flex justify-center items-center mt-8 pt-4">
                   <a href="/page/2" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
                     <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
                   </a>
                 </div>
                 ` : 
                 utils.createHtml`
-              <div class="pagination flex justify-between items-center mt-8 pt-4 border-t dark:border-gray-700">
+              <div class="pagination flex justify-between items-center mt-8 pt-4">
                 <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
                   <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
                 </a>
@@ -632,7 +632,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               ) : 
               (tag ?
                 utils.createHtml`
-                <div class="pagination flex justify-between items-center mt-8 pt-4 border-t dark:border-gray-700">
+                <div class="pagination flex justify-between items-center mt-8 pt-4">
                   <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
                     <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
                   </a>
