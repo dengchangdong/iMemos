@@ -1,6 +1,5 @@
 // 常量配置 - 集中管理所有常量
 export const CONFIG = {
-  FOOTER_TEXT: '© 2024 Memos Themes. All rights reserved.',
   PAGE_LIMIT: '10',
   HEADERS: {
     'Accept': 'application/json',
