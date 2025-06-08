@@ -19,7 +19,7 @@ export const utils = {
     const hours = Math.floor(diff / (1000 * 60 * 60))
     
     // 1分钟以内
-    if (minutes < 1) return '刚刚'
+    if (minutes < 5) return '刚刚'
     
     // 1小时以内
     if (minutes < 60) return `${minutes} 分钟前`

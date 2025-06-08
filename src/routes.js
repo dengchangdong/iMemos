@@ -9,7 +9,6 @@ export function renderErrorPage(error, c) {
   return renderBaseHtml(
     '错误', 
     htmlTemplates.errorPage(error),
-    c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
     c.env.NAV_LINKS,
     c.env.SITE_NAME
   );
@@ -130,7 +129,6 @@ export const routes = {
       return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
         memosHtml, 
-        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME,
         currentPage,
@@ -161,7 +159,6 @@ export const routes = {
         return new Response(renderBaseHtml(
           c.env.SITE_NAME, 
           htmlTemplates.notFoundPage(),
-          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
@@ -179,7 +176,6 @@ export const routes = {
         return new Response(renderBaseHtml(
           c.env.SITE_NAME, 
           htmlTemplates.notFoundPage(),
-          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
@@ -204,7 +200,6 @@ export const routes = {
       return new Response(renderBaseHtml(
         `第 ${pageNumber} 页 - ${c.env.SITE_NAME}`,
         memosHtml,
-        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME,
         pageNumber,
@@ -237,7 +232,6 @@ export const routes = {
         return new Response(renderBaseHtml(
           c.env.SITE_NAME, 
           htmlTemplates.notFoundPage(),
-          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
@@ -251,7 +245,6 @@ export const routes = {
       return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
         memoHtml, 
-        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
       ), {
@@ -298,7 +291,6 @@ export const routes = {
       return new Response(renderBaseHtml(
         `${tag} - ${c.env.SITE_NAME}`, 
         memosHtml, 
-        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME,
         currentPage,

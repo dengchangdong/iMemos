@@ -10,11 +10,11 @@ export const htmlTemplates = {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
         <header>
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
+          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
         </header>
         <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
+          <p class="text-sm">${error.message}</p>
           <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
         </section>
       </article>
@@ -26,7 +26,7 @@ export const htmlTemplates = {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
         <header>
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
+          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
         </header>
         <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           <h2 class="font-medium">未找到内容</h2>
@@ -243,7 +243,7 @@ export function renderMemo(memo, isHomePage = false) {
 }
 
 // 渲染基础 HTML - 使用index.html作为模板
-export function renderBaseHtml(title, content, footerText, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
+export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
   // 解析导航链接
   const navItems = parseNavLinks(navLinks)
 
@@ -304,6 +304,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
               colors: {
                 'indigo-timeline': '#4e5ed3',
                 'indigo-shadow': '#bab5f8',
+                'primary': '#209cff',
+                'primary-dark': '#0c7cd5',
               },
             }
           }
@@ -386,48 +388,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
         pre::-webkit-scrollbar-track:hover {
           background: rgba(0, 0, 0, 0);
           border-radius: 10px; 
-        }
-        .back-to-top {
-          position: fixed;
-          bottom: 24px;
-          right: 24px;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 9999px;
-          background-color: #209cff;
-          color: white;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          cursor: pointer;
-          z-index: 50;
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-          transform: translateZ(0);
-          will-change: opacity, transform;
-        }
-        
-        .dark .back-to-top {
-          background-color: #209cff;
-          color: white;
-        }
-        
-        .back-to-top:hover {
-          background-color: #0c7cd5;
-          color: white;
-          transform: translateY(-2px) translateZ(0);
-        }
-        
-        .dark .back-to-top:hover {
-          background-color: #0c7cd5;
-          color: white;
-        }
-        
-        .back-to-top.visible {
-          opacity: 1;
-          visibility: visible;
         }
         
         /* 图片预览模态框样式 */
@@ -652,27 +612,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           }
         }
         
-        /* 代码块样式 */
-        pre {
-          position: relative;
-          background-color: #f8f9fa;
-          border-radius: 6px;
-          margin: 1rem 0;
-          padding: 1rem;
-        }
-        
-        .dark pre {
-          background-color: #1e293b;
-        }
-        
-        pre code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 0.9rem;
-          line-height: 1.5;
-          white-space: pre;
-          overflow: auto;
-        }
-        
         /* 代码块顶部栏 */
         .code-header {
           display: flex;
@@ -741,74 +680,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
         .dark .copy-btn.copied {
           background-color: #059669;
         }
-
-        /* 分页导航 */
-        .pagination {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 2rem;
-          padding-top: 1rem;
-        }
-        
-        .dark .pagination {
-          border-top-color: #374151;
-        }
-        
-        .pagination-button {
-          display: inline-flex;
-          align-items: center;
-          padding: 0.3125rem 1rem;
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: all 0.2s;
-          background-color: #209cff;
-          color: white;
-          border: none;
-          cursor: pointer;
-          text-decoration: none;
-        }
-        
-        .pagination-button:hover:not(:disabled) {
-          background-color: #0c7cd5;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .dark .pagination-button:hover:not(:disabled) {
-          background-color: #0c7cd5;
-        }
-        
-        .pagination-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .pagination-button i {
-          font-size: 1.25rem;
-        }
-        
-        .pagination-button.prev i {
-          margin-right: 0.5rem;
-        }
-        
-        .pagination-button.next i {
-          margin-left: 0.5rem;
-        }
-        
-        .pagination-info {
-          font-size: 0.875rem;
-          color: #6b7280;
-        }
-        
-        .dark .pagination-info {
-          color: #9ca3af;
-        }
-        
-        .home-more-link {
-          margin: 0 auto;
-        }
       </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -873,30 +744,30 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           </section>
         </div>
 
-        <button id="back-to-top" class="back-to-top" aria-label="返回顶部">
+        <button id="back-to-top" class="fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 hover:bg-primary-dark hover:-translate-y-0.5 dark:bg-primary dark:hover:bg-primary-dark" aria-label="返回顶部">
           <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
         </button>
       
       <!-- 图片预览模态框 -->
-        <div id="imageModal" class="image-modal" aria-modal="true" aria-label="图片预览">
-          <div class="image-modal-content">
-            <button class="image-modal-close" aria-label="关闭预览">
+        <div id="imageModal" class="hidden fixed top-0 left-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300" aria-modal="true" aria-label="图片预览">
+          <div class="max-w-[90%] max-h-[90%] relative will-change-transform transform translate-z-0">
+            <button class="absolute top-[-40px] right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform" aria-label="关闭预览">
               <i class="ri-close-line" aria-hidden="true"></i>
             </button>
-            <div class="image-loading" role="status" aria-live="polite">
-              <div class="loading-animation">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5" role="status" aria-live="polite">
+              <div class="flex justify-center items-center gap-1.5">
+                <div class="w-2 h-2 bg-white rounded-full opacity-70 animate-pulse"></div>
+                <div class="w-2 h-2 bg-white rounded-full opacity-70 animate-pulse" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 bg-white rounded-full opacity-70 animate-pulse" style="animation-delay: 0.4s"></div>
               </div>
             </div>
             <figure class="w-full h-full flex items-center justify-center">
-              <img id="modalImage" src="" alt="预览图片" loading="lazy" class="max-w-full max-h-[90vh] object-contain">
+              <img id="modalImage" src="" alt="预览图片" loading="lazy" class="max-w-full max-h-[90vh] object-contain opacity-0 transition-opacity duration-300">
             </figure>
-            <button class="image-modal-prev" aria-label="上一张">
+            <button class="absolute top-1/2 left-2.5 transform -translate-y-1/2 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors hover:bg-black/70" aria-label="上一张">
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
             </button>
-            <button class="image-modal-next" aria-label="下一张">
+            <button class="absolute top-1/2 right-2.5 transform -translate-y-1/2 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors hover:bg-black/70" aria-label="下一张">
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
             </button>
           </div>
