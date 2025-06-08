@@ -23,11 +23,12 @@ export const apiHandler = {
   // 缓存TTL，默认1分钟（单位：毫秒）
   cacheTTL: 60 * 1000,
 
-  // 获取memos数据
-  async fetchMemos(c, tag = '') {
+  // 获取memos数据，支持分页
+  async fetchMemos(c, tag = '', page = 1) {
     try {
       const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
-      const cacheKey = `memos_${tag}_${limit}`;
+      const offset = (page - 1) * limit;
+      const cacheKey = `memos_${tag}_${limit}_${offset}`;
       
       // 检查缓存
       const cachedData = this.cache.get(cacheKey);
@@ -36,7 +37,7 @@ export const apiHandler = {
       }
       
       // 构建API URL
-      const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=0`;
+      const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=${offset}`;
       console.log('请求 API:', apiUrl);
 
       // 发送请求
@@ -104,7 +105,13 @@ export const routes = {
   // 主页路由处理
   async home(c) {
     try {
-      const memos = await apiHandler.fetchMemos(c);
+      // 获取当前页码
+      const url = new URL(c.req.url);
+      const pageParam = url.searchParams.get('page');
+      const currentPage = pageParam ? parseInt(pageParam) : 1;
+      
+      // 获取指定页的数据
+      const memos = await apiHandler.fetchMemos(c, '', currentPage);
       console.log('获取到 memos 数量:', memos.length);
 
       // 按时间降序排序memos
@@ -115,13 +122,20 @@ export const routes = {
       });
 
       const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
+      
+      // 判断是否有更多数据
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const hasMore = memos.length >= limit;
 
       return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
         memosHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
-        c.env.SITE_NAME
+        c.env.SITE_NAME,
+        currentPage,
+        hasMore,
+        true // 这是首页
       ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
@@ -184,7 +198,13 @@ export const routes = {
   async tag(c) {
     try {
       const tag = c.req.param('tag');
-      const memos = await apiHandler.fetchMemos(c, tag);
+      
+      // 获取当前页码
+      const url = new URL(c.req.url);
+      const pageParam = url.searchParams.get('page');
+      const currentPage = pageParam ? parseInt(pageParam) : 1;
+      
+      const memos = await apiHandler.fetchMemos(c, tag, currentPage);
       console.log('获取到标签页 memos 数量:', memos.length);
 
       // 按时间降序排序memos
@@ -195,13 +215,20 @@ export const routes = {
       });
 
       const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
+      
+      // 判断是否有更多数据
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const hasMore = memos.length >= limit;
 
       return new Response(renderBaseHtml(
         `${tag} - ${c.env.SITE_NAME}`, 
         memosHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
-        c.env.SITE_NAME
+        c.env.SITE_NAME,
+        currentPage,
+        hasMore,
+        true // 这是分类页，也需要分页
       ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
