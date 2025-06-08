@@ -9,12 +9,14 @@ export const htmlTemplates = {
   errorPage(error) {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
-        <div class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+        <header>
+          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
+        </header>
+        <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
+          <p class="text-sm">${error.message}</p>
           <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-      </div>
+        </section>
       </article>
     `
   },
@@ -23,12 +25,14 @@ export const htmlTemplates = {
   notFoundPage() {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
-        <div class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-          <p class="font-medium">未找到内容</p>
+        <header>
+          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
+        </header>
+        <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+          <h2 class="font-medium">未找到内容</h2>
           <p>您访问的内容不存在或已被删除</p>
           <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-      </div>
+        </section>
       </article>
     `
   },
@@ -41,6 +45,8 @@ export const htmlTemplates = {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="离线状态页面">
+        <meta name="theme-color" content="#209cff">
         <title>离线 - ${siteName || '博客'}</title>
         <style>
           body {
@@ -105,12 +111,12 @@ export const htmlTemplates = {
         </style>
       </head>
       <body>
-        <div class="container">
-          <div class="icon">📶</div>
+        <main class="container">
+          <figure class="icon" role="img" aria-label="离线状态">📶</figure>
           <h1>您当前处于离线状态</h1>
           <p>无法加载新内容。请检查您的网络连接并重试。</p>
           <a href="/" class="btn">刷新页面</a>
-        </div>
+        </main>
       </body>
       </html>
     `
@@ -160,59 +166,68 @@ export function renderMemo(memo, isHomePage = false) {
       // 根据图片数量决定布局
       if (resources.length === 1) {
         // 单张图片 - 100%宽度
-      resourcesHtml = utils.createHtml`
-          <div class="mt-4">
-            <div class="w-full">
+        resourcesHtml = utils.createHtml`
+          <figure class="mt-4">
+            <div class="w-full relative aspect-video bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
               <img 
                 src="${resources[0].externalLink || ''}" 
                 alt="${resources[0].filename || '图片'}"
-                class="rounded-lg w-full hover:opacity-95 transition-opacity"
+                class="rounded-lg w-full h-full object-contain hover:opacity-95 transition-opacity absolute inset-0"
                 loading="lazy"
                 data-preview="true"
-                onload="this.classList.add('loaded')"
+                onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
               />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-3xl"></i>
+              </div>
             </div>
-          </div>
+          </figure>
         `;
       } else if (resources.length === 2) {
         // 两张图片 - 各50%宽度
         resourcesHtml = utils.createHtml`
-          <div class="mt-4">
+          <figure class="mt-4">
             <div class="flex flex-wrap gap-1">
               ${resources.map(resource => utils.createHtml`
-                <div class="w-[calc(50%-2px)]">
+                <div class="w-[calc(50%-2px)] relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden aspect-square">
                   <img 
                     src="${resource.externalLink || ''}" 
                     alt="${resource.filename || '图片'}"
-                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0"
                     loading="lazy"
                     data-preview="true"
-                    onload="this.classList.add('loaded')"
+                    onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
                   />
+                  <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                    <i class="ri-image-line text-3xl"></i>
+                  </div>
                 </div>
               `).join('')}
             </div>
-          </div>
+          </figure>
         `;
       } else {
         // 三张或更多图片 - 九宫格布局
         resourcesHtml = utils.createHtml`
-          <div class="mt-4">
+          <figure class="mt-4">
             <div class="grid grid-cols-3 gap-1">
               ${resources.map(resource => utils.createHtml`
-                <div class="aspect-square">
+                <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
                   <img 
                     src="${resource.externalLink || ''}" 
                     alt="${resource.filename || '图片'}"
-                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0"
                     loading="lazy"
                     data-preview="true"
-                    onload="this.classList.add('loaded')"
+                    onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
                   />
+                  <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                    <i class="ri-image-line text-2xl"></i>
+                  </div>
+                </div>
+              `).join('')}
             </div>
-          `).join('')}
-        </div>
-          </div>
+          </figure>
         `;
       }
     }
@@ -223,23 +238,27 @@ export function renderMemo(memo, isHomePage = false) {
     // 使用时间轴样式渲染
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <a href="${articleUrl}" class="block">
-          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-        </a>
-        <div class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-            ${parsedContent}
+        <header>
+          <a href="${articleUrl}" class="block">
+            <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+          </a>
+        </header>
+        <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+          ${parsedContent}
           ${resourcesHtml}
-        </div>
+        </section>
       </article>
     `
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
-        <div class="text-red-500 dark:text-red-400 leading-relaxed mt-1 md:text-base text-sm">
+        <header>
+          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
+        </header>
+        <section class="text-red-500 dark:text-red-400 leading-relaxed mt-1 md:text-base text-sm">
           <p>渲染失败: ${error.message}</p>
-      </div>
+        </section>
       </article>
     `
   }
@@ -271,121 +290,125 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
     <html lang="zh-CN" class="scroll-smooth">
       <head>
         <meta charset="UTF-8">
-      <title>${title}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
-      <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+        <meta name="description" content="${siteName} - 博客">
+        <meta name="theme-color" content="#209cff">
+        <title>${title}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
           tailwind.config = {
             darkMode: 'class',
             theme: {
               extend: {
-              backgroundImage: {
-                'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
-              },
-              colors: {
-                'indigo-timeline': '#4e5ed3',
-                'indigo-shadow': '#bab5f8',
-              },
+                backgroundImage: {
+                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                },
+                colors: {
+                  'indigo-timeline': '#4e5ed3',
+                  'indigo-shadow': '#bab5f8',
+                },
+              }
             }
-          }
           }
         </script>
-      <style type="text/tailwindcss">
-        @layer utilities {
-          article::before {
-            @apply content-[''] w-[17px] h-[17px] bg-white border border-indigo-timeline rounded-full absolute -left-[10px] top-0;
-            box-shadow: 3px 3px 0px #bab5f8;
+        <style type="text/tailwindcss">
+          @layer utilities {
+            article::before {
+              @apply content-[''] w-[17px] h-[17px] bg-white border border-indigo-timeline rounded-full absolute -left-[10px] top-0;
+              box-shadow: 3px 3px 0px #bab5f8;
+            }
+            .dark article::before {
+              @apply bg-gray-800 border-indigo-400;
+              box-shadow: 3px 3px 0px #6366f1;
+            }
+            article:last-child {
+              @apply border-transparent;
+            }
+            .nav-link {
+              @apply px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium;
+              color: #209cff;
+            }
+            .dark .nav-link {
+              color: #68e0cf;
+            }
+            .nav-link:hover {
+              color: #0c7cd5;
+            }
+            .dark .nav-link:hover {
+              color: #8eeee0;
+            }
+            .article-content p {
+              line-height: 1.5;
+              margin-top: 5px;
+              margin-bottom: 15px;
+            }
+            .container {
+              @apply w-full mx-auto;
+              max-width: 640px;
+            }
+            
+            @media (max-width: 640px) {
+              .header-container {
+                @apply flex-col items-start;
+              }
+              .header-container h1 {
+                @apply mb-4;
+              }
+              .header-right {
+                @apply w-full justify-between mt-2;
+              }
+            }
           }
-          .dark article::before {
-            @apply bg-gray-800 border-indigo-400;
-            box-shadow: 3px 3px 0px #6366f1;
-          }
-          article:last-child {
-            @apply border-transparent;
-          }
-          .nav-link {
-            @apply px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium;
-            color: #209cff;
-          }
-          .dark .nav-link {
-            color: #68e0cf;
-          }
-          .nav-link:hover {
-            color: #0c7cd5;
-          }
-          .dark .nav-link:hover {
-            color: #8eeee0;
-          }
-          .article-content p {
-            line-height: 1.5;
-            margin-top: 5px;
-            margin-bottom: 15px;
-          }
-          .container {
-            @apply w-full mx-auto;
-            max-width: 640px;
+        </style>
+        <!-- 使用常规CSS避免循环依赖 -->
+        <style>
+          .back-to-top {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            background-color: #209cff;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 50;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
           }
           
-          @media (max-width: 640px) {
-            .header-container {
-              @apply flex-col items-start;
-            }
-            .header-container h1 {
-              @apply mb-4;
-            }
-            .header-right {
-              @apply w-full justify-between mt-2;
-            }
+          .dark .back-to-top {
+            background-color: #209cff;
+            color: white;
           }
-        }
-      </style>
-      <!-- 使用常规CSS避免循环依赖 -->
-      <style>
-        .back-to-top {
-          position: fixed;
-          bottom: 24px;
-          right: 24px;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 9999px;
-          background-color: #209cff;
-          color: white;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          cursor: pointer;
-          z-index: 50;
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-        }
-        
-        .dark .back-to-top {
-          background-color: #209cff;
-          color: white;
-        }
-        
-        .back-to-top:hover {
-          background-color: #0c7cd5;
-          color: white;
-          transform: translateY(-2px);
-        }
-        
-        .dark .back-to-top:hover {
-          background-color: #0c7cd5;
-          color: white;
-        }
-        
-        .back-to-top.visible {
-          opacity: 1;
-          visibility: visible;
-        }
-        
-        /* 图片预览模态框样式 */
+          
+          .back-to-top:hover {
+            background-color: #0c7cd5;
+            color: white;
+            transform: translateY(-2px);
+          }
+          
+          .dark .back-to-top:hover {
+            background-color: #0c7cd5;
+            color: white;
+          }
+          
+          .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+          }
+          
+          /* 图片预览模态框样式 */
           .image-modal {
             display: none;
             position: fixed;
@@ -496,80 +519,107 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           }
 
           @media (max-width: 768px) {
-          .image-modal-content {
-            max-width: 95%;
+            .image-modal-content {
+              max-width: 95%;
+            }
           }
-        }
-        
-        /* 添加图片点击样式 */
-        .article-content img, 
-        .mt-4 img {
-          cursor: pointer;
-          transition: opacity 0.2s;
-          background-color: #0c7cd51c;
-          opacity: 0.5;
-        }
-        
-        .article-content img.loaded, 
-        .mt-4 img.loaded {
-          opacity: 1;
-        }
-        
-        .article-content img:hover, 
-        .mt-4 img:hover {
-          opacity: 0.9;
-        }
+          
+          /* 添加图片点击样式 */
+          .article-content img, 
+          .mt-4 img {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background-color: #0c7cd51c;
+            opacity: 0.5;
+          }
+          
+          .article-content img.loaded, 
+          .mt-4 img.loaded {
+            opacity: 1;
+          }
+          
+          .article-content img:hover, 
+          .mt-4 img:hover {
+            opacity: 0.9;
+          }
+          
+          /* 图片容器加载状态样式 */
+          .image-placeholder {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+          }
+          
+          div.loaded .image-placeholder {
+            opacity: 0;
+          }
+          
+          /* 图片容器样式 */
+          .aspect-video {
+            aspect-ratio: 16 / 9;
+          }
+          
+          /* 多图片布局样式优化 */
+          .aspect-square {
+            aspect-ratio: 1 / 1;
+            position: relative;
+            background-color: #0c7cd51c;
+            border-radius: 0.5rem;
+            overflow: hidden;
+          }
         </style>
       </head>
-    <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-      <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
-        <div class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
-          <header class="flex items-center justify-between sm:flex-row flex-row">
-            <div class="flex items-center">
-              <a href="/" class="flex items-center">
-                <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
-              </a>
-                </div>
-            <div class="flex items-center space-x-4">
-              <nav class="mr-1">
-                <ul class="flex space-x-2">
-                  ${navItemsHtml}
-                </ul>
-              </nav>
-              <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-[#209cff] dark:text-[#68e0cf] hover:text-[#0c7cd5] dark:hover:text-[#8eeee0] focus:outline-none transition-colors shadow-sm">
-                <i class="ri-sun-fill text-lg" id="theme-icon"></i>
-                  </button>
-            </div>
-          </header>
-          <main class="mt-8 relative">
-            ${articlesHtml}
+      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+        <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
+          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
+            <header class="flex items-center justify-between sm:flex-row flex-row">
+              <div class="flex items-center">
+                <a href="/" class="flex items-center" aria-label="返回首页">
+                  <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
+                </a>
+              </div>
+              <div class="flex items-center space-x-4">
+                <nav class="mr-1" aria-label="网站导航">
+                  <ul class="flex space-x-2">
+                    ${navItemsHtml}
+                  </ul>
+                </nav>
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-[#209cff] dark:text-[#68e0cf] hover:text-[#0c7cd5] dark:hover:text-[#8eeee0] focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+                </button>
+              </div>
+            </header>
+            <main class="mt-8 relative">
+              ${articlesHtml}
             </main>
-          </div>
+            ${footerText ? utils.createHtml`<footer class="mt-8 text-center text-gray-500 dark:text-gray-400 text-sm">${footerText}</footer>` : ''}
+          </section>
         </div>
 
-      <div id="back-to-top" class="back-to-top">
-        <i class="ri-skip-up-fill text-xl"></i>
-      </div>
-      
-      <!-- 图片预览模态框 -->
-      <div id="imageModal" class="image-modal">
-        <div class="image-modal-content">
-          <button class="image-modal-close">
-            <i class="ri-close-line"></i>
-          </button>
-          <div class="image-loading">
-            <div class="spinner"></div>
-            <span>加载中...</span>
+        <button id="back-to-top" class="back-to-top" aria-label="返回顶部">
+          <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
+        </button>
+        
+        <!-- 图片预览模态框 -->
+        <dialog id="imageModal" class="image-modal" aria-modal="true" aria-label="图片预览">
+          <div class="image-modal-content">
+            <button class="image-modal-close" aria-label="关闭预览">
+              <i class="ri-close-line" aria-hidden="true"></i>
+            </button>
+            <div class="image-loading" role="status" aria-live="polite">
+              <div class="spinner" aria-hidden="true"></div>
+              <span>加载中...</span>
+            </div>
+            <figure>
+              <img id="modalImage" src="" alt="预览图片" loading="lazy">
+            </figure>
+            <button class="image-modal-prev" aria-label="上一张">
+              <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
+            </button>
+            <button class="image-modal-next" aria-label="下一张">
+              <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
+            </button>
           </div>
-          <img id="modalImage" src="" alt="预览图片" loading="lazy">
-          <button class="image-modal-prev">
-            <i class="ri-arrow-left-s-line"></i>
-          </button>
-          <button class="image-modal-next">
-            <i class="ri-arrow-right-s-line"></i>
-          </button>
-        </div>
-      </div>
+        </dialog>
 
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
@@ -588,10 +638,13 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             function updateIcon(theme) {
               if (theme === 'light') {
                 themeIcon.className = 'ri-sun-fill text-lg';
+                themeToggle.setAttribute('aria-label', '切换到深色模式');
               } else if (theme === 'dark') {
                 themeIcon.className = 'ri-moon-fill text-lg';
+                themeToggle.setAttribute('aria-label', '切换到浅色模式');
               } else {
                 themeIcon.className = 'ri-contrast-fill text-lg';
+                themeToggle.setAttribute('aria-label', '切换到系统模式');
               }
             }
             
@@ -737,6 +790,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               
               // 设置图片源
               modalImg.src = img.src;
+              modalImg.alt = img.alt || '预览图片';
               modal.classList.add('active');
               currentIndex = index;
               document.body.style.overflow = 'hidden'; // 禁止背景滚动
