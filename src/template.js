@@ -176,7 +176,7 @@ export function renderMemo(memo, isHomePage = false) {
             onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
           />
           <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-            <span class="${resources.length > 2 ? 'text-2xl' : 'text-3xl'} icon-image" aria-hidden="true"></span>
+            <span class="icon-image-line ${resources.length > 2 ? 'text-2xl' : 'text-3xl'}"></span>
           </div>
         </div>
       `;
@@ -281,418 +281,395 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             darkMode: 'class',
             theme: {
               extend: {
-                backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
-                },
-                colors: {
-                  'indigo-timeline': '#4e5ed3',
-                  'indigo-shadow': '#bab5f8',
-                },
-              }
+              backgroundImage: {
+                'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+              },
+              colors: {
+                'indigo-timeline': '#4e5ed3',
+                'indigo-shadow': '#bab5f8',
+              },
             }
+          }
           }
         </script>
-        <style type="text/tailwindcss">
-          @layer utilities {
-            article::before {
-              @apply content-[''] w-[17px] h-[17px] bg-white border border-indigo-timeline rounded-full absolute -left-[10px] top-0;
-              box-shadow: 3px 3px 0px #bab5f8;
-              will-change: transform;
+      <style type="text/tailwindcss">
+        @layer utilities {
+          article::before {
+            @apply content-[''] w-[17px] h-[17px] bg-white border border-indigo-timeline rounded-full absolute -left-[10px] top-0;
+            box-shadow: 3px 3px 0px #bab5f8;
+            will-change: transform;
+          }
+          .dark article::before {
+            @apply bg-gray-800 border-indigo-400;
+            box-shadow: 3px 3px 0px #6366f1;
+          }
+          article:last-child {
+            @apply border-transparent;
+          }
+          .nav-link {
+            @apply px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium;
+            color: #209cff;
+          }
+          .dark .nav-link {
+            color: #68e0cf;
+          }
+          .nav-link:hover {
+            color: #0c7cd5;
+          }
+          .dark .nav-link:hover {
+            color: #8eeee0;
+          }
+          .article-content p {
+            line-height: 1.5;
+            margin-top: 5px;
+            margin-bottom: 15px;
+          }
+          .container {
+            @apply w-full mx-auto;
+            max-width: 640px;
+          }
+          
+          @media (max-width: 640px) {
+            .header-container {
+              @apply flex-col items-start;
             }
-            .dark article::before {
-              @apply bg-gray-800 border-indigo-400;
-              box-shadow: 3px 3px 0px #6366f1;
+            .header-container h1 {
+              @apply mb-4;
             }
-            article:last-child {
-              @apply border-transparent;
-            }
-            .nav-link {
-              @apply px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium;
-              color: #209cff;
-            }
-            .dark .nav-link {
-              color: #68e0cf;
-            }
-            .nav-link:hover {
-              color: #0c7cd5;
-            }
-            .dark .nav-link:hover {
-              color: #8eeee0;
-            }
-            .article-content p {
-              line-height: 1.5;
-              margin-top: 5px;
-              margin-bottom: 15px;
-            }
-            .container {
-              @apply w-full mx-auto;
-              max-width: 640px;
-            }
-            
-            @media (max-width: 640px) {
-              .header-container {
-                @apply flex-col items-start;
-              }
-              .header-container h1 {
-                @apply mb-4;
-              }
-              .header-right {
-                @apply w-full justify-between mt-2;
-              }
+            .header-right {
+              @apply w-full justify-between mt-2;
             }
           }
-        </style>
-        <!-- 使用常规CSS避免循环依赖 -->
-        <style>
-          /* 定义图标 SVG 使用data:image/svg+xml */
-          .icon-sun {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-moon {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M9.36077 3.29282C5.40972 4.96765 2.5 8.83147 2.5 13.446C2.5 19.2635 7.18652 23.95 13.004 23.95C17.6168 23.95 21.4789 21.0428 23.1544 17.0945C22.1772 17.4009 21.1448 17.5649 20.0769 17.5649C14.2594 17.5649 9.53297 12.8383 9.53297 7.02087C9.53297 5.9511 9.69711 4.91789 10.0039 3.93956C9.77109 4.05257 9.56244 4.17358 9.36077 4.29935V3.29282Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-contrast {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M4.99999 12C4.99999 7.58172 8.58171 4 13 4V20C8.58171 20 4.99999 16.4183 4.99999 12Z'%3E%3C/path%3E%3Cpath d='M19 12C19 14.2091 17.2091 16 15 16C15 13.7909 16.7909 12 19 12Z'%3E%3C/path%3E%3Cpath d='M15 8C15 10.2091 13.2091 12 11 12C11 9.79086 12.7909 8 15 8Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-arrow-up {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 10.828L5.63605 17.192L4.22183 15.7777L12 7.99957L19.7782 15.7777L18.3639 17.192L12 10.828Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-image {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M2.9918 21C2.44405 21 2 20.5551 2 20.0082V3.9918C2 3.44405 2.44495 3 2.9918 3H21.0082C21.556 3 22 3.44495 22 3.9918V20.0082C22 20.556 21.5551 21 21.0082 21H2.9918ZM20 15V5H4V19L14 9L20 15ZM20 17.8284L14 11.8284L6.82843 19H20V17.8284ZM8 11C6.89543 11 6 10.1046 6 9C6 7.89543 6.89543 7 8 7C9.10457 7 10 7.89543 10 9C10 10.1046 9.10457 11 8 11Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-close {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 10.5858L16.2426 6.34317L17.6568 7.75738L13.4142 12L17.6568 16.2426L16.2426 17.6568L12 13.4142L7.75736 17.6568L6.34315 16.2426L10.5858 12L6.34315 7.75738L7.75736 6.34317L12 10.5858Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-arrow-left {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M10.8284 12L15.7782 16.9497L14.364 18.364L8 12L14.364 5.63604L15.7782 7.05025L10.8284 12Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          .icon-arrow-right {
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M13.1716 12L8.22183 7.05025L9.63604 5.63604L16 12L9.63604 18.364L8.22183 16.9497L13.1716 12Z'%3E%3C/path%3E%3C/svg%3E");
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-size: contain;
-            background-repeat: no-repeat;
-            background-position: center;
-            vertical-align: middle;
-          }
-          
-          /* 调整图标大小 */
-          .text-2xl .icon-image,
-          .text-2xl.icon-image {
-            width: 20px;
-            height: 20px;
-          }
-          
-          .text-3xl .icon-image,
-          .text-3xl.icon-image {
-            width: 28px;
-            height: 28px;
-          }
-          
-          .back-to-top {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 9999px;
-            background-color: #209cff;
-            color: white;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            cursor: pointer;
-            z-index: 50;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            transform: translateZ(0);
-            will-change: opacity, transform;
-          }
-          
-          .dark .back-to-top {
-            background-color: #209cff;
-            color: white;
-          }
-          
-          .back-to-top:hover {
-            background-color: #0c7cd5;
-            color: white;
-            transform: translateY(-2px) translateZ(0);
-          }
-          
-          .dark .back-to-top:hover {
-            background-color: #0c7cd5;
-            color: white;
-          }
-          
-          .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-          }
-          
-          /* 图片预览模态框样式 */
-          .image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
-          }
+        }
+      </style>
+      <!-- 使用常规CSS避免循环依赖 -->
+      <style>
+        /* 定义内联SVG图标，避免网络依赖 */
+        .icon-contrast-fill {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 21.9967C6.47715 21.9967 2 17.5196 2 11.9967C2 6.47386 6.47715 1.9967 12 1.9967C17.5228 1.9967 22 6.47386 22 11.9967C22 17.5196 17.5228 21.9967 12 21.9967ZM12 19.9967V3.9967C7.58172 3.9967 4 7.57843 4 11.9967C4 16.415 7.58172 19.9967 12 19.9967Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
 
-          .image-modal.active {
-            display: flex;
-            opacity: 1;
-          }
+        .icon-moon-fill {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M11.3807 2.01886C9.91573 3.38768 9 5.3369 9 7.49999C9 11.6421 12.3579 15 16.5 15C18.6631 15 20.6123 14.0843 21.9811 12.6193C21.6613 17.8537 17.3149 22 12 22C6.47715 22 2 17.5228 2 12C2 6.68514 6.14629 2.33869 11.3807 2.01886Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
 
+        .icon-sun-fill {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 18C8.68629 18 6 15.3137 6 12C6 8.68629 8.68629 6 12 6C15.3137 6 18 8.68629 18 12C18 15.3137 15.3137 18 12 18ZM11 1H13V4H11V1ZM11 20H13V23H11V20ZM3.51472 4.92893L4.92893 3.51472L7.05025 5.63604L5.63604 7.05025L3.51472 4.92893ZM16.9497 18.364L18.364 16.9497L20.4853 19.0711L19.0711 20.4853L16.9497 18.364ZM19.0711 3.51472L20.4853 4.92893L18.364 7.05025L16.9497 5.63604L19.0711 3.51472ZM5.63604 16.9497L7.05025 18.364L4.92893 20.4853L3.51472 19.0711L5.63604 16.9497ZM23 11V13H20V11H23ZM4 11V13H1V11H4Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
+
+        .icon-skip-up-fill {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M6 7 18 7V9L6 9 6 7ZM12 11 6 17H18L12 11Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
+
+        .icon-image-line {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M5 11.1005L7 9.1005L12.5 14.6005L16 11.1005L19 14.1005V5H5V11.1005ZM5 13.9289V19H8.1005L11.0858 16.0147L7 11.9289L5 13.9289ZM10.9289 19H19V16.9289L16 13.9289L10.9289 19ZM4 3H20C20.5523 3 21 3.44772 21 4V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V4C3 3.44772 3.44772 3 4 3ZM15.5 10C14.6716 10 14 9.32843 14 8.5C14 7.67157 14.6716 7 15.5 7C16.3284 7 17 7.67157 17 8.5C17 9.32843 16.3284 10 15.5 10Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
+
+        .icon-close-line {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M12 10.5858L16.2929 6.29289L17.7071 7.70711L13.4142 12L17.7071 16.2929L16.2929 17.7071L12 13.4142L7.70711 17.7071L6.29289 16.2929L10.5858 12L6.29289 7.70711L7.70711 6.29289L12 10.5858Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
+
+        .icon-arrow-left-line {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M7.82843 10.9999H20V12.9999H7.82843L13.1924 18.3638L11.7782 19.778L4 11.9999L11.7782 4.22168L13.1924 5.63589L7.82843 10.9999Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
+
+        .icon-arrow-right-line {
+          background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='currentColor'%3E%3Cpath d='M16.1716 10.9999H4V12.9999H16.1716L10.8076 18.3638L12.2218 19.778L20 11.9999L12.2218 4.22168L10.8076 5.63589L16.1716 10.9999Z'%3E%3C/path%3E%3C/svg%3E");
+          display: inline-block;
+          width: 1.2em;
+          height: 1.2em;
+          background-size: cover;
+          background-position: center;
+          vertical-align: middle;
+        }
+
+        .back-to-top {
+          position: fixed;
+          bottom: 24px;
+          right: 24px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9999px;
+          background-color: #209cff;
+          color: white;
+          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+          cursor: pointer;
+          z-index: 50;
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+          transform: translateZ(0);
+          will-change: opacity, transform;
+        }
+        
+        .dark .back-to-top {
+          background-color: #209cff;
+          color: white;
+        }
+        
+        .back-to-top:hover {
+          background-color: #0c7cd5;
+          color: white;
+          transform: translateY(-2px) translateZ(0);
+        }
+        
+        .dark .back-to-top:hover {
+          background-color: #0c7cd5;
+          color: white;
+        }
+        
+        .back-to-top.visible {
+          opacity: 1;
+          visibility: visible;
+        }
+        
+        /* 图片预览模态框样式 */
+        .image-modal {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, 0.9);
+          z-index: 100;
+          justify-content: center;
+          align-items: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          will-change: opacity;
+        }
+
+        .image-modal.active {
+          display: flex;
+          opacity: 1;
+        }
+
+        .image-modal-content {
+          max-width: 90%;
+          max-height: 90%;
+          position: relative;
+          will-change: transform;
+          transform: translateZ(0);
+        }
+
+        .image-modal-content img {
+          max-width: 100%;
+          max-height: 90vh;
+          object-fit: contain;
+          border-radius: 4px;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+          will-change: opacity;
+        }
+        
+        .image-modal-content img.loaded {
+          opacity: 1;
+        }
+        
+        /* 改进的加载动画 */
+        .image-loading {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 60px;
+          height: 60px;
+        }
+        
+        .spinner {
+          width: 40px;
+          height: 40px;
+          position: relative;
+          margin: 0 auto;
+        }
+        
+        .double-bounce1, .double-bounce2 {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background-color: #fff;
+          opacity: 0.6;
+          position: absolute;
+          top: 0;
+          left: 0;
+          animation: sk-bounce 2.0s infinite ease-in-out;
+          will-change: transform, opacity;
+        }
+        
+        .double-bounce2 {
+          animation-delay: -1.0s;
+        }
+        
+        @keyframes sk-bounce {
+          0%, 100% { 
+            transform: scale(0.0);
+          } 50% { 
+            transform: scale(1.0);
+          }
+        }
+
+        .image-modal-close {
+          position: absolute;
+          top: -40px;
+          right: 0;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          background: none;
+          border: none;
+          padding: 8px;
+          will-change: transform;
+        }
+
+        .image-modal-prev,
+        .image-modal-next {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.5);
+          color: white;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: background-color 0.2s;
+          will-change: transform, background-color;
+        }
+
+        .image-modal-prev:hover,
+        .image-modal-next:hover {
+          background: rgba(0, 0, 0, 0.7);
+        }
+
+        .image-modal-prev {
+          left: 10px;
+        }
+
+        .image-modal-next {
+          right: 10px;
+        }
+
+        @media (max-width: 768px) {
           .image-modal-content {
-            max-width: 90%;
-            max-height: 90%;
-            position: relative;
-            will-change: transform;
-            transform: translateZ(0);
+            max-width: 95%;
           }
-
-          .image-modal-content img {
-            max-width: 100%;
-            max-height: 90vh;
-            object-fit: contain;
-            border-radius: 4px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
-          }
-          
-          .image-modal-content img.loaded {
-            opacity: 1;
-          }
-          
-          /* 优化加载动画 */
-          .image-loading {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-          }
-          
-          .spinner {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            position: relative;
-            animation: rotate 1s linear infinite;
-            will-change: transform;
-          }
-          
-          .spinner::before {
-            content: "";
-            box-sizing: border-box;
-            position: absolute;
-            inset: 0px;
-            border-radius: 50%;
-            border: 3px solid #FFF;
-            animation: prixClipFix 2s linear infinite;
-          }
-          
-          @keyframes rotate {
-            100% { transform: rotate(360deg); }
-          }
-          
-          @keyframes prixClipFix {
-            0% { clip-path: polygon(50% 50%, 0 0, 0 0, 0 0, 0 0, 0 0); }
-            25% { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 0, 100% 0, 100% 0); }
-            50% { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 100% 100%, 100% 100%); }
-            75% { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 100%); }
-            100% { clip-path: polygon(50% 50%, 0 0, 100% 0, 100% 100%, 0 100%, 0 0); }
-          }
-
-          .image-modal-close {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            background: none;
-            border: none;
-            padding: 8px;
-            will-change: transform;
-          }
-
-          .image-modal-prev,
-          .image-modal-next {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 0, 0, 0.5);
-            color: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s;
-            will-change: transform, background-color;
-          }
-
-          .image-modal-prev:hover,
-          .image-modal-next:hover {
-            background: rgba(0, 0, 0, 0.7);
-          }
-
-          .image-modal-prev {
-            left: 10px;
-          }
-
-          .image-modal-next {
-            right: 10px;
-          }
-
-          @media (max-width: 768px) {
-            .image-modal-content {
-              max-width: 95%;
-            }
-          }
-          
-          /* 添加图片点击样式 */
-          .article-content img, 
-          .mt-4 img {
-            cursor: pointer;
-            transition: opacity 0.2s;
-            background-color: #0c7cd51c;
-            opacity: 0.5;
-            will-change: opacity;
-          }
-          
-          .article-content img.loaded, 
-          .mt-4 img.loaded {
-            opacity: 1;
-          }
-          
-          .article-content img:hover, 
-          .mt-4 img:hover {
-            opacity: 0.9;
-          }
-          
-          /* 图片容器加载状态样式 */
-          .image-placeholder {
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
-          }
-          
-          div.loaded .image-placeholder {
-            opacity: 0;
-          }
-          
-          /* 图片容器样式 */
-          .aspect-video {
-            aspect-ratio: 16 / 9;
-          }
-          
-          /* 多图片布局样式优化 */
-          .aspect-square {
-            aspect-ratio: 1 / 1;
-            position: relative;
-            background-color: #0c7cd51c;
-            border-radius: 0.5rem;
-            overflow: hidden;
-          }
-          
-          /* 图片容器点击样式 */
-          .image-container {
-            cursor: pointer;
-            position: relative;
-            z-index: 1;
-            transform: translateZ(0);
-            will-change: transform;
-          }
-          
-          .image-container img {
-            z-index: 2;
-            transform: translateZ(0);
-          }
-          
-          .image-placeholder {
-            z-index: 1;
-          }
-        </style>
+        }
+        
+        /* 添加图片点击样式 */
+        .article-content img, 
+        .mt-4 img {
+          cursor: pointer;
+          transition: opacity 0.2s;
+          background-color: #0c7cd51c;
+          opacity: 0.5;
+          will-change: opacity;
+        }
+        
+        .article-content img.loaded, 
+        .mt-4 img.loaded {
+          opacity: 1;
+        }
+        
+        .article-content img:hover, 
+        .mt-4 img:hover {
+          opacity: 0.9;
+        }
+        
+        /* 图片容器加载状态样式 */
+        .image-placeholder {
+          opacity: 1;
+          transition: opacity 0.3s ease;
+          will-change: opacity;
+        }
+        
+        div.loaded .image-placeholder {
+          opacity: 0;
+        }
+        
+        /* 图片容器样式 */
+        .aspect-video {
+          aspect-ratio: 16 / 9;
+        }
+        
+        /* 多图片布局样式优化 */
+        .aspect-square {
+          aspect-ratio: 1 / 1;
+          position: relative;
+          background-color: #0c7cd51c;
+          border-radius: 0.5rem;
+          overflow: hidden;
+        }
+        
+        /* 图片容器点击样式 */
+        .image-container {
+          cursor: pointer;
+          position: relative;
+          z-index: 1;
+          transform: translateZ(0);
+          will-change: transform;
+        }
+        
+        .image-container img {
+          z-index: 2;
+          transform: translateZ(0);
+        }
+        
+        .image-placeholder {
+          z-index: 1;
+        }
+      </style>
       </head>
     <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
       <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
@@ -710,8 +687,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                 </ul>
               </nav>
                 <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-800/50 text-[#209cff] dark:text-[#68e0cf] hover:text-[#0c7cd5] dark:hover:text-[#8eeee0] focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
-                  <span class="icon-sun" id="theme-icon" aria-hidden="true"></span>
-                </button>
+                  <span class="icon-sun-fill text-lg" id="theme-icon" aria-hidden="true"></span>
+                  </button>
             </div>
           </header>
           <main class="mt-8 relative">
@@ -721,27 +698,30 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </div>
 
         <button id="back-to-top" class="back-to-top" aria-label="返回顶部">
-          <span class="icon-arrow-up" aria-hidden="true"></span>
+          <span class="icon-skip-up-fill text-xl" aria-hidden="true"></span>
         </button>
       
       <!-- 图片预览模态框 -->
         <div id="imageModal" class="image-modal" aria-modal="true" aria-label="图片预览">
         <div class="image-modal-content">
             <button class="image-modal-close" aria-label="关闭预览">
-              <span class="icon-close" aria-hidden="true"></span>
+              <span class="icon-close-line" aria-hidden="true"></span>
           </button>
             <div class="image-loading" role="status" aria-live="polite">
-              <div class="spinner" aria-hidden="true"></div>
+              <div class="spinner">
+                <div class="double-bounce1"></div>
+                <div class="double-bounce2"></div>
+              </div>
             </div>
             <figure class="w-full h-full flex items-center justify-center">
               <img id="modalImage" src="" alt="预览图片" loading="lazy" class="max-w-full max-h-[90vh] object-contain">
             </figure>
             <button class="image-modal-prev" aria-label="上一张">
-              <span class="icon-arrow-left" aria-hidden="true"></span>
-            </button>
+              <span class="icon-arrow-left-line" aria-hidden="true"></span>
+          </button>
             <button class="image-modal-next" aria-label="下一张">
-              <span class="icon-arrow-right" aria-hidden="true"></span>
-            </button>
+              <span class="icon-arrow-right-line" aria-hidden="true"></span>
+          </button>
         </div>
       </div>
 
@@ -761,23 +741,20 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             // 优化：批量更新DOM操作
             function updateIcon(theme) {
-              const themeButton = document.getElementById('theme-toggle');
-              if (theme === 'light') {
-                // 移除之前的图标类
-                themeIcon.classList.remove('icon-moon', 'icon-contrast');
-                themeIcon.classList.add('icon-sun');
-                themeButton.setAttribute('aria-label', '切换到深色模式');
-              } else if (theme === 'dark') {
-                // 移除之前的图标类
-                themeIcon.classList.remove('icon-sun', 'icon-contrast');
-                themeIcon.classList.add('icon-moon');
-                themeButton.setAttribute('aria-label', '切换到浅色模式');
-              } else {
-                // 移除之前的图标类
-                themeIcon.classList.remove('icon-sun', 'icon-moon');
-                themeIcon.classList.add('icon-contrast');
-                themeButton.setAttribute('aria-label', '切换到系统模式');
-              }
+              // 使用一次赋值操作
+              themeIcon.className = theme === 'light' 
+                ? 'icon-sun-fill text-lg' 
+                : theme === 'dark' 
+                  ? 'icon-moon-fill text-lg' 
+                  : 'icon-contrast-fill text-lg';
+              
+              themeToggle.setAttribute('aria-label', 
+                theme === 'light' 
+                  ? '切换到深色模式' 
+                  : theme === 'dark' 
+                    ? '切换到浅色模式' 
+                    : '切换到系统模式'
+              );
             }
             
             // 应用主题 - 批量处理DOM更新
