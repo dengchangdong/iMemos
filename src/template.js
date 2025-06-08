@@ -930,52 +930,15 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   }
                   
                   if (!img.classList.contains('loaded')) {
-                    // 定义在图片显示完成后添加loaded类的方法
                     const markAsLoaded = () => {
-                      // 使用双重requestAnimationFrame确保图片已渲染
-                      requestAnimationFrame(() => {
-                        requestAnimationFrame(() => {
-                          // 确保图片在DOM中可见
-                          if (img.offsetWidth > 0 && img.offsetHeight > 0) {
-                            img.classList.add('loaded');
-                            if (img.parentNode) {
-                              img.parentNode.classList.add('loaded');
-                            }
-                          } else {
-                            // 如果图片不可见，等待下一帧
-                            markAsLoaded();
-                          }
-                        });
-                      });
+                      img.classList.add('loaded');
+                      if (img.parentNode) {
+                        img.parentNode.classList.add('loaded');
+                      }
                     };
 
-                    // 处理图片加载完成的情况
-                    const handleLoad = () => {
-                      // 等待图片渲染完成
-                      markAsLoaded();
-                      // 移除事件监听器
-                      img.removeEventListener('load', handleLoad);
-                      img.removeEventListener('error', handleError);
-                    };
-
-                    // 处理图片加载错误的情况
-                    const handleError = () => {
-                      // 添加错误标记
-                      img.classList.add('error');
-                      // 等待图片渲染完成（即使加载失败）
-                      markAsLoaded();
-                      img.removeEventListener('load', handleLoad);
-                      img.removeEventListener('error', handleError);
-                    };
-
-                    // 如果图片已经加载完成
                     if (img.complete && img.naturalWidth !== 0) {
-                      // 等待图片渲染完成
                       markAsLoaded();
-                    } else if (!img.complete) {
-                      // 图片未加载完成，则添加事件监听
-                      img.addEventListener('load', handleLoad);
-                      img.addEventListener('error', handleError);
                     }
                   }
                 });
