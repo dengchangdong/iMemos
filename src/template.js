@@ -357,6 +357,256 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
               @apply w-full justify-between mt-2;
             }
           }
+          
+          /* TailwindCSS化：返回顶部按钮 */
+          .back-to-top {
+            @apply fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-[#209cff] text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 transform translate-z-0;
+            will-change: opacity, transform;
+          }
+          
+          .dark .back-to-top {
+            @apply bg-[#209cff] text-white;
+          }
+          
+          .back-to-top:hover {
+            @apply bg-[#0c7cd5] text-white -translate-y-0.5;
+            transform: translateY(-2px) translateZ(0);
+          }
+          
+          .dark .back-to-top:hover {
+            @apply bg-[#0c7cd5] text-white;
+          }
+          
+          .back-to-top.visible {
+            @apply opacity-100 visible;
+          }
+          
+          /* TailwindCSS化：图片预览模态框 */
+          .image-modal {
+            @apply hidden fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300;
+            will-change: opacity;
+          }
+          
+          .image-modal.active {
+            @apply flex opacity-100;
+          }
+          
+          .image-modal-content {
+            @apply max-w-[90%] max-h-[90%] relative transform translate-z-0;
+            will-change: transform;
+          }
+          
+          .image-modal-content img {
+            @apply max-w-full max-h-[90vh] object-contain rounded opacity-0 transition-opacity duration-300;
+            will-change: opacity;
+          }
+          
+          .image-modal-content img.loaded {
+            @apply opacity-100;
+          }
+          
+          .image-loading {
+            @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5;
+          }
+          
+          .spinner {
+            @apply w-10 h-10 border-3 border-white/30 rounded-full border-t-white animate-spin;
+            will-change: transform;
+          }
+          
+          .image-modal-close {
+            @apply absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-0 p-2;
+            will-change: transform;
+          }
+          
+          .image-modal-prev,
+          .image-modal-next {
+            @apply absolute top-1/2 -translate-y-1/2 bg-black/50 text-white border-0 text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200;
+            will-change: transform, background-color;
+          }
+          
+          .image-modal-prev:hover,
+          .image-modal-next:hover {
+            @apply bg-black/70;
+          }
+          
+          .image-modal-prev {
+            @apply left-2.5;
+          }
+          
+          .image-modal-next {
+            @apply right-2.5;
+          }
+          
+          @media (max-width: 768px) {
+            .image-modal-content {
+              @apply max-w-[95%];
+            }
+          }
+          
+          /* TailwindCSS化：图片点击样式 */
+          .article-content img, 
+          .mt-4 img {
+            @apply cursor-pointer transition-opacity duration-200 bg-[#0c7cd51c] opacity-50;
+            will-change: opacity;
+          }
+          
+          .article-content img.loaded, 
+          .mt-4 img.loaded {
+            @apply opacity-100;
+          }
+          
+          .article-content img:hover, 
+          .mt-4 img:hover {
+            @apply opacity-90;
+          }
+          
+          /* TailwindCSS化：图片容器加载状态 */
+          .image-placeholder {
+            @apply opacity-100 transition-opacity duration-300;
+            will-change: opacity;
+          }
+          
+          div.loaded .image-placeholder {
+            @apply opacity-0;
+          }
+          
+          /* TailwindCSS化：图片容器样式 */
+          .aspect-video {
+            aspect-ratio: 16 / 9;
+          }
+          
+          /* TailwindCSS化：多图片布局 */
+          .aspect-square {
+            @apply aspect-square relative bg-[#0c7cd51c] rounded-lg overflow-hidden;
+          }
+          
+          /* TailwindCSS化：图片容器点击样式 */
+          .image-container {
+            @apply cursor-pointer relative z-[1] transform translate-z-0;
+            will-change: transform;
+          }
+          
+          .image-container img {
+            @apply z-[2] transform translate-z-0;
+          }
+          
+          .image-placeholder {
+            @apply z-[1];
+          }
+          
+          /* TailwindCSS化：加载动画 */
+          .loading-animation {
+            @apply flex justify-center items-center gap-1.5;
+          }
+          
+          .loading-animation .dot {
+            @apply w-2 h-2 bg-white rounded-full opacity-70;
+            animation: pulse 1.5s infinite ease-in-out;
+          }
+          
+          .loading-animation .dot:nth-child(2) {
+            animation-delay: 0.2s;
+          }
+          
+          .loading-animation .dot:nth-child(3) {
+            animation-delay: 0.4s;
+          }
+          
+          @keyframes pulse {
+            0%, 100% { 
+              transform: scale(0.8);
+              opacity: 0.5;
+            }
+            50% { 
+              transform: scale(1.2);
+              opacity: 1;
+            }
+          }
+          
+          /* TailwindCSS化：代码块样式 */
+          pre {
+            @apply relative bg-gray-50 dark:bg-slate-800 rounded-md my-4 p-4;
+          }
+          
+          /* 代码块标题栏 */
+          .code-header {
+            @apply flex justify-between items-center bg-gray-100 dark:bg-slate-700 rounded-t-md -mt-4 -mx-4 mb-2 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300;
+          }
+          
+          .code-language {
+            @apply text-xs font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400;
+          }
+          
+          pre code {
+            @apply font-mono text-sm leading-relaxed whitespace-pre overflow-auto;
+          }
+          
+          /* TailwindCSS化：代码复制按钮 */
+          .copy-btn {
+            @apply absolute top-1.5 right-1.5 p-1.5 text-base text-gray-600 dark:text-gray-300 bg-gray-200 dark:bg-gray-700 border-0 rounded cursor-pointer opacity-0 transition-all duration-200 z-10 flex items-center justify-center w-8 h-8;
+          }
+          
+          .dark .copy-btn {
+            @apply text-gray-300 bg-gray-700;
+          }
+          
+          pre:hover .copy-btn {
+            @apply opacity-100;
+          }
+          
+          .copy-btn:hover {
+            @apply bg-gray-300 dark:bg-gray-600;
+          }
+          
+          .copy-btn.copied {
+            @apply bg-emerald-500 text-white;
+          }
+          
+          .dark .copy-btn.copied {
+            @apply bg-emerald-600;
+          }
+          
+          /* TailwindCSS化：分页导航 */
+          .pagination {
+            @apply flex justify-between items-center mt-8 pt-4;
+          }
+          
+          .pagination-button {
+            @apply inline-flex items-center py-1.5 px-4 rounded-full text-sm font-medium transition-all duration-200 bg-[#209cff] text-white border-0 cursor-pointer no-underline;
+          }
+          
+          .pagination-button:hover:not(:disabled) {
+            @apply bg-[#0c7cd5] -translate-y-0.5 shadow;
+          }
+          
+          .dark .pagination-button:hover:not(:disabled) {
+            @apply bg-[#0c7cd5];
+          }
+          
+          .pagination-button:disabled {
+            @apply opacity-50 cursor-not-allowed;
+          }
+          
+          .pagination-button i {
+            @apply text-xl;
+          }
+          
+          .pagination-button.prev i {
+            @apply mr-2;
+          }
+          
+          .pagination-button.next i {
+            @apply ml-2;
+          }
+          
+          .pagination-info {
+            @apply text-sm text-gray-500 dark:text-gray-400;
+          }
+          
+          .home-more-link {
+            @apply mx-auto;
+          }
         }
       </style>
       <!-- 使用常规CSS避免循环依赖 -->
@@ -386,408 +636,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
         pre::-webkit-scrollbar-track:hover {
           background: rgba(0, 0, 0, 0);
           border-radius: 10px; 
-        }
-        .back-to-top {
-          position: fixed;
-          bottom: 24px;
-          right: 24px;
-          width: 40px;
-          height: 40px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 9999px;
-          background-color: #209cff;
-          color: white;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-          cursor: pointer;
-          z-index: 50;
-          opacity: 0;
-          visibility: hidden;
-          transition: all 0.3s ease;
-          transform: translateZ(0);
-          will-change: opacity, transform;
-        }
-        
-        .dark .back-to-top {
-          background-color: #209cff;
-          color: white;
-        }
-        
-        .back-to-top:hover {
-          background-color: #0c7cd5;
-          color: white;
-          transform: translateY(-2px) translateZ(0);
-        }
-        
-        .dark .back-to-top:hover {
-          background-color: #0c7cd5;
-          color: white;
-        }
-        
-        .back-to-top.visible {
-          opacity: 1;
-          visibility: visible;
-        }
-        
-        /* 图片预览模态框样式 */
-        .image-modal {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.9);
-          z-index: 100;
-          justify-content: center;
-          align-items: center;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          will-change: opacity;
-        }
-
-        .image-modal.active {
-          display: flex;
-          opacity: 1;
-        }
-
-        .image-modal-content {
-          max-width: 90%;
-          max-height: 90%;
-          position: relative;
-          will-change: transform;
-          transform: translateZ(0);
-        }
-
-        .image-modal-content img {
-          max-width: 100%;
-          max-height: 90vh;
-          object-fit: contain;
-          border-radius: 4px;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          will-change: opacity;
-        }
-        
-        .image-modal-content img.loaded {
-          opacity: 1;
-        }
-        
-        .image-loading {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          color: white;
-          font-size: 16px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-        }
-        
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top-color: white;
-          animation: spin 1s ease-in-out infinite;
-          will-change: transform;
-        }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .image-modal-close {
-          position: absolute;
-          top: -40px;
-          right: 0;
-          color: white;
-          font-size: 24px;
-          cursor: pointer;
-          background: none;
-          border: none;
-          padding: 8px;
-          will-change: transform;
-        }
-
-        .image-modal-prev,
-        .image-modal-next {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          background: rgba(0, 0, 0, 0.5);
-          color: white;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background-color 0.2s;
-          will-change: transform, background-color;
-        }
-
-        .image-modal-prev:hover,
-        .image-modal-next:hover {
-          background: rgba(0, 0, 0, 0.7);
-        }
-
-        .image-modal-prev {
-          left: 10px;
-        }
-
-        .image-modal-next {
-          right: 10px;
-        }
-
-        @media (max-width: 768px) {
-          .image-modal-content {
-            max-width: 95%;
-          }
-        }
-        
-        /* 添加图片点击样式 */
-        .article-content img, 
-        .mt-4 img {
-          cursor: pointer;
-          transition: opacity 0.2s;
-          background-color: #0c7cd51c;
-          opacity: 0.5;
-          will-change: opacity;
-        }
-        
-        .article-content img.loaded, 
-        .mt-4 img.loaded {
-          opacity: 1;
-        }
-        
-        .article-content img:hover, 
-        .mt-4 img:hover {
-          opacity: 0.9;
-        }
-        
-        /* 图片容器加载状态样式 */
-        .image-placeholder {
-          opacity: 1;
-          transition: opacity 0.3s ease;
-          will-change: opacity;
-        }
-        
-        div.loaded .image-placeholder {
-          opacity: 0;
-        }
-        
-        /* 图片容器样式 */
-        .aspect-video {
-          aspect-ratio: 16 / 9;
-        }
-        
-        /* 多图片布局样式优化 */
-        .aspect-square {
-          aspect-ratio: 1 / 1;
-          position: relative;
-          background-color: #0c7cd51c;
-          border-radius: 0.5rem;
-          overflow: hidden;
-        }
-        
-        /* 图片容器点击样式 */
-        .image-container {
-          cursor: pointer;
-          position: relative;
-          z-index: 1;
-          transform: translateZ(0);
-          will-change: transform;
-        }
-        
-        .image-container img {
-          z-index: 2;
-          transform: translateZ(0);
-        }
-        
-        .image-placeholder {
-          z-index: 1;
-        }
-        
-        /* 加载动画样式 */
-        .loading-animation {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          gap: 6px;
-        }
-        
-        .loading-animation .dot {
-          width: 8px;
-          height: 8px;
-          background-color: white;
-          border-radius: 50%;
-          opacity: 0.7;
-          animation: pulse 1.5s infinite ease-in-out;
-        }
-        
-        .loading-animation .dot:nth-child(2) {
-          animation-delay: 0.2s;
-        }
-        
-        .loading-animation .dot:nth-child(3) {
-          animation-delay: 0.4s;
-        }
-        
-        @keyframes pulse {
-          0%, 100% { 
-            transform: scale(0.8);
-            opacity: 0.5;
-          }
-          50% { 
-            transform: scale(1.2);
-            opacity: 1;
-          }
-        }
-        
-        /* 代码块样式 */
-        pre {
-          position: relative;
-          background-color: #f8f9fa;
-          border-radius: 6px;
-          margin: 1rem 0;
-          padding: 1rem;
-        }
-        
-        .dark pre {
-          background-color: #1e293b;
-        }
-        
-        pre code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 0.9rem;
-          line-height: 1.5;
-          white-space: pre;
-          overflow: auto;
-        }
-        
-        /* 代码复制按钮 */
-        .copy-btn {
-          position: absolute;
-          top: 5px;
-          right: 5px;
-          padding: 6px;
-          font-size: 16px;
-          color: #4b5563;
-          background-color: #e5e7eb;
-          border: none;
-          border-radius: 4px;
-          cursor: pointer;
-          opacity: 0;
-          transition: opacity 0.2s, background-color 0.2s;
-          z-index: 5;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-        }
-        
-        .dark .copy-btn {
-          color: #e5e7eb;
-          background-color: #374151;
-        }
-        
-        pre:hover .copy-btn {
-          opacity: 1;
-        }
-        
-        .copy-btn:hover {
-          background-color: #d1d5db;
-        }
-        
-        .dark .copy-btn:hover {
-          background-color: #4b5563;
-        }
-        
-        .copy-btn.copied {
-          background-color: #10b981;
-          color: white;
-        }
-        
-        .dark .copy-btn.copied {
-          background-color: #059669;
-        }
-
-        /* 分页导航 */
-        .pagination {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-top: 2rem;
-          padding-top: 1rem;
-          border-top: 1px solid #e5e7eb;
-        }
-        
-        .dark .pagination {
-          border-top-color: #374151;
-        }
-        
-        .pagination-button {
-          display: inline-flex;
-          align-items: center;
-          padding: 0.5rem 1rem;
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          font-weight: 500;
-          transition: all 0.2s;
-          background-color: #209cff;
-          color: white;
-          border: none;
-          cursor: pointer;
-          text-decoration: none;
-        }
-        
-        .pagination-button:hover:not(:disabled) {
-          background-color: #0c7cd5;
-          transform: translateY(-1px);
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        
-        .dark .pagination-button:hover:not(:disabled) {
-          background-color: #0c7cd5;
-        }
-        
-        .pagination-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-        
-        .pagination-button i {
-          font-size: 1.25rem;
-        }
-        
-        .pagination-button.prev i {
-          margin-right: 0.5rem;
-        }
-        
-        .pagination-button.next i {
-          margin-left: 0.5rem;
-        }
-        
-        .pagination-info {
-          font-size: 0.875rem;
-          color: #6b7280;
-        }
-        
-        .dark .pagination-info {
-          color: #9ca3af;
-        }
-        
-        .home-more-link {
-          margin: 0 auto;
         }
       </style>
       </head>
@@ -1071,7 +919,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
               if (!article) return collectImages(); // 如果找不到文章元素，回退到所有图片
               
               // 只返回当前文章中的图片
-              return Array.from(article.querySelectorAll('[data-preview="true"]'));
+              const articleImages = Array.from(article.querySelectorAll('[data-preview="true"]'));
+              // 如果文章中没有图片，返回所有图片（通常不会发生）
+              return articleImages.length > 0 ? articleImages : collectImages();
             }
             
             // 为所有图片添加加载事件 - 性能优化：批量处理
@@ -1133,30 +983,40 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
                 
                 if (img) {
                   e.preventDefault();
-                  // 获取当前文章中的所有图片
-                  currentArticleImages = getImagesInCurrentArticle(img);
-                  const index = currentArticleImages.indexOf(img);
-                  if (index !== -1) {
-                    showImage(img, index);
-                  }
+                  openImagePreview(img);
                 } else if (container) {
                   e.preventDefault();
                   const containerImg = container.querySelector('[data-preview="true"]');
                   if (containerImg) {
-                    // 获取当前文章中的所有图片
-                    currentArticleImages = getImagesInCurrentArticle(containerImg);
-                    const imgIndex = currentArticleImages.indexOf(containerImg);
-                    if (imgIndex !== -1) {
-                      showImage(containerImg, imgIndex);
-                    }
+                    openImagePreview(containerImg);
                   }
                 }
               }, { passive: false });
             }
             
+            // 打开图片预览
+            function openImagePreview(img) {
+              // 获取当前文章中的所有图片
+              currentArticleImages = getImagesInCurrentArticle(img);
+              
+              // 确保我们有图片可以显示
+              if (currentArticleImages.length === 0) {
+                console.error('没有找到可以预览的图片');
+                return;
+              }
+              
+              const index = currentArticleImages.indexOf(img);
+              if (index !== -1) {
+                showImage(img, index);
+              } else {
+                // 如果找不到索引，默认显示第一张
+                showImage(currentArticleImages[0], 0);
+              }
+            }
+            
             // 显示图片 - 性能优化：减少重绘
             function showImage(img, index) {
-              if (isModalActive) return; // 防止重复操作
+              if (isModalActive && modalImg.src === (img.getAttribute('data-src') || img.src)) return; // 防止重复操作
               
               isModalActive = true;
               currentIndex = index;
@@ -1285,6 +1145,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
               if (hasNewImages) {
                 // 清除缓存的图片列表，强制重新收集
                 allImages = [];
+                currentArticleImages = [];
                 setupImageLoadHandlers();
               }
             });
@@ -1317,14 +1178,33 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           function initCodeCopyButtons() {
             // 找到所有pre元素
             document.querySelectorAll('pre').forEach(block => {
-              // 确保每个代码块只添加一个按钮
-              if (!block.querySelector('.copy-btn')) {
+              // 确保每个代码块只添加一个按钮和标题栏
+              if (!block.querySelector('.code-header')) {
+                // 获取代码语言
+                const codeElement = block.querySelector('code');
+                const language = codeElement && codeElement.className.match(/language-(\w+)/);
+                const langName = language ? language[1] : 'plaintext';
+                const langDisplay = langName === 'plaintext' ? 'Text' : langName.toUpperCase();
+                
+                // 创建代码块标题栏
+                const header = document.createElement('div');
+                header.className = 'code-header';
+                
+                // 添加语言标识
+                const langLabel = document.createElement('span');
+                langLabel.className = 'code-language';
+                langLabel.textContent = langDisplay;
+                header.appendChild(langLabel);
+                
                 // 创建复制按钮
                 const button = document.createElement('button');
                 button.className = 'copy-btn';
                 button.innerHTML = '<i class="ri-file-copy-line"></i>';
                 button.setAttribute('aria-label', '复制代码');
                 button.setAttribute('type', 'button');
+                
+                // 添加到标题栏
+                header.appendChild(button);
                 
                 // 添加复制功能
                 button.addEventListener('click', () => {
@@ -1370,8 +1250,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
                   });
                 });
                 
-                // 将按钮添加到代码块
-                block.appendChild(button);
+                // 将标题栏添加到代码块
+                block.insertBefore(header, block.firstChild);
               }
             });
           }
