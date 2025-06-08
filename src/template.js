@@ -836,7 +836,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               });
             }, { 
               threshold: 0,
-              rootMargin: '-300px 0px 0px 0px' // 当顶部300px不可见时触发
+              rootMargin: '300px 0px 0px 0px' // 当顶部300px不可见时触发
             });
             
             // 观察页面顶部元素
