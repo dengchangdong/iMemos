@@ -168,11 +168,11 @@ export function renderMemo(memo, isHomePage = false) {
         // 单张图片 - 100%宽度
         resourcesHtml = utils.createHtml`
           <figure class="mt-4">
-            <div class="w-full relative aspect-video bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+            <div class="w-full relative aspect-video bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden image-container">
               <img 
                 src="${resources[0].externalLink || ''}" 
                 alt="${resources[0].filename || '图片'}"
-                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
                 loading="lazy"
                 data-preview="true"
                 onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
@@ -189,11 +189,11 @@ export function renderMemo(memo, isHomePage = false) {
           <figure class="mt-4">
             <div class="flex flex-wrap gap-1">
               ${resources.map(resource => utils.createHtml`
-                <div class="w-[calc(50%-2px)] relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden aspect-square">
+                <div class="w-[calc(50%-2px)] relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden aspect-square image-container">
                   <img 
                     src="${resource.externalLink || ''}" 
                     alt="${resource.filename || '图片'}"
-                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
                     loading="lazy"
                     data-preview="true"
                     onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
@@ -212,11 +212,11 @@ export function renderMemo(memo, isHomePage = false) {
           <figure class="mt-4">
             <div class="grid grid-cols-3 gap-1">
               ${resources.map(resource => utils.createHtml`
-                <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+                <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden image-container">
                   <img 
                     src="${resource.externalLink || ''}" 
                     alt="${resource.filename || '图片'}"
-                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0"
+                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
                     loading="lazy"
                     data-preview="true"
                     onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
@@ -566,6 +566,21 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             border-radius: 0.5rem;
             overflow: hidden;
           }
+          
+          /* 图片容器点击样式 */
+          .image-container {
+            cursor: pointer;
+            position: relative;
+            z-index: 1;
+          }
+          
+          .image-container img {
+            z-index: 2;
+          }
+          
+          .image-placeholder {
+            z-index: 1;
+          }
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -599,7 +614,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </button>
         
         <!-- 图片预览模态框 -->
-        <dialog id="imageModal" class="image-modal" aria-modal="true" aria-label="图片预览">
+        <div id="imageModal" class="image-modal" aria-modal="true" aria-label="图片预览">
           <div class="image-modal-content">
             <button class="image-modal-close" aria-label="关闭预览">
               <i class="ri-close-line" aria-hidden="true"></i>
@@ -618,7 +633,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
             </button>
           </div>
-        </dialog>
+        </div>
 
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
@@ -744,7 +759,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             // 获取所有可点击图片
             function collectImages() {
-              allImages = Array.from(document.querySelectorAll('.article-content img, .mt-4 img'));
+              allImages = Array.from(document.querySelectorAll('[data-preview="true"]'));
               return allImages;
             }
             
@@ -771,13 +786,38 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               });
             }
             
-            // 为所有图片添加点击事件
+            // 为所有图片容器添加点击事件
             function setupImageClickHandlers() {
+              // 为图片添加点击事件
               collectImages().forEach((img, index) => {
                 img.style.cursor = 'pointer';
-                img.addEventListener('click', () => {
-                  showImage(img, index);
-                });
+                
+                // 确保只绑定一次点击事件
+                if (!img.dataset.hasClickHandler) {
+                  img.dataset.hasClickHandler = 'true';
+                  img.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    showImage(img, index);
+                  });
+                }
+              });
+              
+              // 为图片容器也添加点击事件
+              document.querySelectorAll('.image-container').forEach((container) => {
+                if (!container.dataset.hasClickHandler) {
+                  container.dataset.hasClickHandler = 'true';
+                  container.addEventListener('click', function() {
+                    // 找到容器内的图片
+                    const img = container.querySelector('img[data-preview="true"]');
+                    if (img) {
+                      // 获取图片索引
+                      const imgIndex = collectImages().indexOf(img);
+                      if (imgIndex !== -1) {
+                        showImage(img, imgIndex);
+                      }
+                    }
+                  });
+                }
               });
             }
             
