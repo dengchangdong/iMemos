@@ -931,14 +931,36 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   
                   if (!img.classList.contains('loaded')) {
                     const markAsLoaded = () => {
-                      img.classList.add('loaded');
-                      if (img.parentNode) {
-                        img.parentNode.classList.add('loaded');
-                      }
+                      // 使用双重requestAnimationFrame确保图片已渲染
+                      requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                          // 再次检查确保图片已完全渲染
+                          if (img.offsetWidth > 0 && img.offsetHeight > 0) {
+                            img.classList.add('loaded');
+                            if (img.parentNode) {
+                              img.parentNode.classList.add('loaded');
+                            }
+                          }
+                        });
+                      });
                     };
 
                     if (img.complete && img.naturalWidth !== 0) {
+                      // 图片已加载完成，但需要确认已渲染
                       markAsLoaded();
+                    } else {
+                      // 图片未加载完成，设置加载监听
+                      img.addEventListener('load', () => {
+                        markAsLoaded();
+                      }, { once: true });
+                      
+                      img.addEventListener('error', () => {
+                        // 即使加载失败也标记为loaded，但添加error类
+                        img.classList.add('loaded', 'error');
+                        if (img.parentNode) {
+                          img.parentNode.classList.add('loaded', 'error');
+                        }
+                      }, { once: true });
                     }
                   }
                 });
