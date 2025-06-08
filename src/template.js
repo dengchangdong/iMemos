@@ -294,26 +294,12 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <meta name="description" content="${siteName} - 博客">
         <meta name="theme-color" content="#209cff">
         <title>${title}</title>
-        <!-- 资源预加载 -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
-        <!-- 预加载关键资源 -->
-        <link rel="preload" href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" as="style">
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-        <script src="https://cdn.tailwindcss.com" defer></script>
+        <script src="https://cdn.tailwindcss.com"></script>
         <script>
-          // 初始化主题以避免闪烁
-          (function() {
-            const theme = localStorage.getItem('theme');
-            if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-              document.documentElement.classList.add('dark');
-            }
-          })();
-          
-          // 配置Tailwind
           tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -381,19 +367,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         </style>
         <!-- 使用常规CSS避免循环依赖 -->
         <style>
-          body {
-            will-change: scroll-position;
-            overflow-anchor: none;
-          }
-          
-          /* 优化渐变背景性能 */
-          .bg-custom-gradient, .bg-custom-gradient-dark {
-            will-change: transform;
-            backface-visibility: hidden;
-            perspective: 1000;
-            transform: translate3d(0, 0, 0);
-          }
-          
           .back-to-top {
             position: fixed;
             bottom: 24px;
@@ -411,8 +384,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             z-index: 50;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease;
-            will-change: transform, opacity;
+            transition: all 0.3s ease;
           }
           
           .dark .back-to-top {
@@ -613,7 +585,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
-          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]" style="content-visibility: auto;">
+          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
             <header class="flex items-center justify-between sm:flex-row flex-row">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
@@ -631,7 +603,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                 </button>
               </div>
             </header>
-            <main class="mt-8 relative" style="content-visibility: auto;">
+            <main class="mt-8 relative">
               ${articlesHtml}
             </main>
           </section>
@@ -749,56 +721,15 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           // 返回顶部功能
           function initBackToTop() {
             const backToTop = document.getElementById('back-to-top');
-            let ticking = false;
-            let lastScrollY = 0;
             
-            // 节流函数 - 限制函数执行频率
-            function throttle(callback, delay = 100) {
-              let isThrottled = false;
-              return function(...args) {
-                if (isThrottled) return;
-                isThrottled = true;
-                callback.apply(this, args);
-                setTimeout(() => {
-                  isThrottled = false;
-                }, delay);
-              };
-            }
-            
-            // 优化的滚动处理函数
-            const handleScroll = throttle(() => {
-              const currentScrollY = window.scrollY;
-              
-              // 只有滚动位置有明显变化时才更新DOM
-              if (Math.abs(currentScrollY - lastScrollY) > 50 || 
-                 (currentScrollY > 300 && lastScrollY <= 300) || 
-                 (currentScrollY <= 300 && lastScrollY > 300)) {
-                
-                if (currentScrollY > 300) {
-                  if (!backToTop.classList.contains('visible')) {
-                    backToTop.classList.add('visible');
-                  }
-                } else {
-                  if (backToTop.classList.contains('visible')) {
-                    backToTop.classList.remove('visible');
-                  }
-                }
-                
-                lastScrollY = currentScrollY;
-              }
-              
-              ticking = false;
-            }, 100);
-            
-            // 使用 requestAnimationFrame 进一步优化
+            // 监听滚动事件
             window.addEventListener('scroll', () => {
-              if (!ticking) {
-                window.requestAnimationFrame(() => {
-                  handleScroll();
-                });
-                ticking = true;
+              if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+              } else {
+                backToTop.classList.remove('visible');
               }
-            }, { passive: true });
+            });
               
             // 点击返回顶部
             backToTop.addEventListener('click', () => {
@@ -811,7 +742,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             // 检查初始滚动位置
             if (window.scrollY > 300) {
               backToTop.classList.add('visible');
-              lastScrollY = window.scrollY;
             }
           }
         
@@ -826,110 +756,79 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             let allImages = [];
             let currentIndex = 0;
-            let observerTimeout = null;
             
-            // 获取所有可点击图片 - 使用缓存优化
+            // 获取所有可点击图片
             function collectImages() {
               allImages = Array.from(document.querySelectorAll('[data-preview="true"]'));
               return allImages;
             }
             
-            // 懒加载图片处理
+            // 为所有图片添加加载事件
             function setupImageLoadHandlers() {
               collectImages().forEach((img) => {
-                if (!img.classList.contains('loaded') && !img.dataset.loadHandled) {
-                  img.dataset.loadHandled = 'true';
-                  
+                if (!img.classList.contains('loaded')) {
                   // 如果图片已经加载完成
                   if (img.complete) {
                     img.classList.add('loaded');
-                    // 找到父容器并添加loaded类
-                    const container = img.closest('.image-container');
-                    if (container) container.classList.add('loaded');
                   } else {
                     // 否则等待加载
                     img.addEventListener('load', function() {
                       img.classList.add('loaded');
-                      // 找到父容器并添加loaded类
-                      const container = img.closest('.image-container');
-                      if (container) container.classList.add('loaded');
-                    }, { once: true }); // 使用once确保事件只触发一次
+                    });
                     
                     // 处理加载错误
                     img.addEventListener('error', function() {
                       img.classList.add('loaded');
                       img.classList.add('error');
-                      // 找到父容器并添加loaded类
-                      const container = img.closest('.image-container');
-                      if (container) container.classList.add('loaded', 'error');
-                    }, { once: true });
+                    });
                   }
                 }
               });
             }
             
-            // 为所有图片容器添加点击事件 - 使用事件委托优化
+            // 为所有图片容器添加点击事件
             function setupImageClickHandlers() {
-              // 只对新图片添加处理，避免重复
-              collectImages().forEach((img) => {
+              // 为图片添加点击事件
+              collectImages().forEach((img, index) => {
+                img.style.cursor = 'pointer';
+                
+                // 确保只绑定一次点击事件
                 if (!img.dataset.hasClickHandler) {
                   img.dataset.hasClickHandler = 'true';
-                  img.style.cursor = 'pointer';
+                  img.addEventListener('click', (e) => {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    showImage(img, index);
+                  });
                 }
               });
               
-              // 使用事件委托，只在document.body上设置一个监听器
-              if (!document.body.dataset.hasImageClickListener) {
-                document.body.dataset.hasImageClickListener = 'true';
-                
-                document.body.addEventListener('click', (e) => {
-                  // 检查点击的是否是图片或图片容器
-                  const img = e.target.closest('[data-preview="true"]');
-                  if (img) {
-                    // 阻止事件冒泡
-                    e.stopPropagation();
-                    
-                    // 重新获取所有图片，确保索引正确
-                    const images = collectImages();
-                    const index = images.indexOf(img);
-                    if (index !== -1) {
-                      showImage(img, index);
-                    }
-                    return;
-                  }
-                  
-                  // 如果点击的是图片容器
-                  const container = e.target.closest('.image-container');
-                  if (container) {
-                    const containerImg = container.querySelector('[data-preview="true"]');
-                    if (containerImg) {
-                      // 阻止事件冒泡
-                      e.stopPropagation();
-                      
-                      // 重新获取所有图片，确保索引正确
-                      const images = collectImages();
-                      const index = images.indexOf(containerImg);
-                      if (index !== -1) {
-                        showImage(containerImg, index);
+              // 为图片容器也添加点击事件
+              document.querySelectorAll('.image-container').forEach((container) => {
+                if (!container.dataset.hasClickHandler) {
+                  container.dataset.hasClickHandler = 'true';
+                  container.addEventListener('click', function() {
+                    // 找到容器内的图片
+                    const img = container.querySelector('img[data-preview="true"]');
+                    if (img) {
+                      // 获取图片索引
+                      const imgIndex = collectImages().indexOf(img);
+                      if (imgIndex !== -1) {
+                        showImage(img, imgIndex);
                       }
                     }
-                  }
-                });
-              }
+                  });
+                }
+              });
             }
             
-            // 显示图片 - 优化图片加载逻辑
+            // 显示图片
             function showImage(img, index) {
               // 显示加载指示器
               loadingIndicator.style.display = 'flex';
               modalImg.classList.remove('loaded');
               
-              // 如果图片源相同，不重新加载
-              if (modalImg.src !== img.src) {
-                // 设置图片源
-                modalImg.src = img.src;
-              }
-              
+              // 设置图片源
+              modalImg.src = img.src;
               modalImg.alt = img.alt || '预览图片';
               modal.classList.add('active');
               currentIndex = index;
@@ -954,17 +853,16 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               updateNavigationButtons();
             }
             
-            // 更新导航按钮显示状态 - 优化DOM操作
+            // 更新导航按钮显示状态
             function updateNavigationButtons() {
-              const shouldShowButtons = allImages.length > 1;
-              const prevVisible = prevBtn.style.display !== 'none';
-              const nextVisible = nextBtn.style.display !== 'none';
-              
-              // 只在状态变化时更新DOM
-              if (shouldShowButtons !== prevVisible) {
-                prevBtn.style.display = shouldShowButtons ? 'block' : 'none';
-                nextBtn.style.display = shouldShowButtons ? 'block' : 'none';
+              if (allImages.length <= 1) {
+                prevBtn.style.display = 'none';
+                nextBtn.style.display = 'none';
+                return;
               }
+              
+              prevBtn.style.display = 'block';
+              nextBtn.style.display = 'block';
             }
             
             // 显示上一张图片
@@ -1018,30 +916,15 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             setupImageLoadHandlers();
             setupImageClickHandlers();
             
-            // 优化 MutationObserver - 防止频繁触发
+            // 监听DOM变化，为新添加的图片绑定事件
             const observer = new MutationObserver(() => {
-              // 清除之前的定时器
-              if (observerTimeout) {
-                clearTimeout(observerTimeout);
-              }
-              
-              // 延迟执行，避免短时间内多次DOM变化导致的频繁处理
-              observerTimeout = setTimeout(() => {
-                setupImageLoadHandlers();
-                setupImageClickHandlers();
-                observerTimeout = null;
-              }, 200);
+              setupImageLoadHandlers();
+              setupImageClickHandlers();
             });
             
             observer.observe(document.body, { 
               childList: true, 
-              subtree: true,
-              attributes: false // 不监听属性变化，减少触发次数
-            });
-            
-            // 清理函数 - 页面卸载时断开观察器
-            window.addEventListener('beforeunload', () => {
-              observer.disconnect();
+              subtree: true 
             });
           }
 
