@@ -15,6 +15,7 @@ app.use('*', async (c, next) => {
 
 // 注册路由 - 更简洁的路由处理
 app.get('/', routes.home)
+app.get('/page/:number', routes.page)
 app.get('/post/:name', routes.post)
 app.get('/tag/:tag', routes.tag)
 app.get('/api/v1/memo', routes.api)

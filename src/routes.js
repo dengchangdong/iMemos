@@ -135,7 +135,8 @@ export const routes = {
         c.env.SITE_NAME,
         currentPage,
         hasMore,
-        true // 这是首页
+        true, // 这是首页
+        '' // 无标签
       ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
@@ -144,6 +145,80 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染首页失败:', error);
+      return new Response(renderErrorPage(error, c), {
+        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        status: 500
+      });
+    }
+  },
+  
+  // 分页路由处理
+  async page(c) {
+    try {
+      // 获取页码参数
+      const pageNumber = parseInt(c.req.param('number'));
+      if (isNaN(pageNumber) || pageNumber < 1) {
+        return new Response(renderBaseHtml(
+          c.env.SITE_NAME, 
+          htmlTemplates.notFoundPage(),
+          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+          c.env.NAV_LINKS,
+          c.env.SITE_NAME
+        ), {
+          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          status: 404
+        });
+      }
+      
+      // 获取指定页的数据
+      const memos = await apiHandler.fetchMemos(c, '', pageNumber);
+      console.log('获取到页面 memos 数量:', memos.length);
+
+      // 如果没有数据且不是第一页，返回404
+      if (memos.length === 0 && pageNumber > 1) {
+        return new Response(renderBaseHtml(
+          c.env.SITE_NAME, 
+          htmlTemplates.notFoundPage(),
+          c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+          c.env.NAV_LINKS,
+          c.env.SITE_NAME
+        ), {
+          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          status: 404
+        });
+      }
+
+      // 按时间降序排序memos
+      const sortedMemos = [...memos].sort((a, b) => {
+        const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
+        const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
+        return timeB - timeA; // 降序排列
+      });
+
+      const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
+      
+      // 判断是否有更多数据
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const hasMore = memos.length >= limit;
+
+      return new Response(renderBaseHtml(
+        `第 ${pageNumber} 页 - ${c.env.SITE_NAME}`,
+        memosHtml,
+        c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
+        c.env.NAV_LINKS,
+        c.env.SITE_NAME,
+        pageNumber,
+        hasMore,
+        true, // 这是分页列表
+        '' // 无标签
+      ), {
+        headers: {
+          'Content-Type': 'text/html;charset=UTF-8',
+          'Cache-Control': 'public, max-age=300' // 5分钟缓存
+        }
+      });
+    } catch (error) {
+      console.error('渲染分页失败:', error);
       return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
@@ -228,7 +303,8 @@ export const routes = {
         c.env.SITE_NAME,
         currentPage,
         hasMore,
-        true // 这是分类页，也需要分页
+        true, // 这是分类页，也需要分页
+        tag // 传递标签参数
       ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',

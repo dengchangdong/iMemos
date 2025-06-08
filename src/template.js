@@ -243,7 +243,7 @@ export function renderMemo(memo, isHomePage = false) {
 }
 
 // 渲染基础 HTML - 使用index.html作为模板
-export function renderBaseHtml(title, content, footerText, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false) {
+export function renderBaseHtml(title, content, footerText, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
   // 解析导航链接
   const navItems = parseNavLinks(navLinks)
 
@@ -361,6 +361,32 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
       </style>
       <!-- 使用常规CSS避免循环依赖 -->
       <style>
+        html::-webkit-scrollbar, 
+        body::-webkit-scrollbar,
+        pre::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+          background: rgba(255, 255, 255, 0);
+          border-radius: 10px;
+        }
+        html::-webkit-scrollbar-thumb, 
+        body::-webkit-scrollbar-thumb,
+        pre::-webkit-scrollbar-thumb {
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 10px;
+        }
+        html::-webkit-scrollbar-thumb:hover, 
+        body::-webkit-scrollbar-thumb:hover,
+        pre::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.11);
+          border-radius: 10px; 
+        }
+        html::-webkit-scrollbar-track:hover, 
+        body::-webkit-scrollbar-track:hover,
+        pre::-webkit-scrollbar-track:hover {
+          background: rgba(0, 0, 0, 0);
+          border-radius: 10px; 
+        }
         .back-to-top {
           position: fixed;
           bottom: 24px;
@@ -633,7 +659,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           border-radius: 6px;
           margin: 1rem 0;
           padding: 1rem;
-          overflow: auto;
         }
         
         .dark pre {
@@ -645,6 +670,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           font-size: 0.9rem;
           line-height: 1.5;
           white-space: pre;
+          overflow: auto;
         }
         
         /* 代码复制按钮 */
@@ -713,29 +739,25 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
           display: inline-flex;
           align-items: center;
           padding: 0.5rem 1rem;
-          border-radius: 0.375rem;
+          border-radius: 9999px;
           font-size: 0.875rem;
           font-weight: 500;
           transition: all 0.2s;
-          background-color: #f3f4f6;
-          color: #4b5563;
+          background-color: #209cff;
+          color: white;
           border: none;
           cursor: pointer;
-        }
-        
-        .dark .pagination-button {
-          background-color: #374151;
-          color: #e5e7eb;
+          text-decoration: none;
         }
         
         .pagination-button:hover:not(:disabled) {
-          background-color: #e5e7eb;
-          color: #1f2937;
+          background-color: #0c7cd5;
+          transform: translateY(-1px);
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         
         .dark .pagination-button:hover:not(:disabled) {
-          background-color: #4b5563;
-          color: #f9fafb;
+          background-color: #0c7cd5;
         }
         
         .pagination-button:disabled {
@@ -762,6 +784,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
         
         .dark .pagination-info {
           color: #9ca3af;
+        }
+        
+        .home-more-link {
+          margin: 0 auto;
         }
       </style>
       </head>
@@ -790,17 +816,40 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
             </main>
             
             <!-- 分页导航 -->
-            ${isHomePage ? utils.createHtml`
-            <div class="pagination">
-              <button id="prev-page" class="pagination-button prev" ${currentPage <= 1 ? 'disabled' : ''}>
-                <i class="ri-arrow-left-line"></i> 上一页
-              </button>
-              <span class="pagination-info">第 <span id="current-page">${currentPage}</span> 页</span>
-              <button id="next-page" class="pagination-button next" ${hasMore ? '' : 'disabled'}>
-                下一页 <i class="ri-arrow-right-line"></i>
-              </button>
-            </div>
-            ` : ''}
+            ${isHomePage ? 
+              (currentPage === 1 ?
+                utils.createHtml`
+                <div class="pagination justify-center">
+                  <a href="/page/2" class="pagination-button home-more-link">
+                    <i class="ri-arrow-down-line mr-2"></i> 查看更多内容
+                  </a>
+                </div>
+                ` : 
+                utils.createHtml`
+                <div class="pagination">
+                  <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="pagination-button prev">
+                    <i class="ri-arrow-left-line"></i> 上一页
+                  </a>
+                  <span class="pagination-info">第 ${currentPage} 页</span>
+                  <a href="/page/${currentPage + 1}" class="pagination-button next" ${hasMore ? '' : 'style="visibility: hidden"'}>
+                    下一页 <i class="ri-arrow-right-line"></i>
+                  </a>
+                </div>
+                `
+              ) : 
+              (tag ?
+                utils.createHtml`
+                <div class="pagination">
+                  <a href="${currentPage > 2 ? `/tag/${tag}?page=${currentPage - 1}` : `/tag/${tag}`}" class="pagination-button prev">
+                    <i class="ri-arrow-left-line"></i> 上一页
+                  </a>
+                  <span class="pagination-info">第 ${currentPage} 页</span>
+                  <a href="/tag/${tag}?page=${currentPage + 1}" class="pagination-button next" ${hasMore ? '' : 'style="visibility: hidden"'}>
+                    下一页 <i class="ri-arrow-right-line"></i>
+                  </a>
+                </div>
+                ` : '')
+            }
           </section>
         </div>
 
@@ -1019,7 +1068,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
             function getImagesInCurrentArticle(img) {
               // 找到当前图片所在的文章元素
               const article = img.closest('article');
-              if (!article) return [];
+              if (!article) return collectImages(); // 如果找不到文章元素，回退到所有图片
               
               // 只返回当前文章中的图片
               return Array.from(article.querySelectorAll('[data-preview="true"]'));
@@ -1149,8 +1198,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
               const hasMultipleImages = currentArticleImages.length > 1;
               
               requestAnimationFrame(() => {
-                prevBtn.style.display = hasMultipleImages ? 'block' : 'none';
-                nextBtn.style.display = hasMultipleImages ? 'block' : 'none';
+                prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
+                nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
               });
             }
             
@@ -1251,59 +1300,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
             setupImageLoadHandlers();
           }
 
-          // 初始化分页导航
-          function initPagination() {
-            const prevPageBtn = document.getElementById('prev-page');
-            const nextPageBtn = document.getElementById('next-page');
-            
-            if (!prevPageBtn || !nextPageBtn) return;
-            
-            prevPageBtn.addEventListener('click', () => {
-              if (prevPageBtn.disabled) return;
-              
-              const currentPage = parseInt(document.getElementById('current-page').textContent);
-              if (currentPage > 1) {
-                navigateToPage(currentPage - 1);
-              }
-            });
-            
-            nextPageBtn.addEventListener('click', () => {
-              if (nextPageBtn.disabled) return;
-              
-              const currentPage = parseInt(document.getElementById('current-page').textContent);
-              navigateToPage(currentPage + 1);
-            });
-            
-            function navigateToPage(page) {
-              // 获取当前URL和查询参数
-              const url = new URL(window.location.href);
-              const searchParams = url.searchParams;
-              
-              // 设置新页码
-              searchParams.set('page', page);
-              
-              // 更新URL并跳转
-              url.search = searchParams.toString();
-              window.location.href = url.toString();
-            }
-          }
-
-          // 性能优化：使用requestIdleCallback在浏览器空闲时初始化非关键功能
-          function initOnIdle() {
-            // 定义空闲回调
-            const idleCallback = () => {
-              // 初始化返回顶部按钮
-              initBackToTop();
-            };
-            
-            // 使用requestIdleCallback或setTimeout作为降级处理
-            if ('requestIdleCallback' in window) {
-              requestIdleCallback(idleCallback);
-            } else {
-              setTimeout(idleCallback, 200);
-            }
-          }
-
           // 页面加载完成后初始化所有功能
           document.addEventListener('DOMContentLoaded', () => {
             // 立即初始化关键功能
@@ -1312,9 +1308,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
             
             // 初始化Markdown增强和代码复制功能
             enhanceMarkdown();
-            
-            // 初始化分页
-            initPagination();
             
             // 延迟初始化非关键功能
             initOnIdle();
@@ -1421,6 +1414,22 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName, c
             
             // 初始化现有代码块
             initCodeCopyButtons();
+          }
+
+          // 性能优化：使用requestIdleCallback在浏览器空闲时初始化非关键功能
+          function initOnIdle() {
+            // 定义空闲回调
+            const idleCallback = () => {
+              // 初始化返回顶部按钮
+              initBackToTop();
+            };
+            
+            // 使用requestIdleCallback或setTimeout作为降级处理
+            if ('requestIdleCallback' in window) {
+              requestIdleCallback(idleCallback);
+            } else {
+              setTimeout(idleCallback, 200);
+            }
           }
         })();
         </script>
