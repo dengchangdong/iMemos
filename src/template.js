@@ -648,7 +648,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
       <button 
         id="back-to-top" 
-        class="fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-700"
+        class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-700"
         aria-label="返回顶部"
       >
         <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
