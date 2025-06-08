@@ -10,11 +10,11 @@ export const htmlTemplates = {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
         <header>
-          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
+        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
         </header>
         <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-          <p class="text-sm">${error.message}</p>
+        <p class="text-sm">${error.message}</p>
           <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
         </section>
       </article>
@@ -26,7 +26,7 @@ export const htmlTemplates = {
     return utils.createHtml`
       <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
         <header>
-          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
+        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
         </header>
         <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
           <h2 class="font-medium">未找到内容</h2>
@@ -304,8 +304,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               colors: {
                 'indigo-timeline': '#4e5ed3',
                 'indigo-shadow': '#bab5f8',
-                'primary': '#209cff',
-                'primary-dark': '#0c7cd5',
               },
             }
           }
@@ -388,123 +386,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         pre::-webkit-scrollbar-track:hover {
           background: rgba(0, 0, 0, 0);
           border-radius: 10px; 
-        }
-        
-        /* 图片预览模态框样式 */
-        .image-modal {
-          display: none;
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background-color: rgba(0, 0, 0, 0.9);
-          z-index: 100;
-          justify-content: center;
-          align-items: center;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          will-change: opacity;
-        }
-
-        .image-modal.active {
-          display: flex;
-          opacity: 1;
-        }
-
-        .image-modal-content {
-          max-width: 90%;
-          max-height: 90%;
-          position: relative;
-          will-change: transform;
-          transform: translateZ(0);
-        }
-
-        .image-modal-content img {
-          max-width: 100%;
-          max-height: 90vh;
-          object-fit: contain;
-          border-radius: 4px;
-          opacity: 0;
-          transition: opacity 0.3s ease;
-          will-change: opacity;
-        }
-        
-        .image-modal-content img.loaded {
-          opacity: 1;
-        }
-        
-        .image-loading {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          color: white;
-          font-size: 16px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 10px;
-        }
-        
-        .spinner {
-          width: 40px;
-          height: 40px;
-          border: 3px solid rgba(255, 255, 255, 0.3);
-          border-radius: 50%;
-          border-top-color: white;
-          animation: spin 1s ease-in-out infinite;
-          will-change: transform;
-        }
-        
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .image-modal-close {
-          position: absolute;
-          top: -40px;
-          right: 0;
-          color: white;
-          font-size: 24px;
-          cursor: pointer;
-          background: none;
-          border: none;
-          padding: 8px;
-          will-change: transform;
-        }
-
-        .image-modal-prev,
-        .image-modal-next {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          background: rgba(0, 0, 0, 0.5);
-          color: white;
-          border: none;
-          font-size: 24px;
-          cursor: pointer;
-          width: 40px;
-          height: 40px;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: background-color 0.2s;
-          will-change: transform, background-color;
-        }
-
-        .image-modal-prev:hover,
-        .image-modal-next:hover {
-          background: rgba(0, 0, 0, 0.7);
-        }
-
-        .image-modal-prev {
-          left: 10px;
-        }
-
-        .image-modal-next {
-          right: 10px;
         }
 
         @media (max-width: 768px) {
@@ -612,6 +493,27 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
         }
         
+        /* 代码块样式 */
+        pre {
+          position: relative;
+          background-color: #f8f9fa;
+          border-radius: 6px;
+          margin: 1rem 0;
+          padding: 1rem;
+        }
+        
+        .dark pre {
+          background-color: #1e293b;
+        }
+        
+        pre code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          font-size: 0.9rem;
+          line-height: 1.5;
+          white-space: pre;
+          overflow: auto;
+        }
+        
         /* 代码块顶部栏 */
         .code-header {
           display: flex;
@@ -710,33 +612,33 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             ${isHomePage ? 
               (currentPage === 1 ?
                 utils.createHtml`
-                <div class="pagination justify-center">
-                  <a href="/page/2" class="pagination-button home-more-link">
-                    <i class="ri-arrow-down-line mr-2"></i> 查看更多内容
+                <div class="pagination flex justify-center">
+                  <a href="/page/2" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
+                    <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
                   </a>
                 </div>
                 ` : 
                 utils.createHtml`
-                <div class="pagination">
-                  <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="pagination-button prev">
-                    <i class="ri-arrow-left-line"></i> 上一页
-                  </a>
-                  <span class="pagination-info">第 ${currentPage} 页</span>
-                  <a href="/page/${currentPage + 1}" class="pagination-button next" ${hasMore ? '' : 'style="visibility: hidden"'}>
-                    下一页 <i class="ri-arrow-right-line"></i>
-                  </a>
-                </div>
+              <div class="pagination flex justify-between items-center mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
+                  <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
+                </a>
+                <span class="pagination-info text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
+                <a href="/page/${currentPage + 1}" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow ${hasMore ? '' : 'invisible'}">
+                  下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
+                </a>
+              </div>
                 `
               ) : 
               (tag ?
                 utils.createHtml`
-                <div class="pagination">
-                  <a href="${currentPage > 2 ? `/tag/${tag}?page=${currentPage - 1}` : `/tag/${tag}`}" class="pagination-button prev">
-                    <i class="ri-arrow-left-line"></i> 上一页
+                <div class="pagination flex justify-between items-center mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
+                    <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
                   </a>
-                  <span class="pagination-info">第 ${currentPage} 页</span>
-                  <a href="/tag/${tag}?page=${currentPage + 1}" class="pagination-button next" ${hasMore ? '' : 'style="visibility: hidden"'}>
-                    下一页 <i class="ri-arrow-right-line"></i>
+                  <span class="pagination-info text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
+                  <a href="/page/${currentPage + 1}" class="pagination-button inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow ${hasMore ? '' : 'invisible'}">
+                    下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
                   </a>
                 </div>
                 ` : '')
@@ -744,34 +646,63 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </section>
         </div>
 
-        <button id="back-to-top" class="fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 hover:bg-primary-dark hover:-translate-y-0.5 dark:bg-primary dark:hover:bg-primary-dark" aria-label="返回顶部">
-          <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
-        </button>
+      <button 
+        id="back-to-top" 
+        class="fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-700"
+        aria-label="返回顶部"
+      >
+        <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
+      </button>
       
       <!-- 图片预览模态框 -->
-        <div id="imageModal" class="hidden fixed top-0 left-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300" aria-modal="true" aria-label="图片预览">
-          <div class="max-w-[90%] max-h-[90%] relative will-change-transform transform translate-z-0">
-            <button class="absolute top-[-40px] right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform" aria-label="关闭预览">
-              <i class="ri-close-line" aria-hidden="true"></i>
-            </button>
-            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5" role="status" aria-live="polite">
-              <div class="flex justify-center items-center gap-1.5">
-                <div class="w-2 h-2 bg-white rounded-full opacity-70 animate-pulse"></div>
-                <div class="w-2 h-2 bg-white rounded-full opacity-70 animate-pulse" style="animation-delay: 0.2s"></div>
-                <div class="w-2 h-2 bg-white rounded-full opacity-70 animate-pulse" style="animation-delay: 0.4s"></div>
-              </div>
-            </div>
-            <figure class="w-full h-full flex items-center justify-center">
-              <img id="modalImage" src="" alt="预览图片" loading="lazy" class="max-w-full max-h-[90vh] object-contain opacity-0 transition-opacity duration-300">
-            </figure>
-            <button class="absolute top-1/2 left-2.5 transform -translate-y-1/2 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors hover:bg-black/70" aria-label="上一张">
-              <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
-            </button>
-            <button class="absolute top-1/2 right-2.5 transform -translate-y-1/2 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors hover:bg-black/70" aria-label="下一张">
-              <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
-            </button>
+      <div 
+        id="imageModal" 
+        class="fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
+        aria-modal="true" 
+        aria-label="图片预览"
+      >
+        <div class="relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+          <button 
+            class="absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+            aria-label="关闭预览"
+          >
+            <i class="ri-close-line" aria-hidden="true"></i>
+          </button>
+          
+          <div 
+            class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
+            role="status" 
+            aria-live="polite"
+          >
+            <div class="w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+            <span>加载中...</span>
           </div>
+          
+          <figure class="w-full h-full flex items-center justify-center">
+            <img 
+              id="modalImage" 
+              src="" 
+              alt="预览图片" 
+              loading="lazy" 
+              class="max-w-full max-h-[90vh] object-contain rounded opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity"
+            >
+          </figure>
+          
+          <button 
+            class="absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+            aria-label="上一张"
+          >
+            <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
+          </button>
+          
+          <button 
+            class="absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+            aria-label="下一张"
+          >
+            <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
+          </button>
         </div>
+      </div>
 
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
