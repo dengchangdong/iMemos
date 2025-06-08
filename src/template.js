@@ -392,6 +392,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         pre code {
           font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+          white-space: pre;
         }
 
         @media (max-width: 768px) {
