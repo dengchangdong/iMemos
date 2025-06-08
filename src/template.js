@@ -475,7 +475,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         }
         
         .image-placeholder {
-          z-index: 9;
+          z-index: 1;
         }
         
         /* 加载动画样式 */
