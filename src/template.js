@@ -390,6 +390,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           border-radius: 10px; 
         }
 
+        pre code {
+          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        }
+
         @media (max-width: 768px) {
           .image-modal-content {
             max-width: 95%;
