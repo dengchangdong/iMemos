@@ -932,7 +932,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   
                   if (!img.classList.contains('loaded')) {
                     // 如果图片已经加载完成
-                    if (img.complete) {
+                    if (img.complete && img.naturalWidth !== 0) {
                       img.classList.add('loaded');
                       if (img.parentNode) {
                         img.parentNode.classList.add('loaded');
