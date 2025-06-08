@@ -527,6 +527,9 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           font-size: 0.9rem;
           line-height: 1.5;
           white-space: pre;
+        }
+
+        pre:hover code {
           overflow: auto;
         }
         
