@@ -930,30 +930,15 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   }
                   
                   if (!img.classList.contains('loaded')) {
-                    // 如果图片已经加载完成
-                    if (img.complete && img.naturalWidth !== 0) {
+                    const markAsLoaded = () => {
                       img.classList.add('loaded');
                       if (img.parentNode) {
                         img.parentNode.classList.add('loaded');
                       }
-                    } else {
-                      // 否则等待加载
-                      img.addEventListener('load', function onLoad() {
-                        img.classList.add('loaded');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
-                        img.removeEventListener('load', onLoad);
-                      }, { once: true });
-                      
-                      // 处理加载错误
-                      img.addEventListener('error', function onError() {
-                        img.classList.add('loaded', 'error');
-                        if (img.parentNode) {
-                          img.parentNode.classList.add('loaded');
-                        }
-                        img.removeEventListener('error', onError);
-                      }, { once: true });
+                    };
+
+                    if (img.complete && img.naturalWidth !== 0) {
+                      markAsLoaded();
                     }
                   }
                 });
