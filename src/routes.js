@@ -1,16 +1,14 @@
-import { html } from 'hono/html';
 import { CONFIG } from './config.js';
 import { renderMemo } from './template.js';
 import { renderBaseHtml } from './template.js';
 import { simpleMarkdown } from './markdown.js';
 import { htmlTemplates } from './template.js';
-import { utils } from './utils.js';
 
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
   return renderBaseHtml(
-    c.env.SITE_NAME, 
-    htmlTemplates.errorPage(error), 
+    '错误', 
+    htmlTemplates.errorPage(error),
     c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
     c.env.NAV_LINKS,
     c.env.SITE_NAME
@@ -117,17 +115,14 @@ export const routes = {
       });
 
       const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
-      
-      // 生成HTML并压缩
-      const htmlContent = utils.minifyHtml(renderBaseHtml(
+
+      return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
         memosHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
-      ));
-
-      return new Response(htmlContent, {
+      ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
@@ -135,7 +130,7 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染首页失败:', error);
-      return new Response(utils.minifyHtml(renderErrorPage(error, c)), {
+      return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
@@ -150,30 +145,27 @@ export const routes = {
       
       // 未找到数据
       if (!data || !data.memo) {
-        return new Response(utils.minifyHtml(renderBaseHtml(
+        return new Response(renderBaseHtml(
           c.env.SITE_NAME, 
           htmlTemplates.notFoundPage(),
           c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
           c.env.NAV_LINKS,
           c.env.SITE_NAME
-        )), {
+        ), {
           headers: { 'Content-Type': 'text/html;charset=UTF-8' },
           status: 404
         });
       }
 
       const memoHtml = renderMemo(data.memo, false);
-      
-      // 生成HTML并压缩
-      const htmlContent = utils.minifyHtml(renderBaseHtml(
+
+      return new Response(renderBaseHtml(
         c.env.SITE_NAME, 
         memoHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
-      ));
-
-      return new Response(htmlContent, {
+      ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Cache-Control': 'public, max-age=1800' // 30分钟缓存
@@ -181,7 +173,7 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染文章页失败:', error);
-      return new Response(utils.minifyHtml(renderErrorPage(error, c)), {
+      return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });
@@ -203,17 +195,14 @@ export const routes = {
       });
 
       const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
-      
-      // 生成HTML并压缩
-      const htmlContent = utils.minifyHtml(renderBaseHtml(
+
+      return new Response(renderBaseHtml(
         `${tag} - ${c.env.SITE_NAME}`, 
         memosHtml, 
         c.env.FOOTER_TEXT || CONFIG.FOOTER_TEXT,
         c.env.NAV_LINKS,
         c.env.SITE_NAME
-      ));
-
-      return new Response(htmlContent, {
+      ), {
         headers: {
           'Content-Type': 'text/html;charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
@@ -221,7 +210,7 @@ export const routes = {
       });
     } catch (error) {
       console.error('渲染标签页失败:', error);
-      return new Response(utils.minifyHtml(renderErrorPage(error, c)), {
+      return new Response(renderErrorPage(error, c), {
         headers: { 'Content-Type': 'text/html;charset=UTF-8' },
         status: 500
       });

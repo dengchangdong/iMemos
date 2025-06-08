@@ -53,37 +53,5 @@ export const utils = {
   // 创建HTML元素（用于模板）
   createHtml(strings, ...values) {
     return String.raw({ raw: strings }, ...values);
-  },
-  
-  // 压缩HTML代码
-  minifyHtml(html) {
-    if (!html) return '';
-    
-    return html
-      // 删除HTML注释
-      .replace(/<!--(?![\s\S]*?sortable)[\s\S]*?-->/g, '')
-      // 删除CSS/JS注释
-      .replace(/\/\*[\s\S]*?\*\//g, '')
-      // 压缩CSS (简单压缩)
-      .replace(/([^0-9a-zA-Z\.#])\s+\{/g, '$1{')
-      .replace(/\;\s*\}/g, '}')
-      .replace(/\s*\:\s*/g, ':')
-      .replace(/\s*\;\s*/g, ';')
-      // 压缩JS (简单压缩)
-      .replace(/([,;{}()])\s+/g, '$1')
-      .replace(/\s+([,;{}()])/g, '$1')
-      // 合并多个空格
-      .replace(/\s{2,}/g, ' ')
-      // 合并多个空行
-      .replace(/\n{2,}/g, '\n')
-      // 删除行首尾空格
-      .replace(/^\s+|\s+$/gm, '')
-      // 删除标签间的空白(保留内联元素内的单个空格)
-      .replace(/>\s{2,}</g, '> <')
-      // 安全压缩 - 保留script和pre内容不变
-      .replace(/(<(pre|script|style|textarea)[^>]*>)([\s\S]*?)(<\/\2>)/gi, (match, start, tag, content, end) => {
-        // 保留pre和script标签内的内容不压缩
-        return start + content + end;
-      });
   }
 }; 

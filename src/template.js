@@ -176,7 +176,7 @@ export function renderMemo(memo, isHomePage = false) {
             onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
           />
           <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-            <i class="ri-image-line text-3xl"></i>
+            <i class="ri-image-line ${resources.length > 2 ? 'text-2xl' : 'text-3xl'}"></i>
           </div>
         </div>
       `;
@@ -271,7 +271,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName} - 博客">
         <meta name="theme-color" content="#209cff">
-        <meta name="api-host" content="${c.env?.API_HOST || window.location.origin}">
         
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
@@ -653,11 +652,8 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           position: absolute;
           top: 5px;
           right: 5px;
-          width: 32px;
-          height: 32px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+          padding: 4px 8px;
+          font-size: 12px;
           color: #4b5563;
           background-color: #e5e7eb;
           border: none;
@@ -717,16 +713,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
           </header>
           <main class="mt-8 relative">
             ${articlesHtml}
-            <div id="loading-more" class="my-6 text-center hidden">
-              <div class="inline-flex items-center justify-center space-x-2">
-                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
-                <div class="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
-              </div>
-            </div>
-            <div id="end-of-content" class="my-6 text-center hidden">
-              <p class="text-gray-500 dark:text-gray-400 text-sm">— 已加载全部内容 —</p>
-            </div>
             </main>
           </section>
         </div>
@@ -763,31 +749,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
         <script>
         // 使用自执行函数封装所有代码，避免污染全局作用域
         (function() {
-          // 使全局访问时间格式化和markdown函数
-          window.simpleMarkdown = function(text) {
-            // 简化的Markdown渲染，仅供JS内部使用
-            if (!text) return '';
-            
-            // 段落处理
-            let html = text
-              .replace(/```([a-z]*)\n([\s\S]*?)\n```/g, '<pre data-language="$1" class="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg overflow-auto my-4"><code class="language-$1">$2</code></pre>')
-              .replace(/`([^`]+)`/g, '<code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">$1</code>')
-              .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-              .replace(/\*(.*?)\*/g, '<em>$1</em>')
-              .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" class="rounded-lg max-w-full my-4" loading="lazy" data-preview="true" />')
-              .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">$1</a>')
-              .replace(/#([a-zA-Z0-9_\u4e00-\u9fa5]+)/g, '<a href="/tag/$1" class="text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors">#$1</a>');
-            
-            // 将多个换行符转换为段落分隔
-            const paragraphs = html.split('\n\n');
-            return paragraphs.map(para => {
-              if (para.trim() === '' || /^<(h[1-6]|pre|blockquote|ul|ol|div|p)/.test(para)) {
-                return para;
-              }
-              return `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${para.replace(/\n/g, '<br>')}</p>`;
-            }).join('\n');
-          };
-
           // 性能优化：使用变量缓存DOM元素和计算结果
           // 主题切换功能
           function initThemeToggle() {
@@ -1218,9 +1179,6 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             // 初始化Markdown增强和代码复制功能
             enhanceMarkdown();
             
-            // 初始化自动分页加载功能
-            initInfiniteScroll();
-            
             // 延迟初始化非关键功能
             initOnIdle();
           });
@@ -1234,7 +1192,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                 // 创建复制按钮
                 const button = document.createElement('button');
                 button.className = 'copy-btn';
-                button.innerHTML = '<i class="ri-file-copy-line"></i>';
+                button.textContent = '复制';
                 button.setAttribute('aria-label', '复制代码');
                 button.setAttribute('type', 'button');
                 
@@ -1246,12 +1204,12 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   // 使用Clipboard API复制
                   navigator.clipboard.writeText(code).then(() => {
                     // 复制成功
-                    button.innerHTML = '<i class="ri-check-line"></i>';
+                    button.textContent = '已复制!';
                     button.classList.add('copied');
                     
                     // 2秒后恢复原状
                     setTimeout(() => {
-                      button.innerHTML = '<i class="ri-file-copy-line"></i>';
+                      button.textContent = '复制';
                       button.classList.remove('copied');
                     }, 2000);
                   }).catch(err => {
@@ -1265,10 +1223,10 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                     
                     try {
                       document.execCommand('copy');
-                      button.innerHTML = '<i class="ri-check-line"></i>';
+                      button.textContent = '已复制!';
                       button.classList.add('copied');
                     } catch (e) {
-                      button.innerHTML = '<i class="ri-error-warning-line"></i>';
+                      button.textContent = '复制失败';
                       console.error('复制失败:', e);
                     }
                     
@@ -1276,7 +1234,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                     
                     // 恢复按钮状态
                     setTimeout(() => {
-                      button.innerHTML = '<i class="ri-file-copy-line"></i>';
+                      button.textContent = '复制';
                       button.classList.remove('copied');
                     }, 2000);
                   });
@@ -1327,234 +1285,9 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             // 初始化现有代码块
             initCodeCopyButtons();
           }
-
-          // 自动分页加载功能
-          function initInfiniteScroll() {
-            // 确保在首页才初始化无限滚动
-            if (window.location.pathname !== '/' && !window.location.pathname.includes('/tag/')) {
-              return;
-            }
-            
-            const mainContent = document.querySelector('main');
-            const loadingIndicator = document.getElementById('loading-more');
-            const endOfContent = document.getElementById('end-of-content');
-            
-            if (!mainContent || !loadingIndicator || !endOfContent) {
-              return;
-            }
-            
-            let page = 1;
-            let isLoading = false;
-            let hasMoreContent = true;
-            let apiHost = '';
-            let pageLimit = 10;
-            let currentTag = '';
-            
-            // 从URL中提取tag参数（如果有）
-            if (window.location.pathname.includes('/tag/')) {
-              currentTag = window.location.pathname.split('/tag/')[1] || '';
-            }
-            
-            // 尝试从环境变量或页面中获取API主机
-            try {
-              // 尝试从meta标签获取API主机
-              const apiHostMeta = document.querySelector('meta[name="api-host"]');
-              if (apiHostMeta) {
-                apiHost = apiHostMeta.getAttribute('content');
-              }
-            } catch (error) {
-              console.error('获取API主机失败:', error);
-            }
-            
-            // 如果未设置apiHost，尝试使用当前域名
-            if (!apiHost) {
-              apiHost = window.location.origin;
-            }
-            
-            // 获取下一页内容的函数
-            async function loadMoreContent() {
-              if (isLoading || !hasMoreContent) return;
-              
-              isLoading = true;
-              loadingIndicator.classList.remove('hidden');
-              
-              try {
-                // 计算偏移量
-                const offset = page * pageLimit;
-                
-                // 构建API URL
-                const apiUrl = `${apiHost}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${currentTag}&limit=${pageLimit}&offset=${offset}`;
-                
-                // 发送请求
-                const response = await fetch(apiUrl, {
-                  headers: {
-                    'Accept': 'application/json',
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-                  }
-                });
-                
-                if (!response.ok) {
-                  throw new Error(`API请求失败: ${response.status}`);
-                }
-                
-                // 解析数据
-                const memos = await response.json();
-                
-                // 检查是否还有更多内容
-                if (!memos || memos.length === 0) {
-                  hasMoreContent = false;
-                  endOfContent.classList.remove('hidden');
-                  loadingIndicator.classList.add('hidden');
-                  return;
-                }
-                
-                // 增加页码
-                page++;
-                
-                // 创建新内容的容器
-                const tempContainer = document.createElement('div');
-                
-                // 按时间降序排序memos
-                const sortedMemos = [...memos].sort((a, b) => {
-                  const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
-                  const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
-                  return timeB - timeA;
-                });
-                
-                // 渲染新的memo内容
-                for (const memo of sortedMemos) {
-                  const article = document.createElement('article');
-                  article.className = 'pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0';
-                  
-                  const timestamp = memo.createTime ? new Date(memo.createTime).getTime() : memo.createdTs * 1000;
-                  const formattedTime = formatTime(timestamp);
-                  
-                  // 根据是否在首页决定链接
-                  const articleUrl = `/post/${memo.name}`;
-                  
-                  // 创建文章HTML
-                  article.innerHTML = `
-                    <header>
-                      <a href="${articleUrl}" class="block">
-                        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-                      </a>
-                    </header>
-                    <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-                      ${simpleMarkdown(memo.content || '')}
-                    </section>
-                  `;
-                  
-                  // 添加资源(图片)处理
-                  const resources = memo.resources || memo.resourceList || [];
-                  if (resources.length > 0) {
-                    const resourcesContainer = document.createElement('figure');
-                    resourcesContainer.className = 'mt-4';
-                    
-                    // 根据图片数量决定布局
-                    if (resources.length === 1) {
-                      // 单张图片
-                      resourcesContainer.innerHTML = createImageHTML(resources[0], 'w-full aspect-video');
-                    } else if (resources.length === 2) {
-                      // 两张图片
-                      const imagesContainer = document.createElement('div');
-                      imagesContainer.className = 'flex flex-wrap gap-1';
-                      resources.forEach(resource => {
-                        imagesContainer.innerHTML += createImageHTML(resource, 'w-[calc(50%-2px)] aspect-square');
-                      });
-                      resourcesContainer.appendChild(imagesContainer);
-                    } else {
-                      // 三张或更多图片
-                      const imagesContainer = document.createElement('div');
-                      imagesContainer.className = 'grid grid-cols-3 gap-1';
-                      resources.forEach(resource => {
-                        imagesContainer.innerHTML += createImageHTML(resource);
-                      });
-                      resourcesContainer.appendChild(imagesContainer);
-                    }
-                    
-                    article.querySelector('.article-content').appendChild(resourcesContainer);
-                  }
-                  
-                  // 添加到临时容器
-                  tempContainer.appendChild(article);
-                }
-                
-                // 将新内容添加到主内容区域
-                Array.from(tempContainer.children).forEach(child => {
-                  mainContent.insertBefore(child, loadingIndicator);
-                });
-                
-                // 重新初始化图片查看器等功能
-                setupImageLoadHandlers();
-                enhanceMarkdown();
-                
-              } catch (error) {
-                console.error('加载更多内容失败:', error);
-                hasMoreContent = false;
-                endOfContent.classList.remove('hidden');
-              } finally {
-                isLoading = false;
-                loadingIndicator.classList.add('hidden');
-              }
-            }
-            
-            // 创建单个图片HTML的函数
-            function createImageHTML(resource, size = '') {
-              return `
-                <div class="${size} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden ${size ? '' : 'aspect-square'} image-container">
-                  <img 
-                    src="${resource.externalLink || ''}" 
-                    alt="${resource.filename || '图片'}"
-                    class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-                    loading="lazy"
-                    data-preview="true"
-                    onload="this.classList.add('loaded'); this.parentNode.classList.add('loaded')"
-                  />
-                  <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-                    <i class="ri-image-line text-3xl"></i>
-                  </div>
-                </div>
-              `;
-            }
-            
-            // 简易版时间格式化函数
-            function formatTime(timestamp) {
-              const now = new Date();
-              const date = new Date(timestamp);
-              const diff = now - date;
-              const minutes = Math.floor(diff / (1000 * 60));
-              const hours = Math.floor(diff / (1000 * 60 * 60));
-              
-              if (minutes < 1) return '刚刚';
-              if (minutes < 60) return `${minutes} 分钟前`;
-              if (hours < 24 && date.getDate() === now.getDate()) return `${hours} 小时前`;
-              
-              if (date.getFullYear() === now.getFullYear()) {
-                return date.toLocaleString('zh-CN', {
-                  month: '2-digit', day: '2-digit', hour: '2-digit', 
-                  minute: '2-digit', hour12: false
-                }).replace(/\//g, '-');
-              }
-              
-              return date.toLocaleString('zh-CN', {
-                year: 'numeric', month: '2-digit', day: '2-digit', 
-                hour: '2-digit', minute: '2-digit', hour12: false
-              }).replace(/\//g, '-');
-            }
-            
-            // 使用Intersection Observer监听滚动位置
-            const observer = new IntersectionObserver((entries) => {
-              if (entries[0].isIntersecting && !isLoading && hasMoreContent) {
-                loadMoreContent();
-              }
-            }, { rootMargin: '200px' });
-            
-            // 开始观察加载指示器
-            observer.observe(loadingIndicator);
-          }
         })();
         </script>
       </body>
     </html>
   `;
-}
+} 
