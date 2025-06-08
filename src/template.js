@@ -1286,13 +1286,12 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
             
             const loadingContainer = document.createElement('div');
             loadingContainer.className = 'loading-container';
-            loadingContainer.innerHTML = `
-              <div class="loading-animation">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
-              </div>
-            `;
+            loadingContainer.innerHTML = 
+              '<div class="loading-animation">' + 
+                '<div class="dot"></div>' + 
+                '<div class="dot"></div>' + 
+                '<div class="dot"></div>' + 
+              '</div>';
             loadingContainer.style.display = 'none';
             
             // 获取文章容器
@@ -1318,7 +1317,7 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
               try {
                 // 构建下一页URL
                 const nextPage = currentPage + 1;
-                const url = `/api/page/${nextPage}`;
+                const url = '/api/page/' + nextPage;
                 
                 // 获取下一页数据
                 const response = await fetch(url);
@@ -1356,16 +1355,15 @@ export function renderBaseHtml(title, content, footerText, navLinks, siteName) {
                   });
                   
                   // 构建文章内容HTML
-                  article.innerHTML = `
-                    <header>
-                      <a href="/post/${memo.name || memo.id}" class="block">
-                        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-                      </a>
-                    </header>
-                    <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-                      ${memo.content}
-                    </section>
-                  `;
+                  article.innerHTML = 
+                    '<header>' +
+                      '<a href="/post/' + (memo.name || memo.id) + '" class="block">' +
+                        '<time datetime="' + new Date(timestamp).toISOString() + '" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">' + formattedTime + '</time>' +
+                      '</a>' +
+                    '</header>' +
+                    '<section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">' +
+                      memo.content +
+                    '</section>';
                   
                   fragment.appendChild(article);
                 });
