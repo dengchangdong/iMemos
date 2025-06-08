@@ -509,30 +509,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
         }
         
-        /* 代码块样式 */
-        pre {
-          position: relative;
-          background-color: #f8f9fa;
-          border-radius: 6px;
-          margin: 1rem 0;
-          padding: 1rem;
-        }
-        
-        .dark pre {
-          background-color: #1e293b;
-        }
-        
-        pre code {
-          font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-          font-size: 0.9rem;
-          line-height: 1.5;
-          white-space: pre;
-        }
-
-        pre:hover code {
-          overflow: auto;
-        }
-        
         /* 代码块顶部栏 */
         .code-header {
           display: flex;
