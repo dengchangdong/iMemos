@@ -921,8 +921,20 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                       }
                     };
 
+                    // 更可靠的图片加载检测
                     if (img.complete && img.naturalWidth !== 0) {
+                      // 对于已经缓存的图片
                       markAsLoaded();
+                    } else {
+                      // 对于未缓存的图片，添加事件监听
+                      img.addEventListener('load', function onLoad() {
+                        markAsLoaded();
+                        img.removeEventListener('load', onLoad);
+                      });
+                      img.addEventListener('error', function onError() {
+                        console.error('图片加载失败:', img.src || img.dataset.src);
+                        img.removeEventListener('error', onError);
+                      });
                     }
                   }
                 });
@@ -1352,4 +1364,4 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       </body>
     </html>
   `;
-} 
+}
