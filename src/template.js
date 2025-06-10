@@ -913,26 +913,28 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     }
                   }
                   
-                  if (!img.classList.contains('loaded')) {
-                    const markAsLoaded = () => {
-                      img.classList.add('loaded');
+                  const markAsLoaded = () => {
+                    img.classList.add('loaded');
+                    if (img.parentNode) {
+                      img.parentNode.classList.add('loaded');
+                    }
+                    // 在图片加载完成后，移除加载占位符的动画效果
+                    const imagePlaceholder = img.parentNode.querySelector('.image-placeholder')
+                    if (imagePlaceholder) {
+                      imagePlaceholder.style.animation = "none"
+                    }
+                  };
+
+                  if (img.complete && img.naturalWidth !== 0) {
+                    markAsLoaded(); // 保留这行代码，处理缓存情况
+                  } else {
+                    img.onload = markAsLoaded; // 添加 onload 事件处理程序
+                    img.onerror = function() { // 添加错误处理，防止加载失败时指示器一直显示
+                      console.error('图片加载失败:', img.src);
                       if (img.parentNode) {
-                        img.parentNode.classList.add('loaded');
+                        img.parentNode.classList.add('loaded'); // 即使加载失败也添加 loaded 类，隐藏指示器
                       }
                     };
-
-                    if (img.complete && img.naturalWidth !== 0) {
-                      markAsLoaded();
-                    } else {
-                      const loadHandler = () => {
-                        markAsLoaded();
-                        img.removeEventListener('load', loadHandler);
-                      };
-                      img.addEventListener('load', loadHandler);
-                      img.addEventListener('error', () => {
-                        console.error('图片加载失败:', img.src);
-                      });
-                    }
                   }
                 });
               });
@@ -1361,4 +1363,4 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       </body>
     </html>
   `;
-}
+} 
