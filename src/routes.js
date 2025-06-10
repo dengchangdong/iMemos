@@ -4,24 +4,6 @@ import { renderBaseHtml } from './template.js';
 import { simpleMarkdown } from './markdown.js';
 import { htmlTemplates } from './template.js';
 
-// robots.txt路由 - 禁止搜索引擎抓取
-export async function robotsHandler(c) {
-  return c.text('User-agent: *\nDisallow: /', 200, {
-    'Content-Type': 'text/plain'
-  });
-}
-
-export default {
-  home,
-  page,
-  post,
-  tag,
-  api,
-  offline,
-  offlineImage,
-  robotsHandler
-}
-
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
   return renderBaseHtml(
@@ -119,6 +101,13 @@ export const apiHandler = {
 
 // 路由处理 - 优化路由模块化
 export const routes = {
+  // robots.txt路由 - 禁止所有搜索引擎抓取
+  async robots(c) {
+    return new Response('User-agent: *\nDisallow: /', {
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  },
+  
   // 主页路由处理
   async home(c) {
     try {
