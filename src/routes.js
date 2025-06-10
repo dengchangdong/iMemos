@@ -4,6 +4,13 @@ import { renderBaseHtml } from './template.js';
 import { simpleMarkdown } from './markdown.js';
 import { htmlTemplates } from './template.js';
 
+// robots.txt路由 - 禁止搜索引擎抓取
+export async function robotsHandler(c) {
+  return c.text('User-agent: *\nDisallow: /', 200, {
+    'Content-Type': 'text/plain'
+  });
+}
+
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
   return renderBaseHtml(
@@ -351,4 +358,4 @@ export const routes = {
       }
     });
   }
-}; 
+};
