@@ -661,7 +661,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         aria-modal="true" 
         aria-label="图片预览"
       >
-        <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+        <div class="image-modal-content relative max-w-[90%] max-h-[90%] w-[90vw] h-[90vh] will-change-transform transform-gpu">
           <button 
             class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
             aria-label="关闭预览"
@@ -922,21 +922,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     };
 
                     if (img.complete && img.naturalWidth !== 0) {
-                      // 确保图片已完全加载
-                      img.decode().then(() => {
-                        markAsLoaded();
-                      }).catch(() => {
-                        // 即使解码失败也标记为加载完成
-                        markAsLoaded();
-                      });
-                    } else {
-                      // 添加load事件监听器
-                      img.addEventListener('load', () => {
-                        markAsLoaded();
-                      });
-                      img.addEventListener('error', () => {
-                        markAsLoaded();
-                      });
+                      markAsLoaded();
                     }
                   }
                 });
