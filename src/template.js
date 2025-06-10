@@ -921,28 +921,20 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                       }
                     };
 
-                    // 确保图片完全加载后再添加loaded类
-                    if (img.complete && img.naturalWidth !== 0) {
-                      // 对于已缓存的图片
+                    // 完全依赖load事件确保图片加载完成
+                    const loadHandler = () => {
                       markAsLoaded();
-                    } else {
-                      // 对于未加载完成的图片
-                      const loadHandler = () => {
-                        if (img.complete && img.naturalWidth !== 0) {
-                          markAsLoaded();
-                          img.removeEventListener('load', loadHandler);
-                          img.removeEventListener('error', errorHandler);
-                        }
-                      };
-                      
-                      const errorHandler = () => {
-                        img.removeEventListener('load', loadHandler);
-                        img.removeEventListener('error', errorHandler);
-                      };
-                      
-                      img.addEventListener('load', loadHandler);
-                      img.addEventListener('error', errorHandler);
-                    }
+                      img.removeEventListener('load', loadHandler);
+                      img.removeEventListener('error', errorHandler);
+                    };
+                    
+                    const errorHandler = () => {
+                      img.removeEventListener('load', loadHandler);
+                      img.removeEventListener('error', errorHandler);
+                    };
+                    
+                    img.addEventListener('load', loadHandler);
+                    img.addEventListener('error', errorHandler);
                   }
                 });
               });
