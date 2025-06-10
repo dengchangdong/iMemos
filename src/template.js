@@ -921,21 +921,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                       }
                     };
 
-                    const handleError = () => {
-                      img.classList.add('error');
-                      img.removeEventListener('load', markAsLoaded);
-                      img.removeEventListener('error', handleError);
-                    };
-
                     if (img.complete && img.naturalWidth !== 0) {
-                      if ('decode' in img) {
-                        img.decode().then(markAsLoaded).catch(handleError);
-                      } else {
-                        markAsLoaded();
-                      }
+                      markAsLoaded();
                     } else {
-                      img.addEventListener('load', markAsLoaded);
-                      img.addEventListener('error', handleError);
+                      const loadHandler = () => {
+                        markAsLoaded();
+                        img.removeEventListener('load', loadHandler);
+                      };
+                      img.addEventListener('load', loadHandler);
+                      img.addEventListener('error', () => {
+                        console.error('图片加载失败:', img.src);
+                      });
                     }
                   }
                 });
