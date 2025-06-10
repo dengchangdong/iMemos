@@ -11,6 +11,17 @@ export async function robotsHandler(c) {
   });
 }
 
+export default {
+  home,
+  page,
+  post,
+  tag,
+  api,
+  offline,
+  offlineImage,
+  robotsHandler
+}
+
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
   return renderBaseHtml(
