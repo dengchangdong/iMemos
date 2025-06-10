@@ -921,20 +921,21 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                       }
                     };
 
-                    // 完全依赖load事件确保图片加载完成
-                    const loadHandler = () => {
+                    if (img.complete && img.naturalWidth !== 0) {
                       markAsLoaded();
-                      img.removeEventListener('load', loadHandler);
-                      img.removeEventListener('error', errorHandler);
-                    };
-                    
-                    const errorHandler = () => {
-                      img.removeEventListener('load', loadHandler);
-                      img.removeEventListener('error', errorHandler);
-                    };
-                    
-                    img.addEventListener('load', loadHandler);
-                    img.addEventListener('error', errorHandler);
+                    } else {
+                      img.onload = function() {
+                        if (this.naturalWidth !== 0) {
+                          markAsLoaded();
+                        }
+                        this.onload = null; // 避免内存泄漏
+                      };
+                      
+                      img.onerror = function() {
+                        console.error('图片加载失败:', this.src);
+                        this.onerror = null; // 避免内存泄漏
+                      };
+                    }
                   }
                 });
               });
