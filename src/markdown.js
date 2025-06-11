@@ -26,10 +26,10 @@ export const markdownRenderer = {
       text.includes('github.com') || 
       text.includes('mp.weixin.qq.com');
     
-    // 处理流程
+    // 三步处理流程
     const markdown = this.ensureMarkdown(text);
     
-    // 根据内容特点选择处理顺序
+    // 先处理特殊链接再渲染Markdown (如果包含特殊链接)
     let html;
     if (containsSpecialLinks) {
       // 先处理特殊链接，避免被Markdown渲染破坏
@@ -39,6 +39,8 @@ export const markdownRenderer = {
     } else {
       // 正常渲染Markdown
       html = this.renderToHtml(markdown);
+      // 再处理特殊链接
+      html = this.processSpecialLinks(html);
     }
     
     // 存入缓存
@@ -63,7 +65,8 @@ export const markdownRenderer = {
       return text;
     }
     
-    // 否则直接返回原文本
+    // 否则尝试将纯文本转换为简单的Markdown
+    // 目前实现简单返回，未来可以添加自动格式化
     return text;
   },
   
@@ -139,9 +142,6 @@ export const markdownRenderer = {
       return `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${para.replace(/\n/g, '<br>')}</p>`;
     }).join('\n');
     
-    // 处理特殊链接
-    html = this.processSpecialLinks(html);
-    
     return html;
   },
   
@@ -152,17 +152,22 @@ export const markdownRenderer = {
       return html;
     }
     
-    // 创建通用的链接处理函数
-    const processLink = (regex, processor) => {
+    // 统一的链接处理函数 - 添加标记以防止重复处理
+    const processLink = (regex, linkProcessor) => {
+      // 在处理前添加一个标记，防止重复处理同一链接
       const processedMarker = {};
       
       html = html.replace(new RegExp(regex.source, 'g'), (match, ...args) => {
         // 生成唯一ID来标记这个匹配
         const markerId = match.slice(0, 20) + (args[0] || '');
         
-        // 检查是否已处理过这个匹配或在a标签内
-        if (processedMarker[markerId] || 
-            new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html)) {
+        // 检查是否已处理过这个匹配
+        if (processedMarker[markerId]) {
+          return match;
+        }
+        
+        // 检查链接是否已在a标签内
+        if (new RegExp(`href=["']${match.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}["']`).test(html)) {
           return match;
         }
         
@@ -170,9 +175,63 @@ export const markdownRenderer = {
         processedMarker[markerId] = true;
         
         try {
-          return processor(match, ...args);
+          return linkProcessor(match, ...args);
         } catch (error) {
           console.error('链接处理错误:', error, match, args);
+          return match;
+        }
+      });
+      return html;
+    };
+    
+    // 媒体嵌入处理函数 - 添加标记以防止重复处理
+    const processMediaEmbed = (regex, createEmbedHTML) => {
+      // 在处理前添加一个标记，防止重复处理同一链接
+      const processedMarker = {};
+      
+      html = html.replace(new RegExp(regex.source, 'g'), (match, ...args) => {
+        // 生成唯一ID来标记这个匹配
+        const markerId = match.slice(0, 20) + (args[0] || '');
+        
+        // 检查是否已处理过这个匹配
+        if (processedMarker[markerId]) {
+          return match;
+        }
+        
+        // 标记为已处理
+        processedMarker[markerId] = true;
+        
+        try {
+          // 取出正则表达式捕获的值用于生成嵌入源
+          const embedSrc = typeof createEmbedHTML.embedSrc === 'function' 
+            ? createEmbedHTML.embedSrc(match, ...args) 
+            : '';
+          
+          // 检查是否已经嵌入
+          if (html.includes(`src="${embedSrc}"`) || 
+              html.includes(`src="${embedSrc.replace('http:', '')}"`)) {
+            return match;
+          }
+          
+          // 确保有有效的嵌入源
+          if (!embedSrc) {
+            console.error('无法生成嵌入源:', match, args);
+            return match;
+          }
+          
+          // 抖音视频需要特殊的容器样式
+          const isDouyin = embedSrc.includes('open.douyin.com');
+          const containerClass = isDouyin 
+            ? `${CONFIG.CSS.EMBED_CONTAINER} douyin-container` 
+            : CONFIG.CSS.EMBED_CONTAINER;
+          
+          return utils.createHtml`<div class="${containerClass}">
+            <iframe src="${embedSrc}" 
+                    ${createEmbedHTML.attributes || ''}
+                    loading="lazy"></iframe>
+          </div>`;
+        } catch (error) {
+          console.error('嵌入处理错误:', error, match, args);
           return match;
         }
       });
@@ -180,98 +239,118 @@ export const markdownRenderer = {
       return html;
     };
     
-    // 处理微信公众号链接
+    // 微信公众号链接处理（Markdown格式）
     html = processLink(CONFIG.REGEX.WECHAT_MD, (match, title, url) => {
       return this.createWechatCard(url, title);
     });
     
+    // 处理非Markdown格式的微信公众号链接
     html = processLink(CONFIG.REGEX.WECHAT, (match) => {
-      return this.createWechatCard(match);
+      return this.createWechatCard(match, '微信公众号文章');
     });
     
-    // 处理视频和音频嵌入
-    const embedHandlers = [
-      {
-        regex: CONFIG.REGEX.YOUTUBE,
-        createEmbed: (match, videoId) => {
-          if (!videoId) return match;
-          const embedSrc = `https://www.youtube.com/embed/${videoId}?autoplay=0`;
-          return this.createEmbedHTML(embedSrc, 'w-full aspect-video', 'frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen');
+    // 处理YouTube视频
+    html = processMediaEmbed(CONFIG.REGEX.YOUTUBE, {
+      embedSrc: function(match, videoId) {
+        // 确保videoId有效
+        if (!videoId || typeof videoId !== 'string') {
+          console.error('无效的YouTube视频ID:', videoId);
+          return '';
         }
+        return `https://www.youtube.com/embed/${videoId}?autoplay=0`;
       },
-      {
-        regex: CONFIG.REGEX.BILIBILI,
-        createEmbed: (match, avid, bvid) => {
-          const id = bvid || avid;
-          if (!id) return match;
-          const embedSrc = `https://player.bilibili.com/player.html?${bvid ? 'bvid=' + bvid : 'aid=' + avid.replace('av', '')}&high_quality=1`;
-          return this.createEmbedHTML(embedSrc, 'w-full aspect-video');
-        }
-      },
-      {
-        regex: CONFIG.REGEX.DOUYIN,
-        createEmbed: (match, vid1, vid2) => {
-          const vid = vid1 || vid2;
-          if (!vid) return match;
-          const embedSrc = `https://www.douyin.com/video/${vid}`;
-          return this.createEmbedHTML(embedSrc, 'w-full aspect-video douyin-container');
-        }
-      },
-      {
-        regex: CONFIG.REGEX.TIKTOK,
-        createEmbed: (match, vid) => {
-          if (!vid) return match;
-          const embedSrc = `https://www.tiktok.com/embed/v2/${vid}`;
-          return this.createEmbedHTML(embedSrc, 'w-full aspect-video');
-        }
-      },
-      {
-        regex: CONFIG.REGEX.NETEASE,
-        createEmbed: (match, songId) => {
-          if (!songId) return match;
-          const embedSrc = `https://music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66`;
-          return this.createEmbedHTML(embedSrc, 'w-full h-24');
-        }
-      },
-      {
-        regex: CONFIG.REGEX.GITHUB,
-        createEmbed: (match, repo) => {
-          if (!repo) return match;
-          return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
-            <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-            </svg>
-            <a href="${match}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK} flex-1 truncate">
-              ${repo}
-            </a>
-          </div>`;
-        }
-      }
-    ];
+      attributes: 'class="w-full aspect-video" frameborder="0" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen'
+    });
     
-    // 处理所有嵌入类型
-    embedHandlers.forEach(handler => {
-      html = processLink(handler.regex, handler.createEmbed);
+    // 处理Bilibili视频
+    html = processMediaEmbed(CONFIG.REGEX.BILIBILI, {
+      embedSrc: function(match, avid, bvid) {
+        // 优先使用BV号
+        if (bvid && typeof bvid === 'string') {
+          return `https://player.bilibili.com/player.html?bvid=${bvid}&high_quality=1&danmaku=0&autoplay=0`;
+        } 
+        // 然后尝试使用av号
+        else if (avid && typeof avid === 'string') {
+          // 移除'av'前缀(如果有的话)
+          const aid = avid.startsWith('av') ? avid.slice(2) : avid;
+          return `https://player.bilibili.com/player.html?aid=${aid}&high_quality=1&danmaku=0&autoplay=0`;
+        } 
+        else {
+          console.error('无法识别的Bilibili视频链接:', match);
+          return '';
+        }
+      },
+      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups" referrerpolicy="no-referrer"'
+    });
+    
+    // 处理抖音视频
+    html = processMediaEmbed(CONFIG.REGEX.DOUYIN, {
+      embedSrc: function(match, videoId, vidParam) {
+        // 使用视频ID或vid参数
+        const finalVideoId = videoId || vidParam;
+        if (!finalVideoId || typeof finalVideoId !== 'string') {
+          console.error('无效的抖音视频ID:', match);
+          return '';
+        }
+        return `https://open.douyin.com/player/video?vid=${finalVideoId}&autoplay=0`;
+      },
+      attributes: 'style="aspect-ratio: .4821; width: min(324px, 100%); margin: auto;" scrolling="no" frameborder="no" allowfullscreen referrerpolicy="unsafe-url"'
+    });
+    
+    // 处理TikTok视频
+    html = processMediaEmbed(CONFIG.REGEX.TIKTOK, {
+      embedSrc: function(match, videoId) {
+        if (!videoId || typeof videoId !== 'string') {
+          return '';
+        }
+        return `https://www.tiktok.com/embed/v2/${videoId}?autoplay=0`;
+      },
+      attributes: 'class="w-full aspect-video" scrolling="no" frameborder="no" allowfullscreen'
+    });
+    
+    // 处理网易云音乐
+    html = processMediaEmbed(CONFIG.REGEX.NETEASE, {
+      embedSrc: function(match, songId) {
+        if (!songId || typeof songId !== 'string') {
+          return '';
+        }
+        return `//music.163.com/outchain/player?type=2&id=${songId}&auto=0&height=66`;
+      },
+      attributes: 'class="w-full h-[86px]" frameborder="no" border="0" marginwidth="0" marginheight="0"'
+    });
+    
+    // 处理GitHub仓库
+    html = processLink(CONFIG.REGEX.GITHUB, (match, repo) => {
+      return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
+        <svg class="w-6 h-6 text-gray-700 dark:text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        <a href="${match}" target="_blank" rel="noopener noreferrer" class="${CONFIG.CSS.LINK}">
+          ${repo}
+        </a>
+      </div>`;
     });
     
     return html;
   },
   
-  // 创建嵌入HTML
-  createEmbedHTML(embedSrc, containerClass = '', attributes = '') {
-    const cssClass = containerClass ? `${CONFIG.CSS.EMBED_CONTAINER} ${containerClass}` : CONFIG.CSS.EMBED_CONTAINER;
-    
-    return utils.createHtml`<div class="${cssClass}">
-      <iframe src="${embedSrc}" ${attributes} loading="lazy"></iframe>
-    </div>`;
-  },
-  
-  // 创建微信卡片
+  // 创建微信公众号卡片
   createWechatCard(url, title = '微信公众号文章') {
-    // URL编码，避免特殊字符问题
-    url = url.replace(/[^a-zA-Z0-9-_.~]/g, match => {
-      const code = match.charCodeAt(0);
-      return '%' + (code < 16 ? '0' : '') + code.toString(16).toUpperCase();
+    if (!url || typeof url !== 'string') {
+      console.error('无效的微信公众号URL:', url);
+      return '';
+    }
+    
+    // 确保URL是安全的，但不进行HTML实体编码
+    // 仅过滤掉可能导致XSS的尖括号和引号
+    url = url.replace(/[<>"']/g, match => {
+      switch (match) {
+        case '<': return '%3C';
+        case '>': return '%3E';
+        case '"': return '%22';
+        case "'": return '%27';
+        default: return match;
+      }
     });
     
     title = title.replace(/[<>"']/g, '');
@@ -287,8 +366,7 @@ export const markdownRenderer = {
   }
 };
 
-// 简化版Markdown渲染，用于不需要缓存的场景
+// 简化外部调用接口
 export function simpleMarkdown(text) {
-  if (!text) return '';
   return markdownRenderer.render(text);
 } 
