@@ -191,14 +191,14 @@ export const routes = {
         '' // 无标签
       ), {
         headers: {
-          'Content-Type': 'text/html;charset=UTF-8',
+          'Content-Type': 'text/html; charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
         }
       });
     } catch (error) {
       console.error('渲染首页失败:', error);
       return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
         status: 500
       });
     }
@@ -216,7 +216,7 @@ export const routes = {
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
-          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
           status: 404
         });
       }
@@ -233,7 +233,7 @@ export const routes = {
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
-          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
           status: 404
         });
       }
@@ -256,14 +256,14 @@ export const routes = {
         '' // 无标签
       ), {
         headers: {
-          'Content-Type': 'text/html;charset=UTF-8',
+          'Content-Type': 'text/html; charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
         }
       });
     } catch (error) {
       console.error('渲染分页失败:', error);
       return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
         status: 500
       });
     }
@@ -283,7 +283,7 @@ export const routes = {
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
-          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
           status: 404
         });
       }
@@ -297,14 +297,14 @@ export const routes = {
         c.env.SITE_NAME
       ), {
         headers: {
-          'Content-Type': 'text/html;charset=UTF-8',
+          'Content-Type': 'text/html; charset=UTF-8',
           'Cache-Control': 'public, max-age=1800' // 30分钟缓存
         }
       });
     } catch (error) {
       console.error('渲染文章页失败:', error);
       return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
         status: 500
       });
     }
@@ -322,7 +322,7 @@ export const routes = {
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
-          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
           status: 404
         });
       }
@@ -344,7 +344,7 @@ export const routes = {
           c.env.NAV_LINKS,
           c.env.SITE_NAME
         ), {
-          headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
           status: 404
         });
       }
@@ -367,14 +367,14 @@ export const routes = {
         tagName // 标签名
       ), {
         headers: {
-          'Content-Type': 'text/html;charset=UTF-8',
+          'Content-Type': 'text/html; charset=UTF-8',
           'Cache-Control': 'public, max-age=300' // 5分钟缓存
         }
       });
     } catch (error) {
       console.error('渲染标签页失败:', error);
       return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html;charset=UTF-8' },
+        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
         status: 500
       });
     }
@@ -403,7 +403,7 @@ export const routes = {
   offline(c) {
     return new Response(htmlTemplates.offlinePage(c.env.SITE_NAME), {
       headers: {
-        'Content-Type': 'text/html;charset=UTF-8',
+        'Content-Type': 'text/html; charset=UTF-8',
         'Cache-Control': 'public, max-age=2592000'
       }
     });
@@ -412,7 +412,14 @@ export const routes = {
   // 离线图片占位符
   offlineImage(c) {
     // 使用模板中的透明像素Base64数据
-    return new Response(Buffer.from(htmlTemplates.offlineImage(), 'base64'), {
+    const base64Data = htmlTemplates.offlineImage();
+    const binaryData = atob(base64Data);
+    const bytes = new Uint8Array(binaryData.length);
+    for (let i = 0; i < binaryData.length; i++) {
+      bytes[i] = binaryData.charCodeAt(i);
+    }
+    
+    return new Response(bytes, {
       headers: {
         'Content-Type': 'image/png',
         'Cache-Control': 'public, max-age=2592000'
