@@ -894,6 +894,55 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               return Array.from(article.querySelectorAll('[data-preview="true"]'));
             }
             
+            // 显示图片 - 性能优化：减少重绘
+            function showImage(img, index) {
+              if (isModalActive) return; // 防止重复操作
+              
+              isModalActive = true;
+              currentIndex = index;
+              
+              // 批量更新DOM
+              requestAnimationFrame(() => {
+                // 显示加载指示器
+                loadingIndicator.style.display = 'flex';
+                modalImg.classList.remove('loaded');
+                
+                // 重要：先检查图片是否已经加载过，如果加载过则复用已有的图片数据，避免重新加载
+                const originalSrc = img.getAttribute('data-src') || img.src;
+                
+                // 如果图片已经加载完成，直接使用它的src，否则使用data-src
+                if (img.complete && img.naturalWidth > 0) {
+                  modalImg.src = img.src;
+                } else {
+                  modalImg.src = originalSrc;
+                }
+                
+                modalImg.alt = img.alt || '预览图片';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // 禁止背景滚动
+                
+                // 图片加载完成后隐藏加载指示器
+                if (modalImg.complete && modalImg.naturalWidth > 0) {
+                  // 图片已经加载完成
+                  modalImg.classList.add('loaded');
+                  loadingIndicator.style.display = 'none';
+                } else {
+                  // 图片尚未加载完成，添加事件监听器
+                  modalImg.onload = function() {
+                    modalImg.classList.add('loaded');
+                    loadingIndicator.style.display = 'none';
+                  };
+                  
+                  modalImg.onerror = function() {
+                    loadingIndicator.style.display = 'none';
+                    // 可以在这里显示错误信息
+                  };
+                }
+                
+                updateNavigationButtons();
+              });
+            }
+            
             // 为所有图片添加加载事件 - 性能优化：批量处理
             function setupImageLoadHandlers() {
               // 收集所有需要处理的图片
@@ -912,107 +961,32 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     }
                   }
                   
+                  // 确保只在图片实际加载完成后才添加loaded类
                   if (!img.classList.contains('loaded')) {
                     const markAsLoaded = () => {
-                      img.classList.add('loaded');
-                      if (img.parentNode) {
-                        img.parentNode.classList.add('loaded');
+                      // 只有当图片真正加载完成且有有效尺寸时才标记为已加载
+                      if (img.complete && img.naturalWidth > 0) {
+                        img.classList.add('loaded');
+                        if (img.parentNode) {
+                          img.parentNode.classList.add('loaded');
+                        }
                       }
                     };
 
-                    if (img.complete && img.naturalWidth !== 0) {
-                      markAsLoaded();
+                    // 如果图片已经加载完成
+                    if (img.complete) {
+                      if (img.naturalWidth > 0) {
+                        markAsLoaded();
+                      }
+                    } else {
+                      // 添加加载事件监听器
+                      img.addEventListener('load', markAsLoaded);
+                      img.addEventListener('error', () => {
+                        // 处理加载错误的情况
+                        console.error('Image failed to load:', img.src);
+                      });
                     }
                   }
-                });
-              });
-            }
-            
-            // 性能优化：使用事件委托处理点击
-            function setupImageClickHandlers() {
-              // 使用事件委托，将点击事件绑定到document
-              document.addEventListener('click', (e) => {
-                // 查找被点击的图片或图片容器
-                const img = e.target.closest('[data-preview="true"]');
-                const container = e.target.closest('.image-container');
-                
-                if (img) {
-                  e.preventDefault();
-                  // 获取当前文章中的所有图片
-                  currentArticleImages = getImagesInCurrentArticle(img);
-                  const index = currentArticleImages.indexOf(img);
-                  if (index !== -1) {
-                    showImage(img, index);
-                  }
-                } else if (container) {
-                  e.preventDefault();
-                  const containerImg = container.querySelector('[data-preview="true"]');
-                  if (containerImg) {
-                    // 获取当前文章中的所有图片
-                    currentArticleImages = getImagesInCurrentArticle(containerImg);
-                    const imgIndex = currentArticleImages.indexOf(containerImg);
-                    if (imgIndex !== -1) {
-                      showImage(containerImg, imgIndex);
-                    }
-                  }
-                }
-              }, { passive: false });
-            }
-            
-            // 显示图片 - 性能优化：减少重绘
-            function showImage(img, index) {
-              if (isModalActive) return; // 防止重复操作
-              
-              isModalActive = true;
-              currentIndex = index;
-              
-              // 批量更新DOM
-              requestAnimationFrame(() => {
-                // 显示加载指示器
-                loadingIndicator.style.display = 'flex';
-                modalImg.classList.remove('loaded');
-                
-                // 设置图片源
-                modalImg.src = img.getAttribute('data-src') || img.src;
-                modalImg.alt = img.alt || '预览图片';
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // 禁止背景滚动
-                
-                // 图片加载完成后隐藏加载指示器
-                if (modalImg.complete) {
-                  modalImg.classList.add('loaded');
-                  loadingIndicator.style.display = 'none';
-                } else {
-                  modalImg.onload = function() {
-                    modalImg.classList.add('loaded');
-                    loadingIndicator.style.display = 'none';
-                  };
-                  
-                  modalImg.onerror = function() {
-                    loadingIndicator.style.display = 'none';
-                    // 可以在这里显示错误信息
-                  };
-                }
-                
-                updateNavigationButtons();
-              });
-            }
-            
-            // 更新导航按钮显示状态 - 性能优化：批量更新DOM
-            function updateNavigationButtons() {
-              const hasMultipleImages = currentArticleImages.length > 1;
-              
-              requestAnimationFrame(() => {
-                prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
-                nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
-                
-                // 添加调试信息
-                console.log('Navigation buttons updated:', {
-                  imagesCount: currentArticleImages.length,
-                  currentIndex: currentIndex,
-                  show: hasMultipleImages,
-                  prevDisplay: prevBtn.style.display,
-                  nextDisplay: nextBtn.style.display
                 });
               });
             }
@@ -1047,10 +1021,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               // 直接更新当前图片，而不是重新调用showImage以避免状态重置
               loadingIndicator.style.display = 'flex';
               modalImg.classList.remove('loaded');
-              modalImg.src = prevImg.getAttribute('data-src') || prevImg.src;
+              
+              // 重要：检查图片是否已经加载过，避免重新加载
+              if (prevImg.complete && prevImg.naturalWidth > 0) {
+                modalImg.src = prevImg.src;
+              } else {
+                modalImg.src = prevImg.getAttribute('data-src') || prevImg.src;
+              }
+              
               modalImg.alt = prevImg.alt || '预览图片';
               
-              if (modalImg.complete) {
+              if (modalImg.complete && modalImg.naturalWidth > 0) {
                 modalImg.classList.add('loaded');
                 loadingIndicator.style.display = 'none';
               } else {
@@ -1094,10 +1075,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               // 直接更新当前图片，而不是重新调用showImage以避免状态重置
               loadingIndicator.style.display = 'flex';
               modalImg.classList.remove('loaded');
-              modalImg.src = nextImg.getAttribute('data-src') || nextImg.src;
+              
+              // 重要：检查图片是否已经加载过，避免重新加载
+              if (nextImg.complete && nextImg.naturalWidth > 0) {
+                modalImg.src = nextImg.src;
+              } else {
+                modalImg.src = nextImg.getAttribute('data-src') || nextImg.src;
+              }
+              
               modalImg.alt = nextImg.alt || '预览图片';
               
-              if (modalImg.complete) {
+              if (modalImg.complete && modalImg.naturalWidth > 0) {
                 modalImg.classList.add('loaded');
                 loadingIndicator.style.display = 'none';
               } else {
@@ -1110,7 +1098,57 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 };
               }
             }
+            
+            // 更新导航按钮显示状态 - 性能优化：批量更新DOM
+            function updateNavigationButtons() {
+              const hasMultipleImages = currentArticleImages.length > 1;
               
+              requestAnimationFrame(() => {
+                prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
+                nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
+                
+                // 添加调试信息
+                console.log('Navigation buttons updated:', {
+                  imagesCount: currentArticleImages.length,
+                  currentIndex: currentIndex,
+                  show: hasMultipleImages,
+                  prevDisplay: prevBtn.style.display,
+                  nextDisplay: nextBtn.style.display
+                });
+              });
+            }
+            
+            // 性能优化：使用事件委托处理点击
+            function setupImageClickHandlers() {
+              // 使用事件委托，将点击事件绑定到document
+              document.addEventListener('click', (e) => {
+                // 查找被点击的图片或图片容器
+                const img = e.target.closest('[data-preview="true"]');
+                const container = e.target.closest('.image-container');
+                
+                if (img) {
+                  e.preventDefault();
+                  // 获取当前文章中的所有图片
+                  currentArticleImages = getImagesInCurrentArticle(img);
+                  const index = currentArticleImages.indexOf(img);
+                  if (index !== -1) {
+                    showImage(img, index);
+                  }
+                } else if (container) {
+                  e.preventDefault();
+                  const containerImg = container.querySelector('[data-preview="true"]');
+                  if (containerImg) {
+                    // 获取当前文章中的所有图片
+                    currentArticleImages = getImagesInCurrentArticle(containerImg);
+                    const imgIndex = currentArticleImages.indexOf(containerImg);
+                    if (imgIndex !== -1) {
+                      showImage(containerImg, imgIndex);
+                    }
+                  }
+                }
+              }, { passive: false });
+            }
+            
             // 关闭模态框
             function closeModal() {
               modal.classList.remove('active');
@@ -1153,7 +1191,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             
             // 初始化
             setupImageLoadHandlers();
-            setupImageClickHandlers();
             
             // 性能优化：使用更高效的DOM变化监听
             // 使用更合适的配置，只监视必要的变化
@@ -1194,6 +1231,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             
             // 预加载可视区域内的图片
             setupImageLoadHandlers();
+            setupImageClickHandlers();
           }
 
           // 页面加载完成后初始化所有功能
