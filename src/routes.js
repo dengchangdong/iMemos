@@ -1,8 +1,7 @@
 import { CONFIG } from './config.js';
-import { renderMemo } from './template.js';
-import { renderBaseHtml } from './template.js';
+import { renderMemo, renderBaseHtml, htmlTemplates } from './template.js';
 import { simpleMarkdown } from './markdown.js';
-import { htmlTemplates } from './template.js';
+import { utils } from './utils.js';
 
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
@@ -14,76 +13,80 @@ export function renderErrorPage(error, c) {
   );
 }
 
+// 创建统一的404响应
+function createNotFoundResponse(c) {
+  const notFoundHtml = renderBaseHtml(
+    c.env.SITE_NAME, 
+    htmlTemplates.notFoundPage(),
+    c.env.NAV_LINKS,
+    c.env.SITE_NAME
+  );
+  return createResponse(notFoundHtml, 300, 404);
+}
+
+// 创建统一的响应处理函数
+function createResponse(html, cacheTime = 300, status = 200) {
+  return new Response(html, {
+    headers: {
+      'Content-Type': 'text/html;charset=UTF-8',
+      'Cache-Control': `public, max-age=${cacheTime}`
+    },
+    status
+  });
+}
+
 // API处理相关 - 优化HTTP请求和缓存
 export const apiHandler = {
   // 数据缓存
   cache: new Map(),
   
   // 缓存TTL，默认1分钟（单位：毫秒）
-  cacheTTL: CONFIG.API.CACHE_TTL || 60 * 1000,
-  
-  // 清理过期缓存
-  cleanupCache() {
-    const now = Date.now();
-    for (const [key, value] of this.cache.entries()) {
-      if (value.timestamp < now - this.cacheTTL) {
-        this.cache.delete(key);
-      }
+  cacheTTL: 60 * 1000,
+
+  // 通用缓存检查函数
+  checkCache(cacheKey) {
+    const cachedData = this.cache.get(cacheKey);
+    if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
+      return cachedData.data;
     }
+    return null;
+  },
+  
+  // 通用缓存更新函数
+  updateCache(cacheKey, data) {
+    this.cache.set(cacheKey, {
+      data,
+      timestamp: Date.now()
+    });
+    return data;
   },
 
   // 获取memos数据，支持分页
   async fetchMemos(c, tag = '', page = 1) {
     try {
-      const limit = c.env.PAGE_LIMIT || CONFIG.API.PAGE_LIMIT;
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
       const offset = (page - 1) * limit;
       const cacheKey = `memos_${tag}_${limit}_${offset}`;
       
       // 检查缓存
-      const cachedData = this.cache.get(cacheKey);
-      if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
-        return cachedData.data;
-      }
+      const cachedData = this.checkCache(cacheKey);
+      if (cachedData) return cachedData;
       
       // 构建API URL
       const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=${offset}`;
       console.log('请求 API:', apiUrl);
 
       // 发送请求
-      const response = await fetch(apiUrl, { 
-        headers: CONFIG.API.HEADERS,
-        signal: AbortSignal.timeout(5000) // 5秒超时
-      });
-      
+      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
       if (!response.ok) {
         throw new Error(`API 请求失败: ${response.status}`);
       }
 
-      // 解析数据
+      // 解析数据并更新缓存
       const data = await response.json();
-      
-      // 更新缓存
-      this.cache.set(cacheKey, {
-        data,
-        timestamp: Date.now()
-      });
-      
-      // 定期清理缓存
-      if (Math.random() < 0.1) { // 10%概率触发清理
-        this.cleanupCache();
-      }
-      
-      return data;
+      return this.updateCache(cacheKey, data);
     } catch (error) {
       console.error('获取 memos 数据失败:', error);
-      
-      // 如果缓存中有旧数据，即使过期也返回
-      const cachedData = this.cache.get(`memos_${tag}_${c.env.PAGE_LIMIT || CONFIG.API.PAGE_LIMIT}_${(page - 1) * (c.env.PAGE_LIMIT || CONFIG.API.PAGE_LIMIT)}`);
-      if (cachedData) {
-        console.log('返回过期缓存数据');
-        return cachedData.data;
-      }
-      
       throw error;
     }
   },
@@ -94,61 +97,26 @@ export const apiHandler = {
       const cacheKey = `memo_${name}`;
       
       // 检查缓存
-      const cachedData = this.cache.get(cacheKey);
-      if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
-        return cachedData.data;
-      }
+      const cachedData = this.checkCache(cacheKey);
+      if (cachedData) return cachedData;
       
       // 构建API URL
       const apiUrl = `${c.env.API_HOST}/api/v2/memos/${name}`;
       console.log('请求 API:', apiUrl);
 
       // 发送请求
-      const response = await fetch(apiUrl, { 
-        headers: CONFIG.API.HEADERS,
-        signal: AbortSignal.timeout(5000) // 5秒超时
-      });
-      
+      const response = await fetch(apiUrl, { headers: CONFIG.HEADERS });
       if (!response.ok) {
         return null;
       }
 
-      // 解析数据
+      // 解析数据并更新缓存
       const data = await response.json();
-      
-      // 更新缓存
-      this.cache.set(cacheKey, {
-        data,
-        timestamp: Date.now()
-      });
-      
-      return data;
+      return this.updateCache(cacheKey, data);
     } catch (error) {
       console.error('获取单条 memo 数据失败:', error);
-      
-      // 如果缓存中有旧数据，即使过期也返回
-      const cachedData = this.cache.get(`memo_${name}`);
-      if (cachedData) {
-        console.log('返回过期缓存数据');
-        return cachedData.data;
-      }
-      
       return null;
     }
-  },
-  
-  // 按时间降序排序memos
-  sortMemosByTime(memos) {
-    return [...memos].sort((a, b) => {
-      const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
-      const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
-      return timeB - timeA; // 降序排列
-    });
-  },
-  
-  // 渲染memo列表为HTML
-  renderMemosList(memos) {
-    return this.sortMemosByTime(memos).map(memo => renderMemo(memo, true));
   }
 };
 
@@ -172,15 +140,16 @@ export const routes = {
       // 获取指定页的数据
       const memos = await apiHandler.fetchMemos(c, '', currentPage);
       console.log('获取到 memos 数量:', memos.length);
-      
-      // 渲染memo列表
-      const memosHtml = apiHandler.renderMemosList(memos);
+
+      // 按时间降序排序memos
+      const sortedMemos = utils.sortMemosByTime(memos);
+      const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
       
       // 判断是否有更多数据
-      const limit = c.env.PAGE_LIMIT || CONFIG.API.PAGE_LIMIT;
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
       const hasMore = memos.length >= limit;
 
-      return new Response(renderBaseHtml(
+      const html = renderBaseHtml(
         c.env.SITE_NAME, 
         memosHtml, 
         c.env.NAV_LINKS,
@@ -189,18 +158,12 @@ export const routes = {
         hasMore,
         true, // 这是首页
         '' // 无标签
-      ), {
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-          'Cache-Control': 'public, max-age=300' // 5分钟缓存
-        }
-      });
+      );
+      
+      return createResponse(html);
     } catch (error) {
       console.error('渲染首页失败:', error);
-      return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-        status: 500
-      });
+      return createResponse(renderErrorPage(error, c), 300, 500);
     }
   },
   
@@ -210,15 +173,7 @@ export const routes = {
       // 获取页码参数
       const pageNumber = parseInt(c.req.param('number'));
       if (isNaN(pageNumber) || pageNumber < 1) {
-        return new Response(renderBaseHtml(
-          c.env.SITE_NAME, 
-          htmlTemplates.notFoundPage(),
-          c.env.NAV_LINKS,
-          c.env.SITE_NAME
-        ), {
-          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-          status: 404
-        });
+        return createNotFoundResponse(c);
       }
       
       // 获取指定页的数据
@@ -227,45 +182,32 @@ export const routes = {
 
       // 如果没有数据且不是第一页，返回404
       if (memos.length === 0 && pageNumber > 1) {
-        return new Response(renderBaseHtml(
-          c.env.SITE_NAME, 
-          htmlTemplates.notFoundPage(),
-          c.env.NAV_LINKS,
-          c.env.SITE_NAME
-        ), {
-          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-          status: 404
-        });
+        return createNotFoundResponse(c);
       }
 
-      // 渲染memo列表
-      const memosHtml = apiHandler.renderMemosList(memos);
+      // 按时间降序排序memos
+      const sortedMemos = utils.sortMemosByTime(memos);
+      const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
       
       // 判断是否有更多数据
-      const limit = c.env.PAGE_LIMIT || CONFIG.API.PAGE_LIMIT;
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
       const hasMore = memos.length >= limit;
 
-      return new Response(renderBaseHtml(
-        c.env.SITE_NAME, 
-        memosHtml, 
+      const html = renderBaseHtml(
+        `第 ${pageNumber} 页 - ${c.env.SITE_NAME}`,
+        memosHtml,
         c.env.NAV_LINKS,
         c.env.SITE_NAME,
         pageNumber,
         hasMore,
-        false, // 不是首页
+        true, // 这是分页列表
         '' // 无标签
-      ), {
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-          'Cache-Control': 'public, max-age=300' // 5分钟缓存
-        }
-      });
+      );
+      
+      return createResponse(html);
     } catch (error) {
       console.error('渲染分页失败:', error);
-      return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-        status: 500
-      });
+      return createResponse(renderErrorPage(error, c), 300, 500);
     }
   },
   
@@ -277,106 +219,60 @@ export const routes = {
       
       // 未找到数据
       if (!data || !data.memo) {
-        return new Response(renderBaseHtml(
-          c.env.SITE_NAME, 
-          htmlTemplates.notFoundPage(),
-          c.env.NAV_LINKS,
-          c.env.SITE_NAME
-        ), {
-          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-          status: 404
-        });
+        return createNotFoundResponse(c);
       }
 
       const memoHtml = renderMemo(data.memo, false);
-
-      return new Response(renderBaseHtml(
+      const html = renderBaseHtml(
         c.env.SITE_NAME, 
         memoHtml, 
         c.env.NAV_LINKS,
         c.env.SITE_NAME
-      ), {
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-          'Cache-Control': 'public, max-age=1800' // 30分钟缓存
-        }
-      });
+      );
+      
+      return createResponse(html, 1800); // 30分钟缓存
     } catch (error) {
       console.error('渲染文章页失败:', error);
-      return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-        status: 500
-      });
+      return createResponse(renderErrorPage(error, c), 300, 500);
     }
   },
   
-  // 标签路由处理
+  // 标签页路由处理
   async tag(c) {
     try {
-      // 获取标签参数
-      const tagName = c.req.param('tag');
-      if (!tagName) {
-        return new Response(renderBaseHtml(
-          c.env.SITE_NAME, 
-          htmlTemplates.notFoundPage(),
-          c.env.NAV_LINKS,
-          c.env.SITE_NAME
-        ), {
-          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-          status: 404
-        });
-      }
+      const tag = c.req.param('tag');
       
       // 获取当前页码
       const url = new URL(c.req.url);
       const pageParam = url.searchParams.get('page');
       const currentPage = pageParam ? parseInt(pageParam) : 1;
       
-      // 获取指定标签的数据
-      const memos = await apiHandler.fetchMemos(c, tagName, currentPage);
-      console.log(`获取到标签 ${tagName} 的 memos 数量:`, memos.length);
+      const memos = await apiHandler.fetchMemos(c, tag, currentPage);
+      console.log('获取到标签页 memos 数量:', memos.length);
 
-      // 如果没有数据，返回404
-      if (memos.length === 0) {
-        return new Response(renderBaseHtml(
-          c.env.SITE_NAME, 
-          htmlTemplates.notFoundPage(),
-          c.env.NAV_LINKS,
-          c.env.SITE_NAME
-        ), {
-          headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-          status: 404
-        });
-      }
-
-      // 渲染memo列表
-      const memosHtml = apiHandler.renderMemosList(memos);
+      // 按时间降序排序memos
+      const sortedMemos = utils.sortMemosByTime(memos);
+      const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
       
       // 判断是否有更多数据
-      const limit = c.env.PAGE_LIMIT || CONFIG.API.PAGE_LIMIT;
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
       const hasMore = memos.length >= limit;
 
-      return new Response(renderBaseHtml(
-        `#${tagName} - ${c.env.SITE_NAME}`, 
+      const html = renderBaseHtml(
+        `${tag} - ${c.env.SITE_NAME}`, 
         memosHtml, 
         c.env.NAV_LINKS,
         c.env.SITE_NAME,
         currentPage,
         hasMore,
-        false, // 不是首页
-        tagName // 标签名
-      ), {
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-          'Cache-Control': 'public, max-age=300' // 5分钟缓存
-        }
-      });
+        true, // 这是分类页，也需要分页
+        tag // 传递标签参数
+      );
+      
+      return createResponse(html);
     } catch (error) {
       console.error('渲染标签页失败:', error);
-      return new Response(renderErrorPage(error, c), {
-        headers: { 'Content-Type': 'text/html; charset=UTF-8' },
-        status: 500
-      });
+      return createResponse(renderErrorPage(error, c), 300, 500);
     }
   },
   
@@ -401,45 +297,15 @@ export const routes = {
 
   // 离线页面
   offline(c) {
-    return new Response(htmlTemplates.offlinePage(c.env.SITE_NAME), {
-      headers: {
-        'Content-Type': 'text/html; charset=UTF-8',
-        'Cache-Control': 'public, max-age=2592000'
-      }
-    });
+    return createResponse(htmlTemplates.offlinePage(c.env.SITE_NAME), 2592000);
   },
 
   // 离线图片占位符
   offlineImage(c) {
     // 使用模板中的透明像素Base64数据
-    const base64Data = htmlTemplates.offlineImage();
-    const binaryData = atob(base64Data);
-    const bytes = new Uint8Array(binaryData.length);
-    for (let i = 0; i < binaryData.length; i++) {
-      bytes[i] = binaryData.charCodeAt(i);
-    }
-    
-    return new Response(bytes, {
+    return new Response(Buffer.from(htmlTemplates.offlineImage(), 'base64'), {
       headers: {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=2592000'
-      }
-    });
-  },
-  
-  // favicon.ico处理
-  favicon(c) {
-    // 使用相同的透明像素作为默认favicon
-    const base64Data = htmlTemplates.offlineImage();
-    const binaryData = atob(base64Data);
-    const bytes = new Uint8Array(binaryData.length);
-    for (let i = 0; i < binaryData.length; i++) {
-      bytes[i] = binaryData.charCodeAt(i);
-    }
-    
-    return new Response(bytes, {
-      headers: {
-        'Content-Type': 'image/x-icon',
         'Cache-Control': 'public, max-age=2592000'
       }
     });

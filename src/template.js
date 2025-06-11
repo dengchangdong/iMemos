@@ -7,34 +7,32 @@ import { simpleMarkdown } from './markdown.js'
 export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
-    return utils.createHtml`
-      <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <header>
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
-        </header>
-        <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-          <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
-          <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-        </section>
-      </article>
-    `
+    const header = utils.createHtml`
+      <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
+    `;
+    
+    const content = utils.createHtml`
+      <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+      <p class="text-sm">${error.message}</p>
+      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+    `;
+    
+    return createArticleStructure(header, content);
   },
   
   // 404页面模板
   notFoundPage() {
-    return utils.createHtml`
-      <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <header>
-        <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
-        </header>
-        <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-          <h2 class="font-medium">未找到内容</h2>
-          <p>您访问的内容不存在或已被删除</p>
-          <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-        </section>
-      </article>
-    `
+    const header = utils.createHtml`
+      <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
+    `;
+    
+    const content = utils.createHtml`
+      <h2 class="font-medium">未找到内容</h2>
+      <p>您访问的内容不存在或已被删除</p>
+      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+    `;
+    
+    return createArticleStructure(header, content);
   },
   
   // 离线页面模板
@@ -144,6 +142,18 @@ export function parseNavLinks(linksStr) {
   }
 }
 
+// 创建文章结构 - 提取公共结构减少重复代码
+function createArticleStructure(header, content) {
+  return utils.createHtml`
+    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+      <header>${header}</header>
+      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+        ${content}
+      </section>
+    </article>
+  `;
+}
+
 // 渲染单个 memo
 export function renderMemo(memo, isHomePage = false) {
   try {
@@ -181,69 +191,29 @@ export function renderMemo(memo, isHomePage = false) {
       `;
 
       // 根据图片数量决定布局
-      const layoutConfigs = {
-        1: { // 单张图片 - 100%宽度
-          containerClass: 'mt-4',
-          imageClass: 'w-full aspect-video',
-          grid: false
-        },
-        2: { // 两张图片 - 各50%宽度
-          containerClass: 'mt-4',
-          imageClass: 'w-[calc(50%-2px)] aspect-square',
-          grid: true
-        },
-        3: { // 三张图片 - 特殊布局
-          containerClass: 'mt-4',
-          imageClass: 'aspect-square',
-          grid: true,
-          specialLayout: true
-        },
-        default: { // 4张及以上 - 网格布局
-          containerClass: 'mt-4',
-          imageClass: 'w-[calc(33.33%-2px)] aspect-square',
-          grid: true,
-          maxDisplay: 9
-        }
-      };
-      
-      // 获取布局配置
-      const config = layoutConfigs[resources.length] || layoutConfigs.default;
-      
-      // 创建图片容器
-      if (config.specialLayout) {
-        // 三张图片的特殊布局
+      if (resources.length === 1) {
+        // 单张图片 - 100%宽度
         resourcesHtml = utils.createHtml`
-          <figure class="${config.containerClass}">
-            <div class="flex flex-wrap gap-1">
-              <div class="w-[calc(66.66%-2px)]">
-                ${createImageHTML(resources[0], 'aspect-video')}
-              </div>
-              <div class="w-[calc(33.33%-2px)] flex flex-col gap-1">
-                ${createImageHTML(resources[1], 'h-[calc(50%-2px)]')}
-                ${createImageHTML(resources[2], 'h-[calc(50%-2px)]')}
-              </div>
-            </div>
+          <figure class="mt-4">
+            ${createImageHTML(resources[0], 'w-full aspect-video')}
           </figure>
         `;
-      } else if (config.grid) {
-        // 网格布局
-        const displayResources = config.maxDisplay 
-          ? resources.slice(0, config.maxDisplay) 
-          : resources;
-          
+      } else if (resources.length === 2) {
+        // 两张图片 - 各50%宽度
         resourcesHtml = utils.createHtml`
-          <figure class="${config.containerClass}">
+          <figure class="mt-4">
             <div class="flex flex-wrap gap-1">
-              ${displayResources.map(resource => createImageHTML(resource, config.imageClass)).join('')}
+              ${resources.map(resource => createImageHTML(resource, 'w-[calc(50%-2px)] aspect-square')).join('')}
             </div>
-            ${resources.length > 9 ? `<div class="text-sm text-gray-500 dark:text-gray-400 mt-1">+${resources.length - 9} 张图片</div>` : ''}
           </figure>
         `;
       } else {
-        // 单张图片布局
+        // 三张或更多图片 - 九宫格布局
         resourcesHtml = utils.createHtml`
-          <figure class="${config.containerClass}">
-            ${createImageHTML(resources[0], config.imageClass)}
+          <figure class="mt-4">
+            <div class="grid grid-cols-3 gap-1">
+              ${resources.map(resource => createImageHTML(resource)).join('')}
+            </div>
           </figure>
         `;
       }
@@ -252,32 +222,27 @@ export function renderMemo(memo, isHomePage = false) {
     // 文章URL
     const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
     
+    // 创建文章头部
+    const header = utils.createHtml`
+      <a href="${articleUrl}" class="block">
+        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+      </a>
+    `;
+    
+    // 创建文章内容
+    const articleContent = utils.createHtml`
+      ${parsedContent}
+      ${resourcesHtml}
+    `;
+    
     // 使用时间轴样式渲染
-    return utils.createHtml`
-      <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <header>
-          <a href="${articleUrl}" class="block">
-            <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-          </a>
-        </header>
-        <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-          ${parsedContent}
-          ${resourcesHtml}
-        </section>
-      </article>
-    `
+    return createArticleStructure(header, articleContent);
   } catch (error) {
     console.error('渲染 memo 失败:', error)
-    return utils.createHtml`
-      <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-        <header>
-          <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
-        </header>
-        <section class="text-red-500 dark:text-red-400 leading-relaxed mt-1 md:text-base text-sm">
-          <p>渲染失败: ${error.message}</p>
-        </section>
-      </article>
-    `
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
+    );
   }
 }
 
