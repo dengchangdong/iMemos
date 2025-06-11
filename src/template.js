@@ -907,14 +907,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 loadingIndicator.style.display = 'flex';
                 modalImg.classList.remove('loaded');
                 
-                // 重要：先检查图片是否已经加载过，如果加载过则复用已有的图片数据，避免重新加载
-                const originalSrc = img.getAttribute('data-src') || img.src;
+                // 关键修复：不设置新的src，而是使用currentSrc或已缓存的图片
+                // currentSrc是浏览器当前实际显示的图片源，避免重新加载
+                const imgSrc = img.currentSrc || img.src;
                 
-                // 如果图片已经加载完成，直接使用它的src，否则使用data-src
-                if (img.complete && img.naturalWidth > 0) {
-                  modalImg.src = img.src;
-                } else {
-                  modalImg.src = originalSrc;
+                // 重要：使用同一个图片源，避免浏览器重新请求
+                if (modalImg.src !== imgSrc) {
+                  modalImg.src = imgSrc;
                 }
                 
                 modalImg.alt = img.alt || '预览图片';
@@ -963,7 +962,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   
                   // 确保只在图片实际加载完成后才添加loaded类
                   if (!img.classList.contains('loaded')) {
-                    const markAsLoaded = () => {
+                    // 清除可能存在的旧事件监听器，避免重复添加
+                    img.removeEventListener('load', img._markAsLoadedHandler);
+                    img.removeEventListener('error', img._errorHandler);
+                    
+                    // 创建加载完成处理函数
+                    img._markAsLoadedHandler = () => {
                       // 只有当图片真正加载完成且有有效尺寸时才标记为已加载
                       if (img.complete && img.naturalWidth > 0) {
                         img.classList.add('loaded');
@@ -972,19 +976,24 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                         }
                       }
                     };
+                    
+                    // 创建错误处理函数
+                    img._errorHandler = () => {
+                      console.error('Image failed to load:', img.src);
+                      // 可以添加错误处理逻辑，如显示占位符
+                    };
 
                     // 如果图片已经加载完成
                     if (img.complete) {
                       if (img.naturalWidth > 0) {
-                        markAsLoaded();
+                        img._markAsLoadedHandler();
+                      } else {
+                        img._errorHandler();
                       }
                     } else {
                       // 添加加载事件监听器
-                      img.addEventListener('load', markAsLoaded);
-                      img.addEventListener('error', () => {
-                        // 处理加载错误的情况
-                        console.error('Image failed to load:', img.src);
-                      });
+                      img.addEventListener('load', img._markAsLoadedHandler);
+                      img.addEventListener('error', img._errorHandler);
                     }
                   }
                 });
@@ -1022,11 +1031,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               loadingIndicator.style.display = 'flex';
               modalImg.classList.remove('loaded');
               
-              // 重要：检查图片是否已经加载过，避免重新加载
-              if (prevImg.complete && prevImg.naturalWidth > 0) {
-                modalImg.src = prevImg.src;
-              } else {
-                modalImg.src = prevImg.getAttribute('data-src') || prevImg.src;
+              // 关键修复：使用currentSrc或已缓存的图片，避免重新加载
+              const imgSrc = prevImg.currentSrc || prevImg.src;
+              
+              // 只有在需要时才更新src，避免不必要的重新加载
+              if (modalImg.src !== imgSrc) {
+                modalImg.src = imgSrc;
               }
               
               modalImg.alt = prevImg.alt || '预览图片';
@@ -1076,11 +1086,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               loadingIndicator.style.display = 'flex';
               modalImg.classList.remove('loaded');
               
-              // 重要：检查图片是否已经加载过，避免重新加载
-              if (nextImg.complete && nextImg.naturalWidth > 0) {
-                modalImg.src = nextImg.src;
-              } else {
-                modalImg.src = nextImg.getAttribute('data-src') || nextImg.src;
+              // 关键修复：使用currentSrc或已缓存的图片，避免重新加载
+              const imgSrc = nextImg.currentSrc || nextImg.src;
+              
+              // 只有在需要时才更新src，避免不必要的重新加载
+              if (modalImg.src !== imgSrc) {
+                modalImg.src = imgSrc;
               }
               
               modalImg.alt = nextImg.alt || '预览图片';
