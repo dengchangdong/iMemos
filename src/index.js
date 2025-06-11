@@ -2,26 +2,8 @@ import { Hono } from 'hono'
 import { routes } from './routes.js'
 import { logger } from 'hono/logger'
 import { timing } from 'hono/timing'
-import { secureHeaders } from 'hono/secure-headers'
 
 const app = new Hono()
-
-// 添加安全头，但配置更宽松
-app.use('*', secureHeaders({
-  contentSecurityPolicy: {
-    baseUri: ["'self'"],
-    defaultSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "data:", "*"],
-    scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'"],
-    styleSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "data:", "*"],
-    connectSrc: ["'self'", "*"],
-    fontSrc: ["'self'", "data:", "*"],
-    objectSrc: ["'none'"],
-    mediaSrc: ["'self'", "*"],
-    frameSrc: ["*"]
-  },
-  xssProtection: '1; mode=block'
-}))
 
 // 请求计时
 app.use('*', timing())
@@ -58,6 +40,9 @@ app.get('/offline.html', routes.offline)
 
 // 离线图片占位符
 app.get('/offline-image.png', routes.offlineImage)
+
+// favicon.ico
+app.get('/favicon.ico', routes.favicon)
 
 // robots.txt路由
 app.get('/robots.txt', routes.robots)

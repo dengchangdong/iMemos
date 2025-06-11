@@ -425,5 +425,23 @@ export const routes = {
         'Cache-Control': 'public, max-age=2592000'
       }
     });
+  },
+  
+  // favicon.ico处理
+  favicon(c) {
+    // 使用相同的透明像素作为默认favicon
+    const base64Data = htmlTemplates.offlineImage();
+    const binaryData = atob(base64Data);
+    const bytes = new Uint8Array(binaryData.length);
+    for (let i = 0; i < binaryData.length; i++) {
+      bytes[i] = binaryData.charCodeAt(i);
+    }
+    
+    return new Response(bytes, {
+      headers: {
+        'Content-Type': 'image/x-icon',
+        'Cache-Control': 'public, max-age=2592000'
+      }
+    });
   }
 };
