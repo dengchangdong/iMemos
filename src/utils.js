@@ -53,5 +53,16 @@ export const utils = {
   // 创建HTML元素（用于模板）
   createHtml(strings, ...values) {
     return String.raw({ raw: strings }, ...values);
+  },
+
+  // 按时间降序排序memos
+  sortMemosByTime(memos) {
+    if (!Array.isArray(memos)) return [];
+    
+    return [...memos].sort((a, b) => {
+      const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
+      const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
+      return timeB - timeA; // 降序排列
+    });
   }
 }; 
