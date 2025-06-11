@@ -5,30 +5,46 @@ export const CONFIG = {
     'Accept': 'application/json',
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
   },
-  // 正则表达式预编译，提高性能
+  
+  // 正则表达式 - 使用命名对象组织相关正则
   REGEX: {
-    YOUTUBE: /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:[&?].+)?/,
-    BILIBILI: /https?:\/\/(?:www\.)?bilibili\.com\/video\/(?:(av\d+)|(BV[a-zA-Z0-9]+))(?:[/?].+)?/,
-    NETEASE: /https?:\/\/music\.163\.com\/(?:#\/)?song\?id=(\d+)(?:[&?].+)?/,
-    GITHUB: /https?:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)(?:\/)?(?:[#?].+)?/,
-    DOUYIN: /https?:\/\/(?:www\.)?douyin\.com\/(?:video\/([0-9]+)|.*vid=([0-9]+))(?:[?#].+)?/,
-    TIKTOK: /https?:\/\/(?:www\.)?tiktok\.com\/@[^\/]+\/video\/([0-9]+)(?:[?#].+)?/,
-    WECHAT: /https?:\/\/mp\.weixin\.qq\.com\/[^\s<"']+/,
-    WECHAT_MD: /\[([^\]]+)\]\((https?:\/\/mp\.weixin\.qq\.com\/[^)]+)\)/,
-    MD_CODE_BLOCK: /```([a-z]*)\n([\s\S]*?)\n```/g,
-    MD_INLINE_CODE: /`([^`]+)`/g,
-    MD_H1: /^# (.*$)/gm,
-    MD_H2: /^## (.*$)/gm,
-    MD_H3: /^### (.*$)/gm,
-    MD_QUOTE: /^\> (.*)$/gm,
-    MD_LIST_ITEM: /^- (.*)$/gm,
-    MD_NUM_LIST: /^(\d+)\. (.*)$/gm,
-    MD_BOLD: /\*\*(.*?)\*\*/g,
-    MD_ITALIC: /\*(.*?)\*/g,
-    MD_LINK: /\[([^\]]+)\]\((?!https?:\/\/mp\.weixin\.qq\.com)([^)]+)\)/g,
-    MD_IMAGE: /!\[([^\]]*)\]\(([^)]+)\)/g,
+    // 媒体链接
+    MEDIA: {
+      YOUTUBE: /https?:\/\/(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})(?:[&?].+)?/,
+      BILIBILI: /https?:\/\/(?:www\.)?bilibili\.com\/video\/(?:(av\d+)|(BV[a-zA-Z0-9]+))(?:[/?].+)?/,
+      NETEASE: /https?:\/\/music\.163\.com\/(?:#\/)?song\?id=(\d+)(?:[&?].+)?/,
+      DOUYIN: /https?:\/\/(?:www\.)?douyin\.com\/(?:video\/([0-9]+)|.*vid=([0-9]+))(?:[?#].+)?/,
+      TIKTOK: /https?:\/\/(?:www\.)?tiktok\.com\/@[^\/]+\/video\/([0-9]+)(?:[?#].+)?/,
+    },
+    
+    // 其他链接
+    LINKS: {
+      GITHUB: /https?:\/\/github\.com\/([^\/\s]+\/[^\/\s]+)(?:\/)?(?:[#?].+)?/,
+      WECHAT: /https?:\/\/mp\.weixin\.qq\.com\/[^\s<"']+/,
+      WECHAT_MD: /\[([^\]]+)\]\((https?:\/\/mp\.weixin\.qq\.com\/[^)]+)\)/,
+    },
+    
+    // Markdown语法
+    MD: {
+      CODE_BLOCK: /```([a-z]*)\n([\s\S]*?)\n```/g,
+      INLINE_CODE: /`([^`]+)`/g,
+      H1: /^# (.*$)/gm,
+      H2: /^## (.*$)/gm,
+      H3: /^### (.*$)/gm,
+      QUOTE: /^\> (.*)$/gm,
+      LIST_ITEM: /^- (.*)$/gm,
+      NUM_LIST: /^(\d+)\. (.*)$/gm,
+      BOLD: /\*\*(.*?)\*\*/g,
+      ITALIC: /\*(.*?)\*/g,
+      LINK: /\[([^\]]+)\]\((?!https?:\/\/mp\.weixin\.qq\.com)([^)]+)\)/g,
+      IMAGE: /!\[([^\]]*)\]\(([^)]+)\)/g,
+    },
+    
+    // 其他
     TAG: /#([a-zA-Z0-9_\u4e00-\u9fa5]+)/g
   },
+  
+  // CSS类名 - 使用更语义化的命名
   CSS: {
     CARD: 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden',
     PROSE: 'prose dark:prose-invert max-w-none',
