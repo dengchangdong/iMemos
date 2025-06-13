@@ -244,113 +244,75 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   'indigo-timeline': '#4e5ed3',
                   'indigo-shadow': '#bab5f8',
                 },
+                content: {
+                  'article-before': '""',
+                },
+                width: {
+                  'article-dot': '17px',
+                },
+                height: {
+                  'article-dot': '17px',
+                },
+                left: {
+                  'article-dot': '-10px',
+                },
+                boxShadow: {
+                  'article-dot': '3px 3px 0px #bab5f8',
+                  'article-dot-dark': '3px 3px 0px #6366f1',
+                },
+                backgroundColor: {
+                  'image-bg': '#0c7cd51c',
+                },
+                opacity: {
+                  'image-placeholder': '0.5',
+                  'image-hover': '0.9',
+                },
+                transitionProperty: {
+                  'opacity-transform': 'opacity, transform',
+                },
               }
             }
           }
         </script>
         <style>
           article::before {
-            content: '';
-            width: 17px;
-            height: 17px;
-            background-color: white;
-            border: 1px solid #4e5ed3;
-            border-radius: 50%;
-            position: absolute;
-            left: -10px;
-            top: 0;
-            box-shadow: 3px 3px 0px #bab5f8;
-            will-change: transform;
-          }
-          .dark article::before {
-            background-color: #1f2937;
-            border-color: #818cf8;
-            box-shadow: 3px 3px 0px #6366f1;
+            @apply content-[''] w-article-dot h-article-dot bg-white dark:bg-gray-800 border border-indigo-timeline dark:border-indigo-400 rounded-full absolute left-article-dot top-0 shadow-article-dot dark:shadow-article-dot-dark will-change-transform;
           }
           .image-modal.active {
-            display: flex;
-            opacity: 1;
+            @apply flex opacity-100;
           }
           .image-modal-content img.loaded {
-            opacity: 1;
+            @apply opacity-100;
           }
           .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
+            @apply opacity-100 visible;
           }
           .article-content img, .mt-4 img {
-            cursor: pointer;
-            transition: opacity 0.2s;
-            background-color: #0c7cd51c;
-            opacity: 0.5;
-            will-change: opacity;
+            @apply cursor-pointer transition-opacity duration-200 bg-image-bg opacity-image-placeholder will-change-opacity;
           }
           .article-content img.loaded, .mt-4 img.loaded {
-            opacity: 1;
+            @apply opacity-100;
           }
           .article-content img:hover, .mt-4 img:hover {
-            opacity: 0.9;
+            @apply opacity-image-hover;
           }
           .image-placeholder {
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
+            @apply opacity-100 transition-opacity duration-300 ease-in-out will-change-opacity;
           }
           div.loaded .image-placeholder {
-            opacity: 0;
+            @apply opacity-0;
           }
           .code-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #f1f3f5;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            color: #4b5563;
-            border-bottom: 1px solid #e5e7eb;
-            margin-top: 1rem;
-            margin-bottom: -1rem;
-          }
-          .dark .code-header {
-            background-color: #1a2234;
-            color: #9ca3af;
-            border-bottom: 1px solid #374151;
+            @apply flex justify-between items-center bg-gray-100 dark:bg-gray-800 rounded-t-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700 mt-4 -mb-4;
           }
           .copy-btn {
-            position: relative;
-            padding: 6px;
-            font-size: 16px;
-            color: #4b5563;
-            background-color: transparent;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 1;
-            transition: opacity 0.2s, background-color 0.2s;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-          }
-          .dark .copy-btn {
-            color: #e5e7eb;
+            @apply relative p-1.5 text-base text-gray-600 dark:text-gray-300 bg-transparent border-none rounded cursor-pointer opacity-100 transition-all duration-200 z-5 flex items-center justify-center w-7 h-7;
           }
           .copy-btn:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-          }
-          .dark .copy-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            @apply bg-black/5 dark:bg-white/5;
           }
           .copy-btn.copied {
-            background-color: #10b981;
-            color: white;
-          }
-          .dark .copy-btn.copied {
-            background-color: #059669;
+            @apply bg-emerald-500 dark:bg-emerald-600 text-white;
           }
         </style>
       </head>
