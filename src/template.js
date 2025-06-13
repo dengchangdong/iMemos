@@ -249,6 +249,36 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
         </script>
         <style>
+          html::-webkit-scrollbar, 
+          body::-webkit-scrollbar,
+          pre::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb, 
+          body::-webkit-scrollbar-thumb,
+          pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb:hover, 
+          body::-webkit-scrollbar-thumb:hover,
+          pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.11);
+            border-radius: 10px; 
+          }
+
+          html::-webkit-scrollbar-track:hover, 
+          body::-webkit-scrollbar-track:hover,
+          pre::-webkit-scrollbar-track:hover {
+            background: rgba(0, 0, 0, 0);
+            border-radius: 10px; 
+          }
+
           article::before {
             content: '';
             width: 17px;
