@@ -40,14 +40,15 @@ export const htmlTemplates = {
         <meta name="description" content="离线状态页面">
         <meta name="theme-color" content="#209cff">
         <title>离线 - ${siteName || '博客'}</title>
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body class="min-h-screen flex justify-center items-center p-5 text-center bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-        <main class="max-w-md">
+      <body class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-5">
+        <main class="max-w-md w-full text-center">
           <figure class="text-5xl mb-6" role="img" aria-label="离线状态">📶</figure>
-          <h1 class="text-2xl font-semibold mb-4">您当前处于离线状态</h1>
-          <p class="text-base mb-6">无法加载新内容。请检查您的网络连接并重试。</p>
-          <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium transition-colors">刷新页面</a>
+          <h1 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">您当前处于离线状态</h1>
+          <p class="text-gray-600 dark:text-gray-300 mb-6">无法加载新内容。请检查您的网络连接并重试。</p>
+          <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">刷新页面</a>
         </main>
       </body>
       </html>
@@ -64,7 +65,9 @@ export const htmlTemplates = {
 export function parseNavLinks(linksStr) {
   if (!linksStr) return []
   try {
-    return Object.entries(JSON.parse(linksStr.replace(/'/g, '"'))).map(([text, url]) => ({ text, url }))
+    const jsonStr = linksStr.replace(/'/g, '"')
+    const linksObj = JSON.parse(jsonStr)
+    return Object.entries(linksObj).map(([text, url]) => ({ text, url }))
   } catch (error) {
     console.error('解析导航链接失败:', error)
     return []
@@ -74,7 +77,7 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0 before:content-[''] before:w-[17px] before:h-[17px] before:bg-white dark:before:bg-gray-800 before:border before:border-indigo-timeline dark:before:border-indigo-400 before:rounded-full before:absolute before:-left-[10px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8] dark:before:shadow-[3px_3px_0px_#6366f1]">
+    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
         ${content}
@@ -86,66 +89,35 @@ function createArticleStructure(header, content) {
 // 渲染单个 memo
 export function renderMemo(memo, isHomePage = false) {
   try {
-    const timestamp = memo.createTime ? new Date(memo.createTime).getTime() : memo.createdTs * 1000
+    const timestamp = memo.createTime 
+      ? new Date(memo.createTime).getTime()
+      : memo.createdTs * 1000
+    
     const formattedTime = utils.formatTime(timestamp)
-    const parsedContent = simpleMarkdown(memo.content || '')
+    const content = memo.content || ''
+    const parsedContent = simpleMarkdown(content)
     const resources = memo.resources || memo.resourceList || []
-    let resourcesHtml = ''
     
-    if (resources.length > 0) {
-      const createImageHTML = (resource, size = '') => utils.createHtml`
-        <div class="${size} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden ${size ? '' : 'aspect-square'} image-container">
-          <img 
-            src="${resource.externalLink || ''}" 
-            alt="${resource.filename || '图片'}"
-            class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-            loading="lazy"
-            data-preview="true"
-          />
-          <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-            <i class="ri-image-line ${resources.length > 2 ? 'text-2xl' : 'text-3xl'}"></i>
-          </div>
-        </div>
-      `;
-
-      if (resources.length === 1) {
-        resourcesHtml = utils.createHtml`
-          <figure class="mt-4">
-            ${createImageHTML(resources[0], 'w-full aspect-video')}
-          </figure>
-        `;
-      } else if (resources.length === 2) {
-        resourcesHtml = utils.createHtml`
-          <figure class="mt-4">
-            <div class="flex flex-wrap gap-1">
-              ${resources.map(resource => createImageHTML(resource, 'w-[calc(50%-2px)] aspect-square')).join('')}
-            </div>
-          </figure>
-        `;
-      } else {
-        resourcesHtml = utils.createHtml`
-          <figure class="mt-4">
-            <div class="grid grid-cols-3 gap-1">
-              ${resources.map(resource => createImageHTML(resource)).join('')}
-            </div>
-          </figure>
-        `;
-      }
-    }
+    // 创建图片资源HTML
+    const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
     
+    // 文章URL
     const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
     
-    return createArticleStructure(
-      utils.createHtml`
-        <a href="${articleUrl}" class="block">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-        </a>
-      `,
-      utils.createHtml`
-        ${parsedContent}
-        ${resourcesHtml}
-      `
-    );
+    // 创建文章头部
+    const header = utils.createHtml`
+      <a href="${articleUrl}" class="block">
+        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+      </a>
+    `;
+    
+    // 创建文章内容
+    const articleContent = utils.createHtml`
+      ${parsedContent}
+      ${resourcesHtml}
+    `;
+    
+    return createArticleStructure(header, articleContent);
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
@@ -155,14 +127,80 @@ export function renderMemo(memo, isHomePage = false) {
   }
 }
 
+// 创建资源HTML
+function createResourcesHtml(resources) {
+  if (resources.length === 1) {
+    return utils.createHtml`
+      <figure class="mt-4">
+        <div class="w-full aspect-video relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+          <img 
+            src="${resources[0].externalLink || ''}" 
+            alt="${resources[0].filename || '图片'}"
+            class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+            loading="lazy"
+            data-preview="true"
+          />
+          <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+            <i class="ri-image-line text-3xl"></i>
+          </div>
+        </div>
+      </figure>
+    `;
+  } else if (resources.length === 2) {
+    return utils.createHtml`
+      <figure class="mt-4">
+        <div class="flex flex-wrap gap-1">
+          ${resources.map(resource => utils.createHtml`
+            <div class="w-[calc(50%-2px)] aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+              <img 
+                src="${resource.externalLink || ''}" 
+                alt="${resource.filename || '图片'}"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                loading="lazy"
+                data-preview="true"
+              />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-2xl"></i>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </figure>
+    `;
+  } else {
+    return utils.createHtml`
+      <figure class="mt-4">
+        <div class="grid grid-cols-3 gap-1">
+          ${resources.map(resource => utils.createHtml`
+            <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+              <img 
+                src="${resource.externalLink || ''}" 
+                alt="${resource.filename || '图片'}"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                loading="lazy"
+                data-preview="true"
+              />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-2xl"></i>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </figure>
+    `;
+  }
+}
+
 // 渲染基础 HTML
 export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
   const navItems = parseNavLinks(navLinks)
-  const navItemsHtml = navItems.map(item => utils.createHtml`
-    <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-[#209cff] hover:text-[#0c7cd5]">${item.text}</a></li>
-  `).join('')
-  
-  const articlesHtml = Array.isArray(content) ? content.join('') : content
+  const navItemsHtml = navItems.length > 0 
+    ? navItems.map(item => utils.createHtml`
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700">${item.text}</a></li>
+      `).join('')
+    : '';
+
+  const articlesHtml = Array.isArray(content) ? content.join('') : content;
 
   return utils.createHtml`
     <!DOCTYPE html>
@@ -210,11 +248,116 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             }
           }
         </script>
+        <style>
+          article::before {
+            content: '';
+            width: 17px;
+            height: 17px;
+            background-color: white;
+            border: 1px solid #4e5ed3;
+            border-radius: 50%;
+            position: absolute;
+            left: -10px;
+            top: 0;
+            box-shadow: 3px 3px 0px #bab5f8;
+            will-change: transform;
+          }
+          .dark article::before {
+            background-color: #1f2937;
+            border-color: #818cf8;
+            box-shadow: 3px 3px 0px #6366f1;
+          }
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
+          }
+          .image-modal-content img.loaded {
+            opacity: 1;
+          }
+          .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+          }
+          .article-content img, .mt-4 img {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background-color: #0c7cd51c;
+            opacity: 0.5;
+            will-change: opacity;
+          }
+          .article-content img.loaded, .mt-4 img.loaded {
+            opacity: 1;
+          }
+          .article-content img:hover, .mt-4 img:hover {
+            opacity: 0.9;
+          }
+          .image-placeholder {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+          }
+          div.loaded .image-placeholder {
+            opacity: 0;
+          }
+          .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f3f5;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            margin-bottom: -1rem;
+          }
+          .dark .code-header {
+            background-color: #1a2234;
+            color: #9ca3af;
+            border-bottom: 1px solid #374151;
+          }
+          .copy-btn {
+            position: relative;
+            padding: 6px;
+            font-size: 16px;
+            color: #4b5563;
+            background-color: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.2s, background-color 0.2s;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+          }
+          .dark .copy-btn {
+            color: #e5e7eb;
+          }
+          .copy-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
+          .dark .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+          }
+          .copy-btn.copied {
+            background-color: #10b981;
+            color: white;
+          }
+          .dark .copy-btn.copied {
+            background-color: #059669;
+          }
+        </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-        <div class="w-full mx-auto max-w-[640px] px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
-          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
-            <header class="flex items-center justify-between sm:flex-row flex-row">
+        <div class="container w-full max-w-2xl mx-auto px-4 py-12 sm:px-4 sm:py-12">
+          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full">
+            <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
                   <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
@@ -226,7 +369,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     ${navItemsHtml}
                   </ul>
                 </nav>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-[#209cff] hover:text-[#0c7cd5] focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -275,7 +418,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-700"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5"
           aria-label="返回顶部"
         >
           <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
@@ -338,13 +481,23 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             const themeToggle = document.getElementById('theme-toggle');
             const themeIcon = document.getElementById('theme-icon');
             const html = document.documentElement;
+            
             const themes = ['system', 'light', 'dark'];
             let currentTheme = 0;
             
             function updateIcon(theme) {
-              themeIcon.className = 'ri-' + (theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'contrast') + '-fill text-lg';
+              themeIcon.className = theme === 'light' 
+                ? 'ri-sun-fill text-lg' 
+                : theme === 'dark' 
+                  ? 'ri-moon-fill text-lg' 
+                  : 'ri-contrast-fill text-lg';
+              
               themeToggle.setAttribute('aria-label', 
-                theme === 'light' ? '切换到深色模式' : theme === 'dark' ? '切换到浅色模式' : '切换到系统模式'
+                theme === 'light' 
+                  ? '切换到深色模式' 
+                  : theme === 'dark' 
+                    ? '切换到浅色模式' 
+                    : '切换到系统模式'
               );
             }
             
@@ -359,7 +512,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 } else {
                   localStorage.removeItem('theme');
                   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  html.classList.toggle('dark', prefersDark);
+                  if (prefersDark) {
+                    html.classList.add('dark');
+                  } else {
+                    html.classList.remove('dark');
+                  }
                 }
                 updateIcon(theme);
               });
@@ -383,24 +540,38 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             
             themeToggle.addEventListener('click', () => {
               currentTheme = (currentTheme + 1) % 3;
-              applyTheme(themes[currentTheme]);
+              const newTheme = themes[currentTheme];
+              applyTheme(newTheme);
             });
 
-            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            const mql = window.matchMedia('(prefers-color-scheme: dark)');
+            const handleThemeChange = (e) => {
               if (!localStorage.theme) {
                 requestAnimationFrame(() => {
-                  html.classList.toggle('dark', e.matches);
+                  if (e.matches) {
+                    html.classList.add('dark');
+                  } else {
+                    html.classList.remove('dark');
+                  }
                 });
               }
-            });
+            };
+            
+            mql.addEventListener('change', handleThemeChange);
           }
 
           // 返回顶部功能
           function initBackToTop() {
             const backToTop = document.getElementById('back-to-top');
+            
             const observer = new IntersectionObserver((entries) => {
+              const shouldShow = !entries[0].isIntersecting;
               requestAnimationFrame(() => {
-                backToTop.classList.toggle('visible', !entries[0].isIntersecting);
+                if (shouldShow) {
+                  backToTop.classList.add('visible');
+                } else {
+                  backToTop.classList.remove('visible');
+                }
               });
             }, { 
               threshold: 0,
@@ -408,19 +579,20 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             });
             
             const pageTop = document.createElement('div');
-            Object.assign(pageTop.style, {
-              position: 'absolute',
-              top: '0',
-              left: '0',
-              width: '1px',
-              height: '1px',
-              pointerEvents: 'none'
-            });
+            pageTop.style.position = 'absolute';
+            pageTop.style.top = '0';
+            pageTop.style.left = '0';
+            pageTop.style.width = '1px';
+            pageTop.style.height = '1px';
+            pageTop.style.pointerEvents = 'none';
             document.body.appendChild(pageTop);
             observer.observe(pageTop);
               
             backToTop.addEventListener('click', () => {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+              });
             });
           }
         
@@ -443,22 +615,28 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 if (entry.isIntersecting) {
                   const img = entry.target;
                   const dataSrc = img.getAttribute('data-src');
+                  
                   if (dataSrc) {
                     img.src = dataSrc;
                     img.removeAttribute('data-src');
                   }
+                  
                   lazyLoadObserver.unobserve(img);
                 }
               });
-            }, { rootMargin: '200px' });
+            }, {
+              rootMargin: '200px'
+            });
             
             function collectImages() {
-              return Array.from(document.querySelectorAll('[data-preview="true"]'));
+              allImages = Array.from(document.querySelectorAll('[data-preview="true"]'));
+              return allImages;
             }
             
             function getImagesInCurrentArticle(img) {
               const article = img.closest('article');
-              return article ? Array.from(article.querySelectorAll('[data-preview="true"]')) : collectImages();
+              if (!article) return collectImages();
+              return Array.from(article.querySelectorAll('[data-preview="true"]'));
             }
             
             function showImage(img, index) {
@@ -472,6 +650,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 modalImg.classList.remove('loaded');
                 
                 const imgSrc = img.currentSrc || img.src;
+                
                 if (modalImg.src !== imgSrc) {
                   modalImg.src = imgSrc;
                 }
@@ -484,11 +663,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   modalImg.classList.add('loaded');
                   loadingIndicator.style.display = 'none';
                 } else {
-                  modalImg.onload = () => {
+                  modalImg.onload = function() {
                     modalImg.classList.add('loaded');
                     loadingIndicator.style.display = 'none';
                   };
-                  modalImg.onerror = () => {
+                  
+                  modalImg.onerror = function() {
                     loadingIndicator.style.display = 'none';
                   };
                 }
@@ -555,6 +735,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               modalImg.classList.remove('loaded');
               
               const imgSrc = prevImg.currentSrc || prevImg.src;
+              
               if (modalImg.src !== imgSrc) {
                 modalImg.src = imgSrc;
               }
@@ -565,11 +746,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 modalImg.classList.add('loaded');
                 loadingIndicator.style.display = 'none';
               } else {
-                modalImg.onload = () => {
+                modalImg.onload = function() {
                   modalImg.classList.add('loaded');
                   loadingIndicator.style.display = 'none';
                 };
-                modalImg.onerror = () => {
+                modalImg.onerror = function() {
                   loadingIndicator.style.display = 'none';
                 };
               }
@@ -587,6 +768,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               modalImg.classList.remove('loaded');
               
               const imgSrc = nextImg.currentSrc || nextImg.src;
+              
               if (modalImg.src !== imgSrc) {
                 modalImg.src = imgSrc;
               }
@@ -597,11 +779,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 modalImg.classList.add('loaded');
                 loadingIndicator.style.display = 'none';
               } else {
-                modalImg.onload = () => {
+                modalImg.onload = function() {
                   modalImg.classList.add('loaded');
                   loadingIndicator.style.display = 'none';
                 };
-                modalImg.onerror = () => {
+                modalImg.onerror = function() {
                   loadingIndicator.style.display = 'none';
                 };
               }
@@ -646,6 +828,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               modal.classList.remove('active');
               document.body.style.overflow = '';
               isModalActive = false;
+              
               currentArticleImages = [];
               currentIndex = 0;
             }
@@ -714,13 +897,15 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             setupImageClickHandlers();
           }
 
-          // 代码复制功能
+          // 初始化代码复制功能
           function initCodeCopyButtons() {
             document.querySelectorAll('pre').forEach(block => {
-              if (block.previousElementSibling?.classList.contains('code-header')) return;
+              if (block.previousElementSibling && block.previousElementSibling.classList.contains('code-header')) {
+                return;
+              }
               
               const code = block.querySelector('code');
-              const language = code?.className ? 
+              const language = code && code.className ? 
                 code.className.replace('language-', '') : 
                 block.getAttribute('data-language') || 'plaintext';
               
@@ -752,7 +937,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     button.innerHTML = '<i class="ri-file-copy-line"></i>';
                     button.classList.remove('copied');
                   }, 2000);
-                }).catch(() => {
+                }).catch(err => {
                   const textarea = document.createElement('textarea');
                   textarea.value = codeText;
                   textarea.style.position = 'fixed';
