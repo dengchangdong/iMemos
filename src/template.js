@@ -342,7 +342,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             let currentTheme = 0;
             
             function updateIcon(theme) {
-              themeIcon.className = `ri-${theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'contrast'}-fill text-lg`;
+              themeIcon.className = 'ri-' + (theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'contrast') + '-fill text-lg';
               themeToggle.setAttribute('aria-label', 
                 theme === 'light' ? '切换到深色模式' : theme === 'dark' ? '切换到浅色模式' : '切换到系统模式'
               );
