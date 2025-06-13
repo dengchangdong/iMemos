@@ -7,32 +7,26 @@ import { simpleMarkdown } from './markdown.js'
 export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
-    const header = utils.createHtml`
-      <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>
-    `;
-    
-    const content = utils.createHtml`
-      <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-      <p class="text-sm">${error.message}</p>
-      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-    `;
-    
-    return createArticleStructure(header, content);
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`
+        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-sm">${error.message}</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+      `
+    );
   },
   
   // 404页面模板
   notFoundPage() {
-    const header = utils.createHtml`
-      <time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>
-    `;
-    
-    const content = utils.createHtml`
-      <h2 class="font-medium">未找到内容</h2>
-      <p>您访问的内容不存在或已被删除</p>
-      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-    `;
-    
-    return createArticleStructure(header, content);
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`
+        <h2 class="font-medium">未找到内容</h2>
+        <p>您访问的内容不存在或已被删除</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+      `
+    );
   },
   
   // 离线页面模板
@@ -46,83 +40,22 @@ export const htmlTemplates = {
         <meta name="description" content="离线状态页面">
         <meta name="theme-color" content="#209cff">
         <title>离线 - ${siteName || '博客'}</title>
-        <style>
-          body {
-            font-family: system-ui, -apple-system, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-            color: #333;
-            background-color: #f9fafb;
-          }
-          .container {
-            max-width: 500px;
-          }
-          h1 {
-            font-size: 24px;
-            margin-bottom: 16px;
-            color: #1f2937;
-          }
-          p {
-            font-size: 16px;
-            line-height: 1.6;
-            margin-bottom: 24px;
-            color: #4b5563;
-          }
-          .icon {
-            font-size: 48px;
-            margin-bottom: 24px;
-            color: #6b7280;
-          }
-          .btn {
-            display: inline-block;
-            background-color: #3b82f6;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: background-color 0.2s;
-          }
-          .btn:hover {
-            background-color: #2563eb;
-          }
-          @media (prefers-color-scheme: dark) {
-            body {
-              background-color: #111827;
-              color: #e5e7eb;
-            }
-            h1 {
-              color: #f9fafb;
-            }
-            p {
-              color: #d1d5db;
-            }
-            .icon {
-              color: #9ca3af;
-            }
-          }
-        </style>
+        <script src="https://cdn.tailwindcss.com"></script>
       </head>
-      <body>
-        <main class="container">
-          <figure class="icon" role="img" aria-label="离线状态">📶</figure>
-          <h1>您当前处于离线状态</h1>
-          <p>无法加载新内容。请检查您的网络连接并重试。</p>
-          <a href="/" class="btn">刷新页面</a>
+      <body class="min-h-screen flex justify-center items-center p-5 text-center bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+        <main class="max-w-md">
+          <figure class="text-5xl mb-6" role="img" aria-label="离线状态">📶</figure>
+          <h1 class="text-2xl font-semibold mb-4">您当前处于离线状态</h1>
+          <p class="text-base mb-6">无法加载新内容。请检查您的网络连接并重试。</p>
+          <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium transition-colors">刷新页面</a>
         </main>
       </body>
       </html>
     `
   },
   
-  // 离线图片占位符 - 返回Base64编码的透明像素
+  // 离线图片占位符
   offlineImage() {
-    // 提供简单的Base64编码的1x1像素透明PNG作为占位符
     return 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
   }
 }
@@ -130,22 +63,18 @@ export const htmlTemplates = {
 // 解析导航链接
 export function parseNavLinks(linksStr) {
   if (!linksStr) return []
-  
   try {
-    // 将单引号替换为双引号，以符合 JSON 格式
-    const jsonStr = linksStr.replace(/'/g, '"')
-    const linksObj = JSON.parse(jsonStr)
-    return Object.entries(linksObj).map(([text, url]) => ({ text, url }))
+    return Object.entries(JSON.parse(linksStr.replace(/'/g, '"'))).map(([text, url]) => ({ text, url }))
   } catch (error) {
     console.error('解析导航链接失败:', error)
     return []
   }
 }
 
-// 创建文章结构 - 提取公共结构减少重复代码
+// 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0 before:content-[''] before:w-[17px] before:h-[17px] before:bg-white dark:before:bg-gray-800 before:border before:border-indigo-timeline dark:before:border-indigo-400 before:rounded-full before:absolute before:-left-[10px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8] dark:before:shadow-[3px_3px_0px_#6366f1]">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
         ${content}
@@ -157,24 +86,13 @@ function createArticleStructure(header, content) {
 // 渲染单个 memo
 export function renderMemo(memo, isHomePage = false) {
   try {
-    const timestamp = memo.createTime 
-      ? new Date(memo.createTime).getTime()
-      : memo.createdTs * 1000
-    
-    // 使用utils中的时间格式化函数
+    const timestamp = memo.createTime ? new Date(memo.createTime).getTime() : memo.createdTs * 1000
     const formattedTime = utils.formatTime(timestamp)
-    
-    // 使用简易Markdown渲染内容
-    const content = memo.content || ''
-    const parsedContent = simpleMarkdown(content)
-    
-    // 资源处理 - 图片预览优化
+    const parsedContent = simpleMarkdown(memo.content || '')
     const resources = memo.resources || memo.resourceList || []
     let resourcesHtml = ''
     
-    // 创建图片资源HTML
     if (resources.length > 0) {
-      // 创建单个图片HTML的函数
       const createImageHTML = (resource, size = '') => utils.createHtml`
         <div class="${size} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden ${size ? '' : 'aspect-square'} image-container">
           <img 
@@ -190,16 +108,13 @@ export function renderMemo(memo, isHomePage = false) {
         </div>
       `;
 
-      // 根据图片数量决定布局
       if (resources.length === 1) {
-        // 单张图片 - 100%宽度
         resourcesHtml = utils.createHtml`
           <figure class="mt-4">
             ${createImageHTML(resources[0], 'w-full aspect-video')}
           </figure>
         `;
       } else if (resources.length === 2) {
-        // 两张图片 - 各50%宽度
         resourcesHtml = utils.createHtml`
           <figure class="mt-4">
             <div class="flex flex-wrap gap-1">
@@ -208,7 +123,6 @@ export function renderMemo(memo, isHomePage = false) {
           </figure>
         `;
       } else {
-        // 三张或更多图片 - 九宫格布局
         resourcesHtml = utils.createHtml`
           <figure class="mt-4">
             <div class="grid grid-cols-3 gap-1">
@@ -219,24 +133,19 @@ export function renderMemo(memo, isHomePage = false) {
       }
     }
     
-    // 文章URL
     const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
     
-    // 创建文章头部
-    const header = utils.createHtml`
-      <a href="${articleUrl}" class="block">
-        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-      </a>
-    `;
-    
-    // 创建文章内容
-    const articleContent = utils.createHtml`
-      ${parsedContent}
-      ${resourcesHtml}
-    `;
-    
-    // 使用时间轴样式渲染
-    return createArticleStructure(header, articleContent);
+    return createArticleStructure(
+      utils.createHtml`
+        <a href="${articleUrl}" class="block">
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+        </a>
+      `,
+      utils.createHtml`
+        ${parsedContent}
+        ${resourcesHtml}
+      `
+    );
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
@@ -246,16 +155,14 @@ export function renderMemo(memo, isHomePage = false) {
   }
 }
 
-// 渲染基础 HTML - 使用index.html作为模板
+// 渲染基础 HTML
 export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
   const navItems = parseNavLinks(navLinks)
-  const navItemsHtml = navItems.length > 0 
-    ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-[#209cff] hover:text-[#0c7cd5]">${item.text}</a></li>
-      `).join('')
-    : '';
-
-  let articlesHtml = Array.isArray(content) ? content.join('') : content;
+  const navItemsHtml = navItems.map(item => utils.createHtml`
+    <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-[#209cff] hover:text-[#0c7cd5]">${item.text}</a></li>
+  `).join('')
+  
+  const articlesHtml = Array.isArray(content) ? content.join('') : content
 
   return utils.createHtml`
     <!DOCTYPE html>
@@ -305,7 +212,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </script>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-        <div class="container w-full mx-auto max-w-[640px] px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
+        <div class="w-full mx-auto max-w-[640px] px-4 py-12 sm:px-4 sm:py-12 px-[10px] py-[20px]">
           <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full sm:p-8 p-[15px]">
             <header class="flex items-center justify-between sm:flex-row flex-row">
               <div class="flex items-center">
@@ -368,7 +275,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-700"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5 dark:bg-blue-500 dark:text-white dark:hover:bg-blue-700"
           aria-label="返回顶部"
         >
           <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
@@ -377,24 +284,24 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <!-- 图片预览模态框 -->
         <div 
           id="imageModal" 
-          class="fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
+          class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
           aria-modal="true" 
           aria-label="图片预览"
         >
-          <div class="relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+          <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
             <button 
-              class="absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+              class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
               aria-label="关闭预览"
             >
               <i class="ri-close-line" aria-hidden="true"></i>
             </button>
             
             <div 
-              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
+              class="image-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
               role="status" 
               aria-live="polite"
             >
-              <div class="w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
               <span>加载中...</span>
             </div>
             
@@ -409,14 +316,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </figure>
             
             <button 
-              class="absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
               aria-label="上一张"
             >
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
             </button>
             
             <button 
-              class="absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
               aria-label="下一张"
             >
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
@@ -426,22 +333,19 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <script>
         (function() {
-          // 性能优化：使用变量缓存DOM元素和计算结果
-          const themeToggle = document.getElementById('theme-toggle');
-          const themeIcon = document.getElementById('theme-icon');
-          const html = document.documentElement;
-          const modal = document.getElementById('imageModal');
-          const modalImg = document.getElementById('modalImage');
-          const backToTop = document.getElementById('back-to-top');
-          
           // 主题切换功能
           function initThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const html = document.documentElement;
             const themes = ['system', 'light', 'dark'];
-            let currentTheme = localStorage.theme === 'dark' ? 2 : localStorage.theme === 'light' ? 1 : 0;
+            let currentTheme = 0;
             
             function updateIcon(theme) {
               themeIcon.className = `ri-${theme === 'light' ? 'sun' : theme === 'dark' ? 'moon' : 'contrast'}-fill text-lg`;
-              themeToggle.setAttribute('aria-label', `切换到${theme === 'light' ? '深色' : theme === 'dark' ? '浅色' : '系统'}模式`);
+              themeToggle.setAttribute('aria-label', 
+                theme === 'light' ? '切换到深色模式' : theme === 'dark' ? '切换到浅色模式' : '切换到系统模式'
+              );
             }
             
             function applyTheme(theme) {
@@ -461,16 +365,27 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               });
             }
             
-            // 初始化主题
-            applyTheme(themes[currentTheme]);
+            const storedTheme = localStorage.theme;
+            if (storedTheme === 'dark') {
+              html.classList.add('dark');
+              currentTheme = 2;
+              updateIcon('dark');
+            } else if (storedTheme === 'light') {
+              html.classList.remove('dark');
+              currentTheme = 1;
+              updateIcon('light');
+            } else {
+              if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                html.classList.add('dark');
+              }
+              updateIcon('system');
+            }
             
-            // 主题切换
             themeToggle.addEventListener('click', () => {
               currentTheme = (currentTheme + 1) % 3;
               applyTheme(themes[currentTheme]);
             });
-            
-            // 系统主题变化监听
+
             window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
               if (!localStorage.theme) {
                 requestAnimationFrame(() => {
@@ -479,14 +394,18 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               }
             });
           }
-          
+
           // 返回顶部功能
           function initBackToTop() {
+            const backToTop = document.getElementById('back-to-top');
             const observer = new IntersectionObserver((entries) => {
               requestAnimationFrame(() => {
                 backToTop.classList.toggle('visible', !entries[0].isIntersecting);
               });
-            }, { threshold: 0, rootMargin: '300px 0px 0px 0px' });
+            }, { 
+              threshold: 0,
+              rootMargin: '300px 0px 0px 0px'
+            });
             
             const pageTop = document.createElement('div');
             Object.assign(pageTop.style, {
@@ -499,14 +418,16 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             });
             document.body.appendChild(pageTop);
             observer.observe(pageTop);
-            
+              
             backToTop.addEventListener('click', () => {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             });
           }
-          
+        
           // 图片预览功能
           function initImageViewer() {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
             const closeBtn = modal.querySelector('.image-modal-close');
             const prevBtn = modal.querySelector('.image-modal-prev');
             const nextBtn = modal.querySelector('.image-modal-next');
@@ -517,7 +438,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             let currentIndex = 0;
             let isModalActive = false;
             
-            // 懒加载图片
             const lazyLoadObserver = new IntersectionObserver((entries) => {
               entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -526,8 +446,8 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   if (dataSrc) {
                     img.src = dataSrc;
                     img.removeAttribute('data-src');
-                    lazyLoadObserver.unobserve(img);
                   }
+                  lazyLoadObserver.unobserve(img);
                 }
               });
             }, { rootMargin: '200px' });
@@ -598,16 +518,22 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     img._markAsLoadedHandler = () => {
                       if (img.complete && img.naturalWidth > 0) {
                         img.classList.add('loaded');
-                        img.parentNode?.classList.add('loaded');
+                        if (img.parentNode) {
+                          img.parentNode.classList.add('loaded');
+                        }
                       }
                     };
                     
                     img._errorHandler = () => {
                       console.error('Image failed to load:', img.src);
                     };
-                    
+
                     if (img.complete) {
-                      img.naturalWidth > 0 ? img._markAsLoadedHandler() : img._errorHandler();
+                      if (img.naturalWidth > 0) {
+                        img._markAsLoadedHandler();
+                      } else {
+                        img._errorHandler();
+                      }
                     } else {
                       img.addEventListener('load', img._markAsLoadedHandler);
                       img.addEventListener('error', img._errorHandler);
@@ -750,14 +676,26 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               }
             });
             
+            setupImageLoadHandlers();
+            
             const observer = new MutationObserver((mutations) => {
-              const hasNewImages = mutations.some(mutation => 
-                mutation.type === 'childList' && 
-                Array.from(mutation.addedNodes).some(node => 
-                  node.nodeType === Node.ELEMENT_NODE && 
-                  (node.querySelector('[data-preview="true"]') || node.matches('[data-preview="true"]'))
-                )
-              );
+              let hasNewImages = false;
+              
+              for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                  for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                      if (node.querySelector('[data-preview="true"]') || 
+                          node.matches('[data-preview="true"]')) {
+                        hasNewImages = true;
+                        break;
+                      }
+                    }
+                  }
+                  
+                  if (hasNewImages) break;
+                }
+              }
               
               if (hasNewImages) {
                 allImages = [];
@@ -775,27 +713,27 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             setupImageLoadHandlers();
             setupImageClickHandlers();
           }
-          
+
           // 代码复制功能
           function initCodeCopyButtons() {
             document.querySelectorAll('pre').forEach(block => {
               if (block.previousElementSibling?.classList.contains('code-header')) return;
               
               const code = block.querySelector('code');
-              const language = code?.className?.replace('language-', '') || 
-                             block.getAttribute('data-language') || 
-                             'plaintext';
+              const language = code?.className ? 
+                code.className.replace('language-', '') : 
+                block.getAttribute('data-language') || 'plaintext';
               
               const header = document.createElement('div');
-              header.className = 'flex justify-between items-center bg-gray-100 dark:bg-gray-800 rounded-t-lg px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-700';
+              header.className = 'code-header';
               
               const langLabel = document.createElement('span');
-              langLabel.className = 'font-mono font-medium';
+              langLabel.className = 'code-language';
               langLabel.textContent = language;
               header.appendChild(langLabel);
               
               const button = document.createElement('button');
-              button.className = 'p-1.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors';
+              button.className = 'copy-btn';
               button.innerHTML = '<i class="ri-file-copy-line"></i>';
               button.setAttribute('aria-label', '复制代码');
               button.setAttribute('type', 'button');
@@ -803,19 +741,18 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               
               block.parentNode.insertBefore(header, block);
               
-              button.addEventListener('click', async () => {
+              button.addEventListener('click', () => {
                 const codeText = code?.textContent || block.textContent;
                 
-                try {
-                  await navigator.clipboard.writeText(codeText);
+                navigator.clipboard.writeText(codeText).then(() => {
                   button.innerHTML = '<i class="ri-check-line"></i>';
-                  button.classList.add('bg-green-500', 'text-white');
+                  button.classList.add('copied');
                   
                   setTimeout(() => {
                     button.innerHTML = '<i class="ri-file-copy-line"></i>';
-                    button.classList.remove('bg-green-500', 'text-white');
+                    button.classList.remove('copied');
                   }, 2000);
-                } catch (err) {
+                }).catch(() => {
                   const textarea = document.createElement('textarea');
                   textarea.value = codeText;
                   textarea.style.position = 'fixed';
@@ -826,7 +763,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   try {
                     document.execCommand('copy');
                     button.innerHTML = '<i class="ri-check-line"></i>';
-                    button.classList.add('bg-green-500', 'text-white');
+                    button.classList.add('copied');
                   } catch (e) {
                     button.innerHTML = '<i class="ri-error-warning-line"></i>';
                     console.error('复制失败:', e);
@@ -836,9 +773,9 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   
                   setTimeout(() => {
                     button.innerHTML = '<i class="ri-file-copy-line"></i>';
-                    button.classList.remove('bg-green-500', 'text-white');
+                    button.classList.remove('copied');
                   }, 2000);
-                }
+                });
               });
             });
           }
@@ -846,13 +783,22 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           // 增强的Markdown处理
           function enhanceMarkdown() {
             const observer = new MutationObserver((mutations) => {
-              const hasNewCodeBlocks = mutations.some(mutation => 
-                mutation.type === 'childList' && 
-                Array.from(mutation.addedNodes).some(node => 
-                  node.nodeType === Node.ELEMENT_NODE && 
-                  (node.querySelector('pre') || node.matches('pre'))
-                )
-              );
+              let hasNewCodeBlocks = false;
+              
+              for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                  for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                      if (node.querySelector('pre') || node.matches('pre')) {
+                        hasNewCodeBlocks = true;
+                        break;
+                      }
+                    }
+                  }
+                  
+                  if (hasNewCodeBlocks) break;
+                }
+              }
               
               if (hasNewCodeBlocks) {
                 initCodeCopyButtons();
@@ -868,7 +814,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             
             initCodeCopyButtons();
           }
-          
+
           // 页面加载完成后初始化所有功能
           document.addEventListener('DOMContentLoaded', () => {
             initThemeToggle();
