@@ -1,12 +1,22 @@
 import { CONFIG } from './config.js';
 import { utils } from './utils.js';
 
-// Markdown渲染核心 - 使用缓存和高效处理
+/**
+ * Markdown渲染核心 - 使用缓存和高效处理
+ * @namespace markdownRenderer
+ */
 export const markdownRenderer = {
-  // 处理缓存
+  /**
+   * 处理缓存
+   * @type {Map<string, string>}
+   */
   cache: new Map(),
   
-  // 主处理函数
+  /**
+   * 主处理函数
+   * @param {string} text - Markdown文本
+   * @returns {string} 渲染后的HTML
+   */
   render(text) {
     if (!text) return '';
     
@@ -46,7 +56,11 @@ export const markdownRenderer = {
     return html;
   },
   
-  // 确保内容是Markdown格式
+  /**
+   * 确保内容是Markdown格式
+   * @param {string} text - 输入文本
+   * @returns {string} Markdown格式文本
+   */
   ensureMarkdown(text) {
     // 识别文本是否已包含Markdown格式
     const containsMarkdown = 
@@ -67,7 +81,11 @@ export const markdownRenderer = {
     return text;
   },
   
-  // 将Markdown渲染为HTML - 高效实现
+  /**
+   * 将Markdown渲染为HTML - 高效实现
+   * @param {string} text - Markdown文本
+   * @returns {string} 渲染后的HTML
+   */
   renderToHtml(text) {
     // 使用字符串替换而非DOM操作，提高性能
     let html = text;
@@ -145,7 +163,11 @@ export const markdownRenderer = {
     return html;
   },
   
-  // 处理特殊链接 - 高效精简实现
+  /**
+   * 处理特殊链接 - 高效精简实现
+   * @param {string} html - HTML内容
+   * @returns {string} 处理后的HTML
+   */
   processSpecialLinks(html) {
     // 对于已经处理过的HTML内容，直接返回，避免重复处理
     if (html.includes('<iframe') || html.includes('<div class="' + CONFIG.CSS.EMBED_CONTAINER + '">')) {
@@ -257,7 +279,13 @@ export const markdownRenderer = {
     return html;
   },
   
-  // 创建嵌入HTML
+  /**
+   * 创建嵌入HTML
+   * @param {string} embedSrc - 嵌入资源地址
+   * @param {string} [containerClass=''] - 容器类名
+   * @param {string} [attributes=''] - iframe属性
+   * @returns {string} 嵌入HTML
+   */
   createEmbedHTML(embedSrc, containerClass = '', attributes = '') {
     const cssClass = containerClass ? `${CONFIG.CSS.EMBED_CONTAINER} ${containerClass}` : CONFIG.CSS.EMBED_CONTAINER;
     
@@ -266,7 +294,12 @@ export const markdownRenderer = {
     </div>`;
   },
   
-  // 创建微信卡片
+  /**
+   * 创建微信卡片
+   * @param {string} url - 微信文章链接
+   * @param {string} [title='微信公众号文章'] - 标题
+   * @returns {string} 卡片HTML
+   */
   createWechatCard(url, title = '微信公众号文章') {
     // URL编码，避免特殊字符问题
     url = url.replace(/[^a-zA-Z0-9-_.~]/g, match => {
@@ -287,7 +320,11 @@ export const markdownRenderer = {
   }
 };
 
-// 简化版Markdown渲染，用于不需要缓存的场景
+/**
+ * 简化版Markdown渲染，用于不需要缓存的场景
+ * @param {string} text - Markdown文本
+ * @returns {string} 渲染后的HTML
+ */
 export function simpleMarkdown(text) {
   if (!text) return '';
   return markdownRenderer.render(text);

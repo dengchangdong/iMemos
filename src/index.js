@@ -1,36 +1,30 @@
 import { Hono } from 'hono'
+import { serveStatic } from 'hono/serve-static'
+import { CONFIG } from './config.js'
 import { routes } from './routes.js'
-import { htmlCompressor } from './utils.js'
 
+/**
+ * 创建Hono应用实例
+ * @type {Hono}
+ */
 const app = new Hono()
 
-// 错误处理中间件
-app.use('*', async (c, next) => {
-  try {
-    await next()
-  } catch (err) {
-    console.error('错误:', err)
-    return c.text('服务器错误', 500)
-  }
-})
-
-// HTML压缩中间件
-app.use('*', async (c, next) => {
-  await next()
-  const response = c.res
-  if (response.headers.get('content-type')?.includes('text/html')) {
-    c.res = await htmlCompressor.compressResponse(response)
-  }
-})
-
-// 注册路由 - 更简洁的路由处理
+/**
+ * 注册路由
+ */
 app.get('/', routes.home)
 app.get('/page/:number', routes.page)
 app.get('/post/:name', routes.post)
 app.get('/tag/:tag', routes.tag)
-app.get('/api/v1/memo', routes.api)
-
-// robots.txt路由
 app.get('/robots.txt', routes.robots)
+app.get('/api', routes.api)
 
+/**
+ * 静态资源处理
+ */
+app.use('/*', serveStatic({ root: './' }))
+
+/**
+ * 导出应用实例
+ */
 export default app

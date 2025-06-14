@@ -1,6 +1,13 @@
-// 帮助函数 - 工具集
+/**
+ * 工具函数集合
+ * @namespace utils
+ */
 export const utils = {
-  // HTML转义，防止XSS攻击
+  /**
+   * HTML转义，防止XSS攻击
+   * @param {string} text - 需要转义的文本
+   * @returns {string} 转义后的文本
+   */
   escapeHtml(text) {
     return text
       .replace(/&/g, "&amp;")
@@ -10,7 +17,11 @@ export const utils = {
       .replace(/'/g, "&#039;");
   },
   
-  // 格式化时间
+  /**
+   * 格式化时间
+   * @param {number} timestamp - 时间戳
+   * @returns {string} 格式化后的时间字符串
+   */
   formatTime(timestamp) {
     const now = new Date()
     const date = new Date(timestamp)
@@ -50,12 +61,21 @@ export const utils = {
     }).replace(/\//g, '-')
   },
   
-  // 创建HTML元素（用于模板）
+  /**
+   * 创建HTML元素（用于模板）
+   * @param {TemplateStringsArray} strings - 模板字符串数组
+   * @param {...any} values - 模板插值
+   * @returns {string} 拼接后的HTML字符串
+   */
   createHtml(strings, ...values) {
     return String.raw({ raw: strings }, ...values);
   },
 
-  // 按时间降序排序memos
+  /**
+   * 按时间降序排序memos
+   * @param {Array<Object>} memos - memo对象数组
+   * @returns {Array<Object>} 排序后的memo数组
+   */
   sortMemosByTime(memos) {
     if (!Array.isArray(memos)) return [];
     
@@ -63,53 +83,6 @@ export const utils = {
       const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
       const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
       return timeB - timeA; // 降序排列
-    });
-  }
-};
-
-// HTML压缩工具
-export const htmlCompressor = {
-  // 压缩HTML字符串
-  compress(html) {
-    return html
-      // 移除HTML注释
-      .replace(/<!--[\s\S]*?-->/g, '')
-      // 移除空白行
-      .replace(/^\s*[\r\n]/gm, '')
-      // 压缩空白字符
-      .replace(/>\s+</g, '><')
-      // 移除标签之间的空白
-      .replace(/\s+>/g, '>')
-      .replace(/<\s+/g, '<')
-      // 移除属性值中的多余空白
-      .replace(/\s*=\s*/g, '=')
-      // 移除自闭合标签后的空白
-      .replace(/\s*\/>/g, '/>')
-      // 移除script和style标签内的空白（保留内容）
-      .replace(/(<script[^>]*>)([\s\S]*?)(<\/script>)/gi, (match, open, content, close) => {
-        return open + content.replace(/\s+/g, ' ') + close;
-      })
-      .replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/gi, (match, open, content, close) => {
-        return open + content.replace(/\s+/g, ' ') + close;
-      });
-  },
-
-  // 压缩响应
-  compressResponse(response) {
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('text/html')) {
-      return response;
-    }
-
-    return response.text().then(text => {
-      const compressed = this.compress(text);
-      return new Response(compressed, {
-        headers: {
-          'content-type': 'text/html;charset=UTF-8',
-          'content-encoding': 'gzip',
-          'cache-control': response.headers.get('cache-control') || 'public, max-age=300'
-        }
-      });
     });
   }
 }; 
