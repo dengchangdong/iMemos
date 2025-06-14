@@ -3,7 +3,7 @@ import { CONFIG } from './config.js'
 import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
-// HTML 模板集合
+// 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
   // 错误页面模板
   errorPage(error) {
@@ -17,7 +17,7 @@ export const htmlTemplates = {
     );
   },
   
-  // 404 页面模板
+  // 404页面模板
   notFoundPage() {
     return createArticleStructure(
       utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
@@ -127,23 +127,8 @@ export function renderMemo(memo, isHomePage = false) {
   }
 }
 
-// 创建资源 HTML
+// 创建资源HTML
 function createResourcesHtml(resources) {
-  const createImageHtml = (resource) => utils.createHtml`
-    <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-      <img 
-        src="${resource.externalLink || ''}" 
-        alt="${resource.filename || '图片'}"
-        class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-        loading="lazy"
-        data-preview="true"
-      />
-      <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-        <i class="ri-image-line text-2xl"></i>
-      </div>
-    </div>
-  `;
-  
   if (resources.length === 1) {
     return utils.createHtml`
       <figure class="mt-4">
@@ -161,25 +146,49 @@ function createResourcesHtml(resources) {
         </div>
       </figure>
     `;
-  }
-  
-  if (resources.length === 2) {
+  } else if (resources.length === 2) {
     return utils.createHtml`
       <figure class="mt-4">
         <div class="flex flex-wrap gap-1">
-          ${resources.map(createImageHtml).join('')}
+          ${resources.map(resource => utils.createHtml`
+            <div class="w-[calc(50%-2px)] aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+              <img 
+                src="${resource.externalLink || ''}" 
+                alt="${resource.filename || '图片'}"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                loading="lazy"
+                data-preview="true"
+              />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-2xl"></i>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </figure>
+    `;
+  } else {
+    return utils.createHtml`
+      <figure class="mt-4">
+        <div class="grid grid-cols-3 gap-1">
+          ${resources.map(resource => utils.createHtml`
+            <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+              <img 
+                src="${resource.externalLink || ''}" 
+                alt="${resource.filename || '图片'}"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                loading="lazy"
+                data-preview="true"
+              />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-2xl"></i>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </figure>
     `;
   }
-  
-  return utils.createHtml`
-    <figure class="mt-4">
-      <div class="grid grid-cols-3 gap-1">
-        ${resources.map(createImageHtml).join('')}
-      </div>
-    </figure>
-  `;
 }
 
 // 渲染基础 HTML
@@ -192,8 +201,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
     : '';
 
   const articlesHtml = Array.isArray(content) ? content.join('') : content;
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
 
   return utils.createHtml`
     <!DOCTYPE html>
@@ -206,17 +213,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website">
-        <meta property="og:url" content="${currentUrl}">
+        <meta property="og:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
         <meta property="og:title" content="${title}">
         <meta property="og:description" content="${siteName} - 博客">
-        <meta property="og:image" content="${origin}/og-image.jpg">
+        <meta property="og:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
         
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image">
-        <meta property="twitter:url" content="${currentUrl}">
+        <meta property="twitter:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
         <meta property="twitter:title" content="${title}">
         <meta property="twitter:description" content="${siteName} - 博客">
-        <meta property="twitter:image" content="${origin}/og-image.jpg">
+        <meta property="twitter:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
         
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -242,58 +249,800 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
         </script>
         <style>
-          .image-placeholder {
-            opacity: 0;
-            transition: opacity 0.3s;
+          html::-webkit-scrollbar, 
+          body::-webkit-scrollbar,
+          pre::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0);
+            border-radius: 10px;
           }
-          img[data-preview="true"]:hover + .image-placeholder {
+
+          html::-webkit-scrollbar-thumb, 
+          body::-webkit-scrollbar-thumb,
+          pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb:hover, 
+          body::-webkit-scrollbar-thumb:hover,
+          pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.11);
+            border-radius: 10px; 
+          }
+
+          html::-webkit-scrollbar-track:hover, 
+          body::-webkit-scrollbar-track:hover,
+          pre::-webkit-scrollbar-track:hover {
+            background: rgba(0, 0, 0, 0);
+            border-radius: 10px; 
+          }
+
+          article::before {
+            content: '';
+            width: 17px;
+            height: 17px;
+            background-color: white;
+            border: 1px solid #4e5ed3;
+            border-radius: 50%;
+            position: absolute;
+            left: -10px;
+            top: 0;
+            box-shadow: 3px 3px 0px #bab5f8;
+            will-change: transform;
+          }
+          .dark article::before {
+            background-color: #1f2937;
+            border-color: #818cf8;
+            box-shadow: 3px 3px 0px #6366f1;
+          }
+          .image-modal.active {
+            display: flex;
             opacity: 1;
+          }
+          .image-modal-content img.loaded {
+            opacity: 1;
+          }
+          .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+          }
+          .article-content img, .mt-4 img {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background-color: #0c7cd51c;
+            opacity: 0.5;
+            will-change: opacity;
+          }
+          .article-content img.loaded, .mt-4 img.loaded {
+            opacity: 1;
+          }
+          .article-content img:hover, .mt-4 img:hover {
+            opacity: 0.9;
+          }
+          .image-placeholder {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+          }
+          div.loaded .image-placeholder {
+            opacity: 0;
+          }
+          .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f3f5;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            margin-bottom: -1rem;
+          }
+          .dark .code-header {
+            background-color: #1a2234;
+            color: #9ca3af;
+            border-bottom: 1px solid #374151;
+          }
+          .copy-btn {
+            position: relative;
+            padding: 6px;
+            font-size: 16px;
+            color: #4b5563;
+            background-color: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.2s, background-color 0.2s;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+          }
+          .dark .copy-btn {
+            color: #e5e7eb;
+          }
+          .copy-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
+          .dark .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+          }
+          .copy-btn.copied {
+            background-color: #10b981;
+            color: white;
+          }
+          .dark .copy-btn.copied {
+            background-color: #059669;
           }
         </style>
       </head>
-      <body class="min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <header class="sticky top-0 z-50 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700">
-          <nav class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <a href="/" class="text-xl font-semibold text-blue-600 dark:text-blue-400">${siteName}</a>
-            <ul class="flex items-center space-x-1">
-              ${navItemsHtml}
-            </ul>
-          </nav>
-        </header>
+      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+        <div class="container w-full max-w-2xl mx-auto px-4 py-12 sm:px-4 sm:py-12">
+          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full">
+            <header class="flex items-center justify-between">
+              <div class="flex items-center">
+                <a href="/" class="flex items-center" aria-label="返回首页">
+                  <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
+                </a>
+              </div>
+              <div class="flex items-center space-x-4">
+                <nav class="mr-1" aria-label="网站导航">
+                  <ul class="flex space-x-2">
+                    ${navItemsHtml}
+                  </ul>
+                </nav>
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+                </button>
+              </div>
+            </header>
+            <main class="mt-8 relative">
+              ${articlesHtml}
+            </main>
+            
+            <!-- 分页导航 -->
+            ${isHomePage ? 
+              (currentPage === 1 ?
+                utils.createHtml`
+                <div class="pagination flex justify-center items-center mt-8 pt-4">
+                  <a href="/page/2" class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
+                    <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
+                  </a>
+                </div>
+                ` : 
+                utils.createHtml`
+              <div class="pagination flex justify-between items-center mt-8 pt-4">
+                <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
+                  <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
+                </a>
+                <span class="text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
+                <a href="/page/${currentPage + 1}" class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow ${hasMore ? '' : 'invisible'}">
+                  下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
+                </a>
+              </div>
+                `
+              ) : 
+              (tag ?
+                utils.createHtml`
+                <div class="pagination flex justify-between items-center mt-8 pt-4">
+                  <a href="${currentPage > 2 ? `/page/${currentPage - 1}` : '/'}" class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow">
+                    <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
+                  </a>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
+                  <a href="/page/${currentPage + 1}" class="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow ${hasMore ? '' : 'invisible'}">
+                    下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
+                  </a>
+                </div>
+                ` : '')
+            }
+          </section>
+        </div>
+
+        <button 
+          id="back-to-top" 
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5"
+          aria-label="返回顶部"
+        >
+          <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
+        </button>
         
-        <main class="max-w-4xl mx-auto px-4 py-8">
-          <div class="space-y-8">
-            ${articlesHtml}
-          </div>
-          
-          ${hasMore ? utils.createHtml`
-            <div class="mt-8 text-center">
-              <a href="${isHomePage ? `/page/${currentPage + 1}` : `/tag/${tag}?page=${currentPage + 1}`}" 
-                class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">
-                加载更多
-              </a>
+        <!-- 图片预览模态框 -->
+        <div 
+          id="imageModal" 
+          class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
+          aria-modal="true" 
+          aria-label="图片预览"
+        >
+          <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+            <button 
+              class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+              aria-label="关闭预览"
+            >
+              <i class="ri-close-line" aria-hidden="true"></i>
+            </button>
+            
+            <div 
+              class="image-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
+              role="status" 
+              aria-live="polite"
+            >
+              <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <span>加载中...</span>
             </div>
-          ` : ''}
-        </main>
-        
-        <footer class="max-w-4xl mx-auto px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-          <p>© ${new Date().getFullYear()} ${siteName}. All rights reserved.</p>
-        </footer>
-        
+            
+            <figure class="w-full h-full flex items-center justify-center">
+              <img 
+                id="modalImage" 
+                src="" 
+                alt="预览图片" 
+                loading="lazy" 
+                class="max-w-full max-h-[90vh] max-w-[90vw] object-contain rounded opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity"
+              >
+            </figure>
+            
+            <button 
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+              aria-label="上一张"
+            >
+              <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
+            </button>
+            
+            <button 
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+              aria-label="下一张"
+            >
+              <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+
         <script>
-          // 检测系统主题
-          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            document.documentElement.classList.add('dark');
+        (function() {
+          // 主题切换功能
+          function initThemeToggle() {
+            const themeToggle = document.getElementById('theme-toggle');
+            const themeIcon = document.getElementById('theme-icon');
+            const html = document.documentElement;
+            
+            const themes = ['system', 'light', 'dark'];
+            let currentTheme = 0;
+            
+            function updateIcon(theme) {
+              themeIcon.className = theme === 'light' 
+                ? 'ri-sun-fill text-lg' 
+                : theme === 'dark' 
+                  ? 'ri-moon-fill text-lg' 
+                  : 'ri-contrast-fill text-lg';
+              
+              themeToggle.setAttribute('aria-label', 
+                theme === 'light' 
+                  ? '切换到深色模式' 
+                  : theme === 'dark' 
+                    ? '切换到浅色模式' 
+                    : '切换到系统模式'
+              );
+            }
+            
+            function applyTheme(theme) {
+              requestAnimationFrame(() => {
+                if (theme === 'light') {
+                  html.classList.remove('dark');
+                  localStorage.theme = 'light';
+                } else if (theme === 'dark') {
+                  html.classList.add('dark');
+                  localStorage.theme = 'dark';
+                } else {
+                  localStorage.removeItem('theme');
+                  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (prefersDark) {
+                    html.classList.add('dark');
+                  } else {
+                    html.classList.remove('dark');
+                  }
+                }
+                updateIcon(theme);
+              });
+            }
+            
+            const storedTheme = localStorage.theme;
+            if (storedTheme === 'dark') {
+              html.classList.add('dark');
+              currentTheme = 2;
+              updateIcon('dark');
+            } else if (storedTheme === 'light') {
+              html.classList.remove('dark');
+              currentTheme = 1;
+              updateIcon('light');
+            } else {
+              if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                html.classList.add('dark');
+              }
+              updateIcon('system');
+            }
+            
+            themeToggle.addEventListener('click', () => {
+              currentTheme = (currentTheme + 1) % 3;
+              const newTheme = themes[currentTheme];
+              applyTheme(newTheme);
+            });
+
+            const mql = window.matchMedia('(prefers-color-scheme: dark)');
+            const handleThemeChange = (e) => {
+              if (!localStorage.theme) {
+                requestAnimationFrame(() => {
+                  if (e.matches) {
+                    html.classList.add('dark');
+                  } else {
+                    html.classList.remove('dark');
+                  }
+                });
+              }
+            };
+            
+            mql.addEventListener('change', handleThemeChange);
+          }
+
+          // 返回顶部功能
+          function initBackToTop() {
+            const backToTop = document.getElementById('back-to-top');
+            
+            const observer = new IntersectionObserver((entries) => {
+              const shouldShow = !entries[0].isIntersecting;
+              requestAnimationFrame(() => {
+                if (shouldShow) {
+                  backToTop.classList.add('visible');
+                } else {
+                  backToTop.classList.remove('visible');
+                }
+              });
+            }, { 
+              threshold: 0,
+              rootMargin: '300px 0px 0px 0px'
+            });
+            
+            const pageTop = document.createElement('div');
+            pageTop.style.position = 'absolute';
+            pageTop.style.top = '0';
+            pageTop.style.left = '0';
+            pageTop.style.width = '1px';
+            pageTop.style.height = '1px';
+            pageTop.style.pointerEvents = 'none';
+            document.body.appendChild(pageTop);
+            observer.observe(pageTop);
+              
+            backToTop.addEventListener('click', () => {
+              window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+              });
+            });
+          }
+        
+          // 图片预览功能
+          function initImageViewer() {
+            const modal = document.getElementById('imageModal');
+            const modalImg = document.getElementById('modalImage');
+            const closeBtn = modal.querySelector('.image-modal-close');
+            const prevBtn = modal.querySelector('.image-modal-prev');
+            const nextBtn = modal.querySelector('.image-modal-next');
+            const loadingIndicator = modal.querySelector('.image-loading');
+            
+            let allImages = [];
+            let currentArticleImages = [];
+            let currentIndex = 0;
+            let isModalActive = false;
+            
+            const lazyLoadObserver = new IntersectionObserver((entries) => {
+              entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                  const img = entry.target;
+                  const dataSrc = img.getAttribute('data-src');
+                  
+                  if (dataSrc) {
+                    img.src = dataSrc;
+                    img.removeAttribute('data-src');
+                  }
+                  
+                  lazyLoadObserver.unobserve(img);
+                }
+              });
+            }, {
+              rootMargin: '200px'
+            });
+            
+            function collectImages() {
+              allImages = Array.from(document.querySelectorAll('[data-preview="true"]'));
+              return allImages;
+            }
+            
+            function getImagesInCurrentArticle(img) {
+              const article = img.closest('article');
+              if (!article) return collectImages();
+              return Array.from(article.querySelectorAll('[data-preview="true"]'));
+            }
+            
+            function showImage(img, index) {
+              if (isModalActive) return;
+              
+              isModalActive = true;
+              currentIndex = index;
+              
+              requestAnimationFrame(() => {
+                loadingIndicator.style.display = 'flex';
+                modalImg.classList.remove('loaded');
+                
+                const imgSrc = img.currentSrc || img.src;
+                
+                if (modalImg.src !== imgSrc) {
+                  modalImg.src = imgSrc;
+                }
+                
+                modalImg.alt = img.alt || '预览图片';
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                if (modalImg.complete && modalImg.naturalWidth > 0) {
+                  modalImg.classList.add('loaded');
+                  loadingIndicator.style.display = 'none';
+                } else {
+                  modalImg.onload = function() {
+                    modalImg.classList.add('loaded');
+                    loadingIndicator.style.display = 'none';
+                  };
+                  
+                  modalImg.onerror = function() {
+                    loadingIndicator.style.display = 'none';
+                  };
+                }
+                
+                updateNavigationButtons();
+              });
+            }
+            
+            function setupImageLoadHandlers() {
+              const images = collectImages();
+              
+              requestAnimationFrame(() => {
+                images.forEach((img) => {
+                  if (!img.dataset.src && !img.classList.contains('lazy-loaded')) {
+                    const originalSrc = img.src;
+                    if (originalSrc && !img.complete) {
+                      img.setAttribute('data-src', originalSrc);
+                      img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3C/svg%3E';
+                      lazyLoadObserver.observe(img);
+                    }
+                  }
+                  
+                  if (!img.classList.contains('loaded')) {
+                    img.removeEventListener('load', img._markAsLoadedHandler);
+                    img.removeEventListener('error', img._errorHandler);
+                    
+                    img._markAsLoadedHandler = () => {
+                      if (img.complete && img.naturalWidth > 0) {
+                        img.classList.add('loaded');
+                        if (img.parentNode) {
+                          img.parentNode.classList.add('loaded');
+                        }
+                      }
+                    };
+                    
+                    img._errorHandler = () => {
+                      console.error('Image failed to load:', img.src);
+                    };
+
+                    if (img.complete) {
+                      if (img.naturalWidth > 0) {
+                        img._markAsLoadedHandler();
+                      } else {
+                        img._errorHandler();
+                      }
+                    } else {
+                      img.addEventListener('load', img._markAsLoadedHandler);
+                      img.addEventListener('error', img._errorHandler);
+                    }
+                  }
+                });
+              });
+            }
+            
+            function showPreviousImage() {
+              if (currentArticleImages.length <= 1) return;
+              
+              currentIndex = (currentIndex - 1 + currentArticleImages.length) % currentArticleImages.length;
+              const prevImg = currentArticleImages[currentIndex];
+              
+              if (!prevImg) return;
+              
+              loadingIndicator.style.display = 'flex';
+              modalImg.classList.remove('loaded');
+              
+              const imgSrc = prevImg.currentSrc || prevImg.src;
+              
+              if (modalImg.src !== imgSrc) {
+                modalImg.src = imgSrc;
+              }
+              
+              modalImg.alt = prevImg.alt || '预览图片';
+              
+              if (modalImg.complete && modalImg.naturalWidth > 0) {
+                modalImg.classList.add('loaded');
+                loadingIndicator.style.display = 'none';
+              } else {
+                modalImg.onload = function() {
+                  modalImg.classList.add('loaded');
+                  loadingIndicator.style.display = 'none';
+                };
+                modalImg.onerror = function() {
+                  loadingIndicator.style.display = 'none';
+                };
+              }
+            }
+            
+            function showNextImage() {
+              if (currentArticleImages.length <= 1) return;
+              
+              currentIndex = (currentIndex + 1) % currentArticleImages.length;
+              const nextImg = currentArticleImages[currentIndex];
+              
+              if (!nextImg) return;
+              
+              loadingIndicator.style.display = 'flex';
+              modalImg.classList.remove('loaded');
+              
+              const imgSrc = nextImg.currentSrc || nextImg.src;
+              
+              if (modalImg.src !== imgSrc) {
+                modalImg.src = imgSrc;
+              }
+              
+              modalImg.alt = nextImg.alt || '预览图片';
+              
+              if (modalImg.complete && modalImg.naturalWidth > 0) {
+                modalImg.classList.add('loaded');
+                loadingIndicator.style.display = 'none';
+              } else {
+                modalImg.onload = function() {
+                  modalImg.classList.add('loaded');
+                  loadingIndicator.style.display = 'none';
+                };
+                modalImg.onerror = function() {
+                  loadingIndicator.style.display = 'none';
+                };
+              }
+            }
+            
+            function updateNavigationButtons() {
+              const hasMultipleImages = currentArticleImages.length > 1;
+              
+              requestAnimationFrame(() => {
+                prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
+                nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
+              });
+            }
+            
+            function setupImageClickHandlers() {
+              document.addEventListener('click', (e) => {
+                const img = e.target.closest('[data-preview="true"]');
+                const container = e.target.closest('.image-container');
+                
+                if (img) {
+                  e.preventDefault();
+                  currentArticleImages = getImagesInCurrentArticle(img);
+                  const index = currentArticleImages.indexOf(img);
+                  if (index !== -1) {
+                    showImage(img, index);
+                  }
+                } else if (container) {
+                  e.preventDefault();
+                  const containerImg = container.querySelector('[data-preview="true"]');
+                  if (containerImg) {
+                    currentArticleImages = getImagesInCurrentArticle(containerImg);
+                    const imgIndex = currentArticleImages.indexOf(containerImg);
+                    if (imgIndex !== -1) {
+                      showImage(containerImg, imgIndex);
+                    }
+                  }
+                }
+              }, { passive: false });
+            }
+            
+            function closeModal() {
+              modal.classList.remove('active');
+              document.body.style.overflow = '';
+              isModalActive = false;
+              
+              currentArticleImages = [];
+              currentIndex = 0;
+            }
+            
+            closeBtn.addEventListener('click', closeModal);
+            prevBtn.addEventListener('click', showPreviousImage);
+            nextBtn.addEventListener('click', showNextImage);
+            
+            modal.addEventListener('click', (e) => {
+              if (e.target === modal) {
+                closeModal();
+              }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+              if (!modal.classList.contains('active')) return;
+              
+              switch(e.key) {
+                case 'Escape':
+                  closeModal();
+                  break;
+                case 'ArrowLeft':
+                  showPreviousImage();
+                  break;
+                case 'ArrowRight':
+                  showNextImage();
+                  break;
+              }
+            });
+            
+            setupImageLoadHandlers();
+            
+            const observer = new MutationObserver((mutations) => {
+              let hasNewImages = false;
+              
+              for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                  for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                      if (node.querySelector('[data-preview="true"]') || 
+                          node.matches('[data-preview="true"]')) {
+                        hasNewImages = true;
+                        break;
+                      }
+                    }
+                  }
+                  
+                  if (hasNewImages) break;
+                }
+              }
+              
+              if (hasNewImages) {
+                allImages = [];
+                setupImageLoadHandlers();
+              }
+            });
+            
+            observer.observe(document.body, { 
+              childList: true, 
+              subtree: true,
+              attributes: false,
+              characterData: false
+            });
+            
+            setupImageLoadHandlers();
+            setupImageClickHandlers();
+          }
+
+          // 初始化代码复制功能
+          function initCodeCopyButtons() {
+            document.querySelectorAll('pre').forEach(block => {
+              if (block.previousElementSibling && block.previousElementSibling.classList.contains('code-header')) {
+                return;
+              }
+              
+              const code = block.querySelector('code');
+              const language = code && code.className ? 
+                code.className.replace('language-', '') : 
+                block.getAttribute('data-language') || 'plaintext';
+              
+              const header = document.createElement('div');
+              header.className = 'code-header';
+              
+              const langLabel = document.createElement('span');
+              langLabel.className = 'code-language';
+              langLabel.textContent = language;
+              header.appendChild(langLabel);
+              
+              const button = document.createElement('button');
+              button.className = 'copy-btn';
+              button.innerHTML = '<i class="ri-file-copy-line"></i>';
+              button.setAttribute('aria-label', '复制代码');
+              button.setAttribute('type', 'button');
+              header.appendChild(button);
+              
+              block.parentNode.insertBefore(header, block);
+              
+              button.addEventListener('click', () => {
+                const codeText = code?.textContent || block.textContent;
+                
+                navigator.clipboard.writeText(codeText).then(() => {
+                  button.innerHTML = '<i class="ri-check-line"></i>';
+                  button.classList.add('copied');
+                  
+                  setTimeout(() => {
+                    button.innerHTML = '<i class="ri-file-copy-line"></i>';
+                    button.classList.remove('copied');
+                  }, 2000);
+                }).catch(err => {
+                  const textarea = document.createElement('textarea');
+                  textarea.value = codeText;
+                  textarea.style.position = 'fixed';
+                  textarea.style.opacity = '0';
+                  document.body.appendChild(textarea);
+                  textarea.select();
+                  
+                  try {
+                    document.execCommand('copy');
+                    button.innerHTML = '<i class="ri-check-line"></i>';
+                    button.classList.add('copied');
+                  } catch (e) {
+                    button.innerHTML = '<i class="ri-error-warning-line"></i>';
+                    console.error('复制失败:', e);
+                  }
+                  
+                  document.body.removeChild(textarea);
+                  
+                  setTimeout(() => {
+                    button.innerHTML = '<i class="ri-file-copy-line"></i>';
+                    button.classList.remove('copied');
+                  }, 2000);
+                });
+              });
+            });
           }
           
-          // 监听主题变化
-          window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
-            if (e.matches) {
-              document.documentElement.classList.add('dark');
+          // 增强的Markdown处理
+          function enhanceMarkdown() {
+            const observer = new MutationObserver((mutations) => {
+              let hasNewCodeBlocks = false;
+              
+              for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                  for (const node of mutation.addedNodes) {
+                    if (node.nodeType === Node.ELEMENT_NODE) {
+                      if (node.querySelector('pre') || node.matches('pre')) {
+                        hasNewCodeBlocks = true;
+                        break;
+                      }
+                    }
+                  }
+                  
+                  if (hasNewCodeBlocks) break;
+                }
+              }
+              
+              if (hasNewCodeBlocks) {
+                initCodeCopyButtons();
+              }
+            });
+            
+            observer.observe(document.body, {
+              childList: true,
+              subtree: true,
+              attributes: false,
+              characterData: false
+            });
+            
+            initCodeCopyButtons();
+          }
+
+          // 页面加载完成后初始化所有功能
+          document.addEventListener('DOMContentLoaded', () => {
+            initThemeToggle();
+            initImageViewer();
+            enhanceMarkdown();
+            
+            if ('requestIdleCallback' in window) {
+              requestIdleCallback(() => initBackToTop());
             } else {
-              document.documentElement.classList.remove('dark');
+              setTimeout(() => initBackToTop(), 200);
             }
           });
+        })();
         </script>
       </body>
     </html>

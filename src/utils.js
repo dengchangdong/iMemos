@@ -2,14 +2,12 @@
 export const utils = {
   // HTML转义，防止XSS攻击
   escapeHtml(text) {
-    const htmlEntities = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
-    };
-    return text.replace(/[&<>"']/g, char => htmlEntities[char]);
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   },
   
   // 格式化时间
@@ -20,40 +18,36 @@ export const utils = {
     const minutes = Math.floor(diff / (1000 * 60))
     const hours = Math.floor(diff / (1000 * 60 * 60))
     
-    // 使用 Map 优化条件判断
-    const timeFormats = new Map([
-      [minutes < 5, '刚刚'],
-      [minutes < 60, `${minutes} 分钟前`],
-      [hours < 24 && date.getDate() === now.getDate(), `${hours} 小时前`]
-    ]);
+    // 1分钟以内
+    if (minutes < 5) return '刚刚'
     
-    // 查找第一个匹配的条件
-    for (const [condition, format] of timeFormats) {
-      if (condition) return format;
+    // 1小时以内
+    if (minutes < 60) return `${minutes} 分钟前`
+    
+    // 当天发布的且24小时以内
+    if (hours < 24 && date.getDate() === now.getDate()) 
+      return `${hours} 小时前`
+    
+    // 非当天发布但是是当年发布的
+    if (date.getFullYear() === now.getFullYear()) {
+      return date.toLocaleString('zh-CN', {
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }).replace(/\//g, '-')
     }
     
-    // 日期格式化选项
-    const dateOptions = {
+    // 非当年发布的
+    return date.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
       hour12: false
-    };
-    
-    // 根据年份决定是否显示年份
-    if (date.getFullYear() === now.getFullYear()) {
-      return date.toLocaleString('zh-CN', {
-        ...dateOptions,
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\//g, '-');
-    }
-    
-    return date.toLocaleString('zh-CN', {
-      ...dateOptions,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit'
-    }).replace(/\//g, '-');
+    }).replace(/\//g, '-')
   },
   
   // 创建HTML元素（用于模板）
@@ -66,12 +60,9 @@ export const utils = {
     if (!Array.isArray(memos)) return [];
     
     return [...memos].sort((a, b) => {
-      const getTimestamp = memo => {
-        if (memo.createTime) return new Date(memo.createTime).getTime();
-        return memo.createdTs * 1000;
-      };
-      
-      return getTimestamp(b) - getTimestamp(a);
+      const timeA = a.createTime ? new Date(a.createTime).getTime() : a.createdTs * 1000;
+      const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
+      return timeB - timeA; // 降序排列
     });
   }
 }; 

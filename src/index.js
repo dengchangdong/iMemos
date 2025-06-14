@@ -3,31 +3,30 @@ import { routes } from './routes.js'
 
 const app = new Hono()
 
-// 全局错误处理中间件
+// 错误处理中间件
 app.use('*', async (c, next) => {
   try {
     await next()
-  } catch (error) {
-    console.error('服务器错误:', error)
-    return c.text('服务器内部错误', 500)
+  } catch (err) {
+    console.error('错误:', err)
+    return c.text('服务器错误', 500)
   }
 })
 
-// 路由注册
-const routeHandlers = {
-  '/': routes.home,
-  '/page/:number': routes.page,
-  '/post/:name': routes.post,
-  '/tag/:tag': routes.tag,
-  '/api/v1/memo': routes.api,
-  '/offline.html': routes.offline,
-  '/offline-image.png': routes.offlineImage,
-  '/robots.txt': routes.robots,
-}
+// 注册路由 - 更简洁的路由处理
+app.get('/', routes.home)
+app.get('/page/:number', routes.page)
+app.get('/post/:name', routes.post)
+app.get('/tag/:tag', routes.tag)
+app.get('/api/v1/memo', routes.api)
 
-// 使用 Object.entries 批量注册路由
-Object.entries(routeHandlers).forEach(([path, handler]) => {
-  app.get(path, handler)
-})
+// 离线页面
+app.get('/offline.html', routes.offline)
+
+// 离线图片占位符
+app.get('/offline-image.png', routes.offlineImage)
+
+// robots.txt路由
+app.get('/robots.txt', routes.robots)
 
 export default app
