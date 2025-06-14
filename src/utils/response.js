@@ -1,4 +1,4 @@
-import { renderBaseHtml, htmlTemplates } from '../template.js';
+import { renderBaseHtml, htmlTemplates } from '../templates/index.js';
 
 /**
  * 创建统一的响应对象

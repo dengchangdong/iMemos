@@ -1,5 +1,5 @@
-import { CONFIG } from '../config.js';
-import { renderMemo, renderBaseHtml } from '../template.js';
+import { CONFIG } from '../config/index.js';
+import { renderMemo, renderBaseHtml } from '../templates/index.js';
 import { utils } from '../utils.js';
 import { apiHandler } from '../services/api.js';
 import { createResponse, createNotFoundResponse } from '../utils/response.js';

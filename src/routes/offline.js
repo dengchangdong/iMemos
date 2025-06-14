@@ -1,4 +1,4 @@
-import { renderBaseHtml } from '../template.js';
+import { renderBaseHtml } from '../templates/index.js';
 import { createResponse } from '../utils/response.js';
 
 /**
