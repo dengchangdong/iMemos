@@ -72,41 +72,23 @@ export const utils = {
 
 // 压缩 HTML 代码
 export const minifyHtml = (html) => {
-  return minify(html, {
-    collapseWhitespace: true,
-    removeComments: true,
-    removeRedundantAttributes: true,
-    removeScriptTypeAttributes: true,
-    removeStyleLinkTypeAttributes: true,
-    minifyCSS: true,
-    minifyJS: true,
-    minifyURLs: true,
-    useShortDoctype: true,
-    removeEmptyAttributes: true,
-    removeOptionalTags: true,
-    removeTagWhitespace: true,
-    removeAttributeQuotes: true,
-    processScripts: ['application/ld+json']
-  });
+  return html
+    .replace(/\s+/g, ' ') // 合并空白
+    .replace(/>\s+</g, '><') // 移除标签之间的空白
+    .replace(/<!--[\s\S]*?-->/g, '') // 移除注释
+    .replace(/\s*({|}|\(|\)|:|;|,)\s*/g, '$1') // 移除选择器和属性周围的空白
+    .trim();
 };
 
 // 压缩 JavaScript 代码
 export const minifyJs = async (code) => {
   try {
-    const result = await terserMinify(code, {
-      compress: {
-        dead_code: true,
-        drop_console: true,
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug'],
-        passes: 2
-      },
-      mangle: true,
-      format: {
-        comments: false
-      }
-    });
-    return result.code;
+    return code
+      .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '') // 移除注释
+      .replace(/\s+/g, ' ') // 合并空白
+      .replace(/\s*({|}|\(|\)|:|;|,)\s*/g, '$1') // 移除操作符周围的空白
+      .replace(/;}/g, '}') // 移除最后一个分号
+      .trim();
   } catch (error) {
     console.error('JavaScript 压缩失败:', error);
     return code;
