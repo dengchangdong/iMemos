@@ -6,137 +6,190 @@ import { simpleMarkdown } from './markdown.js'
 // 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
   // 错误页面模板
-  errorPage: (error) => createArticleStructure(
-    utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
-    utils.createHtml`
-      <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-      <p class="text-sm">${error?.message || '未知错误'}</p>
-      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-    `
-  ),
+  errorPage(error) {
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`
+        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-sm">${error.message}</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+      `
+    );
+  },
   
   // 404页面模板
-  notFoundPage: () => createArticleStructure(
-    utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
-    utils.createHtml`
-      <h2 class="font-medium">未找到内容</h2>
-      <p>您访问的内容不存在或已被删除</p>
-      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+  notFoundPage() {
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`
+        <h2 class="font-medium">未找到内容</h2>
+        <p>您访问的内容不存在或已被删除</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+      `
+    );
+  },
+  
+  // 离线页面模板
+  offlinePage(siteName) {
+    return utils.createHtml`
+      <!DOCTYPE html>
+      <html lang="zh-CN">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="离线状态页面">
+        <meta name="theme-color" content="#209cff">
+        <title>离线 - ${siteName || '博客'}</title>
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+      </head>
+      <body class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-5">
+        <main class="max-w-md w-full text-center">
+          <figure class="text-5xl mb-6" role="img" aria-label="离线状态">📶</figure>
+          <h1 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">您当前处于离线状态</h1>
+          <p class="text-gray-600 dark:text-gray-300 mb-6">无法加载新内容。请检查您的网络连接并重试。</p>
+          <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">刷新页面</a>
+        </main>
+      </body>
+      </html>
     `
-  )
+  },
+  
+  // 离线图片占位符
+  offlineImage() {
+    return 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
+  }
 }
 
 // 解析导航链接
-export const parseNavLinks = (linksStr) => {
-  if (!linksStr) return [];
-  
+export function parseNavLinks(linksStr) {
+  if (!linksStr) return []
   try {
-    const jsonStr = linksStr.replace(/'/g, '"');
-    const linksObj = JSON.parse(jsonStr);
-    return Object.entries(linksObj).map(([text, url]) => ({ text, url }));
+    const jsonStr = linksStr.replace(/'/g, '"')
+    const linksObj = JSON.parse(jsonStr)
+    return Object.entries(linksObj).map(([text, url]) => ({ text, url }))
   } catch (error) {
-    console.error('解析导航链接失败:', error);
-    return [];
+    console.error('解析导航链接失败:', error)
+    return []
   }
-};
+}
 
 // 创建文章结构
-const createArticleStructure = (header, content) => utils.createHtml`
-  <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-    <header>${header}</header>
-    <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-      ${content}
-    </section>
-  </article>
-`;
+function createArticleStructure(header, content) {
+  return utils.createHtml`
+    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+      <header>${header}</header>
+      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+        ${content}
+      </section>
+    </article>
+  `;
+}
 
 // 渲染单个 memo
-export const renderMemo = (memo, isHomePage = false) => {
+export function renderMemo(memo, isHomePage = false) {
   try {
     const timestamp = memo.createTime 
       ? new Date(memo.createTime).getTime()
-      : (memo.createdTs || 0) * 1000;
+      : memo.createdTs * 1000
     
-    const formattedTime = utils.formatTime(timestamp);
-    const content = memo.content || '';
-    const parsedContent = simpleMarkdown(content);
-    const resources = memo.resources || memo.resourceList || [];
+    const formattedTime = utils.formatTime(timestamp)
+    const content = memo.content || ''
+    const parsedContent = simpleMarkdown(content)
+    const resources = memo.resources || memo.resourceList || []
     
-    const articleUrl = isHomePage ? `/post/${memo.name}` : '#';
+    // 创建图片资源HTML
+    const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
     
+    // 文章URL
+    const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
+    
+    // 创建文章头部
     const header = utils.createHtml`
       <a href="${articleUrl}" class="block">
-        <time 
-          datetime="${new Date(timestamp).toISOString()}" 
-          class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
-        >
-          ${formattedTime}
-        </time>
+        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
       </a>
     `;
     
+    // 创建文章内容
     const articleContent = utils.createHtml`
       ${parsedContent}
-      ${resources.length > 0 ? createResourcesHtml(resources) : ''}
+      ${resourcesHtml}
     `;
     
     return createArticleStructure(header, articleContent);
   } catch (error) {
-    console.error('渲染 memo 失败:', error);
+    console.error('渲染 memo 失败:', error)
     return createArticleStructure(
       utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
-      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error?.message || '未知错误'}</p>`
+      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
-};
+}
 
 // 创建资源HTML
-const createResourcesHtml = (resources) => {
-  if (!Array.isArray(resources) || resources.length === 0) return '';
-
-  const createImageElement = (resource) => utils.createHtml`
-    <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-      <img 
-        src="${resource.externalLink || ''}" 
-        alt="${resource.filename || '图片'}"
-        class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-        loading="lazy"
-        data-preview="true"
-      />
-      <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-        <i class="ri-image-line text-2xl"></i>
-      </div>
-    </div>
-  `;
-
+function createResourcesHtml(resources) {
   if (resources.length === 1) {
     return utils.createHtml`
       <figure class="mt-4">
         <div class="w-full aspect-video relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-          ${createImageElement(resources[0])}
+          <img 
+            src="${resources[0].externalLink || ''}" 
+            alt="${resources[0].filename || '图片'}"
+            class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+            loading="lazy"
+            data-preview="true"
+          />
+          <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+            <i class="ri-image-line text-3xl"></i>
+          </div>
         </div>
       </figure>
     `;
-  }
-
-  if (resources.length === 2) {
+  } else if (resources.length === 2) {
     return utils.createHtml`
       <figure class="mt-4">
         <div class="flex flex-wrap gap-1">
-          ${resources.map(resource => createImageElement(resource)).join('')}
+          ${resources.map(resource => utils.createHtml`
+            <div class="w-[calc(50%-2px)] aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+              <img 
+                src="${resource.externalLink || ''}" 
+                alt="${resource.filename || '图片'}"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                loading="lazy"
+                data-preview="true"
+              />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-2xl"></i>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </figure>
+    `;
+  } else {
+    return utils.createHtml`
+      <figure class="mt-4">
+        <div class="grid grid-cols-3 gap-1">
+          ${resources.map(resource => utils.createHtml`
+            <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+              <img 
+                src="${resource.externalLink || ''}" 
+                alt="${resource.filename || '图片'}"
+                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+                loading="lazy"
+                data-preview="true"
+              />
+              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+                <i class="ri-image-line text-2xl"></i>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </figure>
     `;
   }
-
-  return utils.createHtml`
-    <figure class="mt-4">
-      <div class="grid grid-cols-3 gap-1">
-        ${resources.map(resource => createImageElement(resource)).join('')}
-      </div>
-    </figure>
-  `;
-};
+}
 
 // 渲染基础 HTML
 export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
@@ -422,6 +475,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               aria-live="polite"
             >
               <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <span>加载中...</span>
             </div>
             
             <figure class="w-full h-full flex items-center justify-center">
