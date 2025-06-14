@@ -20,12 +20,6 @@ app.get('/post/:name', routes.post)
 app.get('/tag/:tag', routes.tag)
 app.get('/api/v1/memo', routes.api)
 
-// 离线页面
-app.get('/offline.html', routes.offline)
-
-// 离线图片占位符
-app.get('/offline-image.png', routes.offlineImage)
-
 // robots.txt路由
 app.get('/robots.txt', routes.robots)
 

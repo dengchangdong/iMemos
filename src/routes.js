@@ -293,21 +293,5 @@ export const routes = {
         status: 500
       });
     }
-  },
-
-  // 离线页面
-  offline(c) {
-    return createResponse(htmlTemplates.offlinePage(c.env.SITE_NAME), 2592000);
-  },
-
-  // 离线图片占位符
-  offlineImage(c) {
-    // 使用模板中的透明像素Base64数据
-    return new Response(Buffer.from(htmlTemplates.offlineImage(), 'base64'), {
-      headers: {
-        'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=2592000'
-      }
-    });
   }
 };
