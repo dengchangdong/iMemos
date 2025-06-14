@@ -475,7 +475,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               aria-live="polite"
             >
               <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
-              <span>加载中...</span>
             </div>
             
             <figure class="w-full h-full flex items-center justify-center">
