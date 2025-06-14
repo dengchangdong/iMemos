@@ -1,32 +1,48 @@
 import { Hono } from 'hono'
-import { routes } from './routes.js'
+import { errorHandler } from './middleware/errorHandler.js'
+import { logger } from './middleware/logger.js'
+import { routes } from './routes/index.js'
 
 const app = new Hono()
 
-// 错误处理中间件
-app.use('*', async (c, next) => {
-  try {
-    await next()
-  } catch (err) {
-    console.error('错误:', err)
-    return c.text('服务器错误', 500)
-  }
-})
+// 注册全局中间件
+app.use('*', logger)
+app.use('*', errorHandler)
 
-// 注册路由 - 更简洁的路由处理
-app.get('/', routes.home)
-app.get('/page/:number', routes.page)
-app.get('/post/:name', routes.post)
-app.get('/tag/:tag', routes.tag)
-app.get('/api/v1/memo', routes.api)
+// 注册路由
+const {
+  home,
+  page,
+  post,
+  tag,
+  api,
+  offline,
+  offlineImage,
+  robots
+} = routes
 
-// 离线页面
-app.get('/offline.html', routes.offline)
+// 主页路由
+app.get('/', home)
 
-// 离线图片占位符
-app.get('/offline-image.png', routes.offlineImage)
+// 分页路由
+app.get('/page/:number', page)
+
+// 文章详情路由
+app.get('/post/:name', post)
+
+// 标签路由
+app.get('/tag/:tag', tag)
+
+// API路由
+app.get('/api/v1/memo', api)
+
+// 离线页面路由
+app.get('/offline.html', offline)
+
+// 离线图片路由
+app.get('/offline-image.png', offlineImage)
 
 // robots.txt路由
-app.get('/robots.txt', routes.robots)
+app.get('/robots.txt', robots)
 
 export default app
