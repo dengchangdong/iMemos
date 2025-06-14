@@ -244,143 +244,69 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   'indigo-timeline': '#4e5ed3',
                   'indigo-shadow': '#bab5f8',
                 },
+                scrollbar: {
+                  width: '8px',
+                  height: '8px',
+                  track: 'rgba(255, 255, 255, 0)',
+                  thumb: 'rgba(0, 0, 0, 0.1)',
+                  'thumb-hover': 'rgba(0, 0, 0, 0.11)',
+                },
+                borderRadius: {
+                  'scrollbar': '10px',
+                },
               }
             }
           }
         </script>
         <style>
-          html::-webkit-scrollbar, 
-          body::-webkit-scrollbar,
-          pre::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0);
-            border-radius: 10px;
-          }
-
-          html::-webkit-scrollbar-thumb, 
-          body::-webkit-scrollbar-thumb,
-          pre::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-          }
-
-          html::-webkit-scrollbar-thumb:hover, 
-          body::-webkit-scrollbar-thumb:hover,
-          pre::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.11);
-            border-radius: 10px; 
-          }
-
-          html::-webkit-scrollbar-track:hover, 
-          body::-webkit-scrollbar-track:hover,
-          pre::-webkit-scrollbar-track:hover {
-            background: rgba(0, 0, 0, 0);
-            border-radius: 10px; 
-          }
-
-          article::before {
-            content: '';
-            width: 17px;
-            height: 17px;
-            background-color: white;
-            border: 1px solid #4e5ed3;
-            border-radius: 50%;
-            position: absolute;
-            left: -10px;
-            top: 0;
-            box-shadow: 3px 3px 0px #bab5f8;
-            will-change: transform;
-          }
-          .dark article::before {
-            background-color: #1f2937;
-            border-color: #818cf8;
-            box-shadow: 3px 3px 0px #6366f1;
-          }
+          /* 移除滚动条相关样式，因为我们将使用 Tailwind 类 */
           .image-modal.active {
-            display: flex;
-            opacity: 1;
+            @apply flex opacity-100;
           }
           .image-modal-content img.loaded {
-            opacity: 1;
+            @apply opacity-100;
           }
           .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
+            @apply opacity-100 visible;
           }
           .article-content img, .mt-4 img {
-            cursor: pointer;
-            transition: opacity 0.2s;
-            background-color: #0c7cd51c;
-            opacity: 0.5;
-            will-change: opacity;
+            @apply cursor-pointer transition-opacity duration-200 bg-blue-100/10 opacity-50 will-change-opacity;
           }
           .article-content img.loaded, .mt-4 img.loaded {
-            opacity: 1;
+            @apply opacity-100;
           }
           .article-content img:hover, .mt-4 img:hover {
-            opacity: 0.9;
+            @apply opacity-90;
           }
           .image-placeholder {
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
+            @apply opacity-100 transition-opacity duration-300 ease-in-out will-change-opacity;
           }
           div.loaded .image-placeholder {
-            opacity: 0;
+            @apply opacity-0;
           }
           .code-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #f1f3f5;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            color: #4b5563;
-            border-bottom: 1px solid #e5e7eb;
-            margin-top: 1rem;
-            margin-bottom: -1rem;
+            @apply flex justify-between items-center bg-gray-100 rounded-t-lg px-4 py-2 text-sm text-gray-600 border-b border-gray-200 mt-4 -mb-4;
           }
           .dark .code-header {
-            background-color: #1a2234;
-            color: #9ca3af;
-            border-bottom: 1px solid #374151;
+            @apply bg-gray-800 text-gray-300 border-gray-700;
           }
           .copy-btn {
-            position: relative;
-            padding: 6px;
-            font-size: 16px;
-            color: #4b5563;
-            background-color: transparent;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 1;
-            transition: opacity 0.2s, background-color 0.2s;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
+            @apply relative p-1.5 text-base text-gray-600 bg-transparent border-none rounded cursor-pointer opacity-100 transition-all duration-200 z-5 flex items-center justify-center w-7 h-7;
           }
           .dark .copy-btn {
-            color: #e5e7eb;
+            @apply text-gray-200;
           }
           .copy-btn:hover {
-            background-color: rgba(0, 0, 0, 0.05);
+            @apply bg-black/5;
           }
           .dark .copy-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
+            @apply bg-white/5;
           }
           .copy-btn.copied {
-            background-color: #10b981;
-            color: white;
+            @apply bg-emerald-500 text-white;
           }
           .dark .copy-btn.copied {
-            background-color: #059669;
+            @apply bg-emerald-600;
           }
         </style>
       </head>
@@ -475,6 +401,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               aria-live="polite"
             >
               <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <span>加载中...</span>
             </div>
             
             <figure class="w-full h-full flex items-center justify-center">
