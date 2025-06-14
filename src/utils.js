@@ -1,13 +1,6 @@
-/**
- * 工具函数集合
- * @namespace utils
- */
+// 帮助函数 - 工具集
 export const utils = {
-  /**
-   * HTML转义，防止XSS攻击
-   * @param {string} text - 需要转义的文本
-   * @returns {string} 转义后的文本
-   */
+  // HTML转义，防止XSS攻击
   escapeHtml(text) {
     return text
       .replace(/&/g, "&amp;")
@@ -17,11 +10,7 @@ export const utils = {
       .replace(/'/g, "&#039;");
   },
   
-  /**
-   * 格式化时间
-   * @param {number} timestamp - 时间戳
-   * @returns {string} 格式化后的时间字符串
-   */
+  // 格式化时间
   formatTime(timestamp) {
     const now = new Date()
     const date = new Date(timestamp)
@@ -61,21 +50,12 @@ export const utils = {
     }).replace(/\//g, '-')
   },
   
-  /**
-   * 创建HTML元素（用于模板）
-   * @param {TemplateStringsArray} strings - 模板字符串数组
-   * @param {...any} values - 模板插值
-   * @returns {string} 拼接后的HTML字符串
-   */
+  // 创建HTML元素（用于模板）
   createHtml(strings, ...values) {
     return String.raw({ raw: strings }, ...values);
   },
 
-  /**
-   * 按时间降序排序memos
-   * @param {Array<Object>} memos - memo对象数组
-   * @returns {Array<Object>} 排序后的memo数组
-   */
+  // 按时间降序排序memos
   sortMemosByTime(memos) {
     if (!Array.isArray(memos)) return [];
     

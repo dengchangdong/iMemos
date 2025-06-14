@@ -3,12 +3,7 @@ import { renderMemo, renderBaseHtml, htmlTemplates } from './template.js';
 import { simpleMarkdown } from './markdown.js';
 import { utils } from './utils.js';
 
-/**
- * 统一路由错误处理
- * @param {Error} error - 错误对象
- * @param {Object} c - 上下文对象
- * @returns {string} 错误页面的HTML
- */
+// 统一路由错误处理
 export function renderErrorPage(error, c) {
   return renderBaseHtml(
     '错误', 
@@ -18,11 +13,7 @@ export function renderErrorPage(error, c) {
   );
 }
 
-/**
- * 创建统一的404响应
- * @param {Object} c - 上下文对象
- * @returns {Response} 404响应对象
- */
+// 创建统一的404响应
 function createNotFoundResponse(c) {
   const notFoundHtml = renderBaseHtml(
     c.env.SITE_NAME, 
@@ -33,13 +24,7 @@ function createNotFoundResponse(c) {
   return createResponse(notFoundHtml, 300, 404);
 }
 
-/**
- * 创建统一的响应处理函数
- * @param {string} html - HTML内容
- * @param {number} [cacheTime=300] - 缓存时间（秒）
- * @param {number} [status=200] - HTTP状态码
- * @returns {Response} 响应对象
- */
+// 创建统一的响应处理函数
 function createResponse(html, cacheTime = 300, status = 200) {
   return new Response(html, {
     headers: {
@@ -50,22 +35,15 @@ function createResponse(html, cacheTime = 300, status = 200) {
   });
 }
 
-/**
- * API处理相关 - 优化HTTP请求和缓存
- * @type {Object}
- */
+// API处理相关 - 优化HTTP请求和缓存
 export const apiHandler = {
-  /** @type {Map<string, {data: any, timestamp: number}>} */
+  // 数据缓存
   cache: new Map(),
   
-  /** @type {number} 缓存TTL，默认1分钟（单位：毫秒） */
+  // 缓存TTL，默认1分钟（单位：毫秒）
   cacheTTL: 60 * 1000,
 
-  /**
-   * 通用缓存检查函数
-   * @param {string} cacheKey - 缓存键
-   * @returns {any|null} 缓存的数据或null
-   */
+  // 通用缓存检查函数
   checkCache(cacheKey) {
     const cachedData = this.cache.get(cacheKey);
     if (cachedData && cachedData.timestamp > Date.now() - this.cacheTTL) {
@@ -74,12 +52,7 @@ export const apiHandler = {
     return null;
   },
   
-  /**
-   * 通用缓存更新函数
-   * @param {string} cacheKey - 缓存键
-   * @param {any} data - 要缓存的数据
-   * @returns {any} 缓存的数据
-   */
+  // 通用缓存更新函数
   updateCache(cacheKey, data) {
     this.cache.set(cacheKey, {
       data,
@@ -88,13 +61,7 @@ export const apiHandler = {
     return data;
   },
 
-  /**
-   * 获取memos数据，支持分页
-   * @param {Object} c - 上下文对象
-   * @param {string} [tag=''] - 标签过滤
-   * @param {number} [page=1] - 页码
-   * @returns {Promise<Array>} memos数据数组
-   */
+  // 获取memos数据，支持分页
   async fetchMemos(c, tag = '', page = 1) {
     try {
       const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
@@ -124,12 +91,7 @@ export const apiHandler = {
     }
   },
   
-  /**
-   * 获取单条memo
-   * @param {Object} c - 上下文对象
-   * @param {string} name - memo名称
-   * @returns {Promise<Object|null>} memo数据或null
-   */
+  // 获取单条memo
   async fetchMemo(c, name) {
     try {
       const cacheKey = `memo_${name}`;
@@ -158,27 +120,16 @@ export const apiHandler = {
   }
 };
 
-/**
- * 路由处理 - 优化路由模块化
- * @type {Object}
- */
+// 路由处理 - 优化路由模块化
 export const routes = {
-  /**
-   * robots.txt路由 - 禁止所有搜索引擎抓取
-   * @param {Object} c - 上下文对象
-   * @returns {Response} robots.txt响应
-   */
+  // robots.txt路由 - 禁止所有搜索引擎抓取
   async robots(c) {
     return new Response('User-agent: *\nDisallow: /', {
       headers: { 'Content-Type': 'text/plain' }
     });
   },
   
-  /**
-   * 主页路由处理
-   * @param {Object} c - 上下文对象
-   * @returns {Promise<Response>} 主页响应
-   */
+  // 主页路由处理
   async home(c) {
     try {
       // 获取当前页码
@@ -216,11 +167,7 @@ export const routes = {
     }
   },
   
-  /**
-   * 分页路由处理
-   * @param {Object} c - 上下文对象
-   * @returns {Promise<Response>} 分页响应
-   */
+  // 分页路由处理
   async page(c) {
     try {
       // 获取页码参数
@@ -264,11 +211,7 @@ export const routes = {
     }
   },
   
-  /**
-   * 单页路由处理
-   * @param {Object} c - 上下文对象
-   * @returns {Promise<Response>} 单页响应
-   */
+  // 单页路由处理
   async post(c) {
     try {
       const name = c.req.param('name');
@@ -294,11 +237,7 @@ export const routes = {
     }
   },
   
-  /**
-   * 标签页路由处理
-   * @param {Object} c - 上下文对象
-   * @returns {Promise<Response>} 标签页响应
-   */
+  // 标签页路由处理
   async tag(c) {
     try {
       const tag = c.req.param('tag');
@@ -337,11 +276,7 @@ export const routes = {
     }
   },
   
-  /**
-   * API代理 - 用于缓存资源
-   * @param {Object} c - 上下文对象
-   * @returns {Promise<Response>} API响应
-   */
+  // API代理 - 用于缓存资源
   async api(c) {
     try {
       const memos = await apiHandler.fetchMemos(c);

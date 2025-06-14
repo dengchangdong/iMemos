@@ -3,16 +3,9 @@ import { CONFIG } from './config.js'
 import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
-/**
- * HTML模板集合
- * @type {Object}
- */
+// 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
-  /**
-   * 错误页面模板
-   * @param {Error} error - 错误对象
-   * @returns {string} 错误页面的HTML结构
-   */
+  // 错误页面模板
   errorPage: (error) => createArticleStructure(
     utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
     utils.createHtml`
@@ -22,10 +15,7 @@ export const htmlTemplates = {
     `
   ),
   
-  /**
-   * 404页面模板
-   * @returns {string} 404页面的HTML结构
-   */
+  // 404页面模板
   notFoundPage: () => createArticleStructure(
     utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
     utils.createHtml`
@@ -36,11 +26,7 @@ export const htmlTemplates = {
   )
 }
 
-/**
- * 解析导航链接
- * @param {string} linksStr - 导航链接字符串
- * @returns {Array<{text: string, url: string}>} 解析后的导航链接数组
- */
+// 解析导航链接
 export const parseNavLinks = (linksStr) => {
   if (!linksStr) return [];
   
@@ -54,12 +40,7 @@ export const parseNavLinks = (linksStr) => {
   }
 };
 
-/**
- * 创建文章结构
- * @param {string} header - 文章头部HTML
- * @param {string} content - 文章内容HTML
- * @returns {string} 完整的文章HTML结构
- */
+// 创建文章结构
 const createArticleStructure = (header, content) => utils.createHtml`
   <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
     <header>${header}</header>
@@ -69,12 +50,7 @@ const createArticleStructure = (header, content) => utils.createHtml`
   </article>
 `;
 
-/**
- * 渲染单个memo
- * @param {Object} memo - memo对象
- * @param {boolean} [isHomePage=false] - 是否在首页显示
- * @returns {string} 渲染后的memo HTML
- */
+// 渲染单个 memo
 export const renderMemo = (memo, isHomePage = false) => {
   try {
     const timestamp = memo.createTime 
@@ -114,19 +90,10 @@ export const renderMemo = (memo, isHomePage = false) => {
   }
 };
 
-/**
- * 创建资源HTML
- * @param {Array<Object>} resources - 资源对象数组
- * @returns {string} 资源HTML结构
- */
+// 创建资源HTML
 const createResourcesHtml = (resources) => {
   if (!Array.isArray(resources) || resources.length === 0) return '';
 
-  /**
-   * 创建单个图片元素
-   * @param {Object} resource - 资源对象
-   * @returns {string} 图片元素HTML
-   */
   const createImageElement = (resource) => utils.createHtml`
     <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
       <img 
@@ -171,18 +138,7 @@ const createResourcesHtml = (resources) => {
   `;
 };
 
-/**
- * 渲染基础HTML
- * @param {string} title - 页面标题
- * @param {string|Array<string>} content - 页面内容
- * @param {string} navLinks - 导航链接
- * @param {string} siteName - 站点名称
- * @param {number} [currentPage=1] - 当前页码
- * @param {boolean} [hasMore=false] - 是否有更多内容
- * @param {boolean} [isHomePage=false] - 是否首页
- * @param {string} [tag=''] - 标签
- * @returns {string} 完整的页面HTML
- */
+// 渲染基础 HTML
 export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
@@ -466,7 +422,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               aria-live="polite"
             >
               <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
-              <span>加载中...</span>
             </div>
             
             <figure class="w-full h-full flex items-center justify-center">
@@ -497,9 +452,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <script>
         (function() {
-          /**
-           * 初始化主题切换功能
-           */
+          // 主题切换功能
           function initThemeToggle() {
             const themeToggle = document.getElementById('theme-toggle');
             const themeIcon = document.getElementById('theme-icon');
@@ -508,10 +461,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             const themes = ['system', 'light', 'dark'];
             let currentTheme = 0;
             
-            /**
-             * 更新主题图标
-             * @param {string} theme - 主题名称
-             */
             function updateIcon(theme) {
               themeIcon.className = theme === 'light' 
                 ? 'ri-sun-fill text-lg' 
@@ -528,10 +477,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               );
             }
             
-            /**
-             * 应用主题
-             * @param {string} theme - 主题名称
-             */
             function applyTheme(theme) {
               requestAnimationFrame(() => {
                 if (theme === 'light') {
@@ -591,9 +536,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             mql.addEventListener('change', handleThemeChange);
           }
 
-          /**
-           * 初始化返回顶部功能
-           */
+          // 返回顶部功能
           function initBackToTop() {
             const backToTop = document.getElementById('back-to-top');
             
@@ -629,9 +572,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             });
           }
         
-          /**
-           * 初始化图片查看器
-           */
+          // 图片预览功能
           function initImageViewer() {
             const modal = document.getElementById('imageModal');
             const modalImg = document.getElementById('modalImage');
@@ -663,31 +604,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               rootMargin: '200px'
             });
             
-            /**
-             * 收集所有图片
-             * @returns {Array<HTMLImageElement>} 图片元素数组
-             */
             function collectImages() {
               allImages = Array.from(document.querySelectorAll('[data-preview="true"]'));
               return allImages;
             }
             
-            /**
-             * 获取当前文章中的图片
-             * @param {HTMLImageElement} img - 当前图片元素
-             * @returns {Array<HTMLImageElement>} 当前文章中的图片数组
-             */
             function getImagesInCurrentArticle(img) {
               const article = img.closest('article');
               if (!article) return collectImages();
               return Array.from(article.querySelectorAll('[data-preview="true"]'));
             }
             
-            /**
-             * 显示图片
-             * @param {HTMLImageElement} img - 要显示的图片元素
-             * @param {number} index - 图片索引
-             */
             function showImage(img, index) {
               if (isModalActive) return;
               
@@ -726,9 +653,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               });
             }
             
-            /**
-             * 设置图片加载处理器
-             */
             function setupImageLoadHandlers() {
               const images = collectImages();
               
@@ -775,9 +699,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               });
             }
             
-            /**
-             * 显示上一张图片
-             */
             function showPreviousImage() {
               if (currentArticleImages.length <= 1) return;
               
@@ -811,9 +732,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               }
             }
             
-            /**
-             * 显示下一张图片
-             */
             function showNextImage() {
               if (currentArticleImages.length <= 1) return;
               
@@ -847,9 +765,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               }
             }
             
-            /**
-             * 更新导航按钮状态
-             */
             function updateNavigationButtons() {
               const hasMultipleImages = currentArticleImages.length > 1;
               
@@ -859,9 +774,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               });
             }
             
-            /**
-             * 设置图片点击处理器
-             */
             function setupImageClickHandlers() {
               document.addEventListener('click', (e) => {
                 const img = e.target.closest('[data-preview="true"]');
@@ -888,9 +800,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               }, { passive: false });
             }
             
-            /**
-             * 关闭模态框
-             */
             function closeModal() {
               modal.classList.remove('active');
               document.body.style.overflow = '';
@@ -964,9 +873,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             setupImageClickHandlers();
           }
 
-          /**
-           * 初始化代码复制功能
-           */
+          // 初始化代码复制功能
           function initCodeCopyButtons() {
             document.querySelectorAll('pre').forEach(block => {
               if (block.previousElementSibling && block.previousElementSibling.classList.contains('code-header')) {
@@ -1034,9 +941,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             });
           }
           
-          /**
-           * 增强的Markdown处理
-           */
+          // 增强的Markdown处理
           function enhanceMarkdown() {
             const observer = new MutationObserver((mutations) => {
               let hasNewCodeBlocks = false;
