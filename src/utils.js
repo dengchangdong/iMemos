@@ -12,42 +12,38 @@ export const utils = {
   
   // 格式化时间
   formatTime(timestamp) {
-    const now = new Date()
+    if (!timestamp) return ''
+    
     const date = new Date(timestamp)
+    const now = new Date()
     const diff = now - date
-    const minutes = Math.floor(diff / (1000 * 60))
-    const hours = Math.floor(diff / (1000 * 60 * 60))
     
-    // 1分钟以内
-    if (minutes < 5) return '刚刚'
-    
-    // 1小时以内
-    if (minutes < 60) return `${minutes} 分钟前`
-    
-    // 当天发布的且24小时以内
-    if (hours < 24 && date.getDate() === now.getDate()) 
-      return `${hours} 小时前`
-    
-    // 非当天发布但是是当年发布的
-    if (date.getFullYear() === now.getFullYear()) {
-      return date.toLocaleString('zh-CN', {
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      }).replace(/\//g, '-')
+    // 小于1分钟
+    if (diff < 60 * 1000) {
+      return '刚刚'
     }
     
-    // 非当年发布的
-    return date.toLocaleString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    }).replace(/\//g, '-')
+    // 小于1小时
+    if (diff < 60 * 60 * 1000) {
+      return `${Math.floor(diff / (60 * 1000))}分钟前`
+    }
+    
+    // 小于24小时
+    if (diff < 24 * 60 * 60 * 1000) {
+      return `${Math.floor(diff / (60 * 60 * 1000))}小时前`
+    }
+    
+    // 小于30天
+    if (diff < 30 * 24 * 60 * 60 * 1000) {
+      return `${Math.floor(diff / (24 * 60 * 60 * 1000))}天前`
+    }
+    
+    // 大于30天，显示具体日期
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    
+    return `${year}-${month}-${day}`
   },
   
   // 创建HTML元素（用于模板）
