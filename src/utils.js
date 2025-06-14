@@ -1,6 +1,3 @@
-import { minify } from 'html-minifier';
-import { minify as terserMinify } from 'terser';
-
 // 帮助函数 - 工具集
 export const utils = {
   // HTML转义，防止XSS攻击
