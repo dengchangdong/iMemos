@@ -1,5 +1,5 @@
 import { createArticleStructure } from './article.js';
-import { utils } from '../utils.js';
+import { utils } from '../utils/index.js';
 
 /**
  * 404页面模板

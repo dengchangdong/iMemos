@@ -1,5 +1,5 @@
 import { simpleMarkdown } from '../markdown.js';
-import { utils } from '../utils.js';
+import { utils } from '../utils/index.js';
 import { createArticleStructure } from './article.js';
 import { createResourcesHtml } from './resources.js';
 

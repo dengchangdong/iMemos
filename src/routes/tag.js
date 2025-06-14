@@ -1,6 +1,6 @@
 import { CONFIG } from '../config/index.js';
 import { renderMemo, renderBaseHtml } from '../templates/index.js';
-import { utils } from '../utils.js';
+import { utils } from '../utils/index.js';
 import { apiHandler } from '../services/api.js';
 import { createResponse, createNotFoundResponse } from '../utils/response.js';
 
