@@ -1,7 +1,7 @@
 import { CONFIG } from './config.js';
 import { renderMemo, renderBaseHtml, htmlTemplates } from './template.js';
 import { simpleMarkdown } from './markdown.js';
-import { utils, compressHtml } from './utils.js';
+import { utils, htmlCompressor } from './utils.js';
 
 // 统一路由错误处理
 export function renderErrorPage(error, c) {
@@ -26,29 +26,20 @@ function createNotFoundResponse(c) {
 
 // 创建统一的响应处理函数
 async function createResponse(html, cacheTime = 300, status = 200) {
-  try {
-    // 压缩 HTML
-    const compressedHtml = await compressHtml(html);
-    
-    return new Response(compressedHtml, {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8',
-        'Cache-Control': `public, max-age=${cacheTime}`,
-        'Content-Encoding': 'gzip'
-      },
-      status
-    });
-  } catch (error) {
-    console.error('响应压缩失败:', error);
-    // 如果压缩失败，返回原始 HTML
-    return new Response(html, {
-      headers: {
-        'Content-Type': 'text/html;charset=UTF-8',
-        'Cache-Control': `public, max-age=${cacheTime}`
-      },
-      status
-    });
+  const response = new Response(html, {
+    headers: {
+      'Content-Type': 'text/html;charset=UTF-8',
+      'Cache-Control': `public, max-age=${cacheTime}`
+    },
+    status
+  });
+  
+  // 在生产环境中启用压缩
+  if (process.env.NODE_ENV === 'production') {
+    return htmlCompressor.compressResponse(response);
   }
+  
+  return response;
 }
 
 // API处理相关 - 优化HTTP请求和缓存

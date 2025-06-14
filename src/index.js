@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { routes } from './routes.js'
+import { htmlCompressor } from './utils.js'
 
 const app = new Hono()
 
@@ -10,6 +11,15 @@ app.use('*', async (c, next) => {
   } catch (err) {
     console.error('错误:', err)
     return c.text('服务器错误', 500)
+  }
+})
+
+// HTML压缩中间件
+app.use('*', async (c, next) => {
+  await next()
+  const response = c.res
+  if (response.headers.get('content-type')?.includes('text/html')) {
+    c.res = await htmlCompressor.compressResponse(response)
   }
 })
 

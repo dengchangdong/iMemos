@@ -67,101 +67,49 @@ export const utils = {
   }
 };
 
-// 压缩 HTML 代码
-export const minifyHtml = (html) => {
-  return html
-    .replace(/\s+/g, ' ') // 合并空白
-    .replace(/>\s+</g, '><') // 移除标签之间的空白
-    .replace(/<!--[\s\S]*?-->/g, '') // 移除注释
-    .replace(/\s*({|}|\(|\)|:|;|,)\s*/g, '$1') // 移除选择器和属性周围的空白
-    .trim();
-};
+// HTML压缩工具
+export const htmlCompressor = {
+  // 压缩HTML字符串
+  compress(html) {
+    return html
+      // 移除HTML注释
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // 移除空白行
+      .replace(/^\s*[\r\n]/gm, '')
+      // 压缩空白字符
+      .replace(/>\s+</g, '><')
+      // 移除标签之间的空白
+      .replace(/\s+>/g, '>')
+      .replace(/<\s+/g, '<')
+      // 移除属性值中的多余空白
+      .replace(/\s*=\s*/g, '=')
+      // 移除自闭合标签后的空白
+      .replace(/\s*\/>/g, '/>')
+      // 移除script和style标签内的空白（保留内容）
+      .replace(/(<script[^>]*>)([\s\S]*?)(<\/script>)/gi, (match, open, content, close) => {
+        return open + content.replace(/\s+/g, ' ') + close;
+      })
+      .replace(/(<style[^>]*>)([\s\S]*?)(<\/style>)/gi, (match, open, content, close) => {
+        return open + content.replace(/\s+/g, ' ') + close;
+      });
+  },
 
-// 压缩 JavaScript 代码
-export const minifyJs = async (code) => {
-  try {
-    return code
-      .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '') // 移除注释
-      .replace(/\s+/g, ' ') // 合并空白
-      .replace(/\s*({|}|\(|\)|:|;|,)\s*/g, '$1') // 移除操作符周围的空白
-      .replace(/;}/g, '}') // 移除最后一个分号
-      .trim();
-  } catch (error) {
-    console.error('JavaScript 压缩失败:', error);
-    return code;
-  }
-};
-
-// 压缩内联 CSS
-export const minifyCss = (css) => {
-  return css
-    .replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '') // 移除注释
-    .replace(/\s+/g, ' ') // 合并空白
-    .replace(/\s*({|}|\(|\)|:|;|,)\s*/g, '$1') // 移除选择器和属性周围的空白
-    .replace(/;}/g, '}') // 移除最后一个分号
-    .trim();
-};
-
-// 压缩内联脚本
-export const minifyInlineScript = async (html) => {
-  const scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
-  let match;
-  let result = html;
-  
-  while ((match = scriptRegex.exec(html)) !== null) {
-    const fullScript = match[0];
-    const scriptContent = match[1];
-    
-    // 跳过外部脚本
-    if (fullScript.includes('src=')) continue;
-    
-    try {
-      const minifiedScript = await minifyJs(scriptContent);
-      result = result.replace(scriptContent, minifiedScript);
-    } catch (error) {
-      console.error('内联脚本压缩失败:', error);
+  // 压缩响应
+  compressResponse(response) {
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('text/html')) {
+      return response;
     }
-  }
-  
-  return result;
-};
 
-// 压缩内联样式
-export const minifyInlineStyle = (html) => {
-  const styleRegex = /<style[^>]*>([\s\S]*?)<\/style>/gi;
-  let match;
-  let result = html;
-  
-  while ((match = styleRegex.exec(html)) !== null) {
-    const fullStyle = match[0];
-    const styleContent = match[1];
-    
-    try {
-      const minifiedStyle = minifyCss(styleContent);
-      result = result.replace(styleContent, minifiedStyle);
-    } catch (error) {
-      console.error('内联样式压缩失败:', error);
-    }
-  }
-  
-  return result;
-};
-
-// 完整压缩流程
-export const compressHtml = async (html) => {
-  try {
-    // 1. 压缩内联 JavaScript
-    let compressed = await minifyInlineScript(html);
-    
-    // 2. 压缩内联 CSS
-    compressed = minifyInlineStyle(compressed);
-    
-    // 3. 压缩整个 HTML
-    compressed = minifyHtml(compressed);
-    
-    return compressed;
-  } catch (error) {
-    console.error('HTML 压缩失败:', error);
-    return html;
+    return response.text().then(text => {
+      const compressed = this.compress(text);
+      return new Response(compressed, {
+        headers: {
+          'content-type': 'text/html;charset=UTF-8',
+          'content-encoding': 'gzip',
+          'cache-control': response.headers.get('cache-control') || 'public, max-age=300'
+        }
+      });
+    });
   }
 }; 
