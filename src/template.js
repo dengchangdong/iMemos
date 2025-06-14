@@ -6,190 +6,164 @@ import { simpleMarkdown } from './markdown.js'
 // 优化HTML模板渲染 - 减少重复代码
 export const htmlTemplates = {
   // 错误页面模板
-  errorPage(error) {
-    return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
-      utils.createHtml`
-        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-      `
-    );
-  },
+  errorPage: (error) => createArticleStructure(
+    utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+    utils.createHtml`
+      <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+      <p class="text-sm">${error?.message || '未知错误'}</p>
+      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+    `
+  ),
   
   // 404页面模板
-  notFoundPage() {
-    return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
-      utils.createHtml`
-        <h2 class="font-medium">未找到内容</h2>
-        <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
-      `
-    );
-  },
+  notFoundPage: () => createArticleStructure(
+    utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+    utils.createHtml`
+      <h2 class="font-medium">未找到内容</h2>
+      <p>您访问的内容不存在或已被删除</p>
+      <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+    `
+  ),
   
   // 离线页面模板
-  offlinePage(siteName) {
-    return utils.createHtml`
-      <!DOCTYPE html>
-      <html lang="zh-CN">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="离线状态页面">
-        <meta name="theme-color" content="#209cff">
-        <title>离线 - ${siteName || '博客'}</title>
-        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-        <script src="https://cdn.tailwindcss.com"></script>
-      </head>
-      <body class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-5">
-        <main class="max-w-md w-full text-center">
-          <figure class="text-5xl mb-6" role="img" aria-label="离线状态">📶</figure>
-          <h1 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">您当前处于离线状态</h1>
-          <p class="text-gray-600 dark:text-gray-300 mb-6">无法加载新内容。请检查您的网络连接并重试。</p>
-          <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">刷新页面</a>
-        </main>
-      </body>
-      </html>
-    `
-  },
+  offlinePage: (siteName = '博客') => utils.createHtml`
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="离线状态页面">
+      <meta name="theme-color" content="#209cff">
+      <title>离线 - ${siteName}</title>
+      <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-5">
+      <main class="max-w-md w-full text-center">
+        <figure class="text-5xl mb-6" role="img" aria-label="离线状态">📶</figure>
+        <h1 class="text-2xl font-semibold mb-4 text-gray-800 dark:text-gray-100">您当前处于离线状态</h1>
+        <p class="text-gray-600 dark:text-gray-300 mb-6">无法加载新内容。请检查您的网络连接并重试。</p>
+        <a href="/" class="inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition-colors">刷新页面</a>
+      </main>
+    </body>
+    </html>
+  `,
   
   // 离线图片占位符
-  offlineImage() {
-    return 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-  }
+  offlineImage: () => 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
 }
 
 // 解析导航链接
-export function parseNavLinks(linksStr) {
-  if (!linksStr) return []
+export const parseNavLinks = (linksStr) => {
+  if (!linksStr) return [];
+  
   try {
-    const jsonStr = linksStr.replace(/'/g, '"')
-    const linksObj = JSON.parse(jsonStr)
-    return Object.entries(linksObj).map(([text, url]) => ({ text, url }))
+    const jsonStr = linksStr.replace(/'/g, '"');
+    const linksObj = JSON.parse(jsonStr);
+    return Object.entries(linksObj).map(([text, url]) => ({ text, url }));
   } catch (error) {
-    console.error('解析导航链接失败:', error)
-    return []
+    console.error('解析导航链接失败:', error);
+    return [];
   }
-}
+};
 
 // 创建文章结构
-function createArticleStructure(header, content) {
-  return utils.createHtml`
-    <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
-      <header>${header}</header>
-      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
-        ${content}
-      </section>
-    </article>
-  `;
-}
+const createArticleStructure = (header, content) => utils.createHtml`
+  <article class="pb-6 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <header>${header}</header>
+    <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-1 md:text-base text-sm article-content">
+      ${content}
+    </section>
+  </article>
+`;
 
 // 渲染单个 memo
-export function renderMemo(memo, isHomePage = false) {
+export const renderMemo = (memo, isHomePage = false) => {
   try {
     const timestamp = memo.createTime 
       ? new Date(memo.createTime).getTime()
-      : memo.createdTs * 1000
+      : (memo.createdTs || 0) * 1000;
     
-    const formattedTime = utils.formatTime(timestamp)
-    const content = memo.content || ''
-    const parsedContent = simpleMarkdown(content)
-    const resources = memo.resources || memo.resourceList || []
+    const formattedTime = utils.formatTime(timestamp);
+    const content = memo.content || '';
+    const parsedContent = simpleMarkdown(content);
+    const resources = memo.resources || memo.resourceList || [];
     
-    // 创建图片资源HTML
-    const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
+    const articleUrl = isHomePage ? `/post/${memo.name}` : '#';
     
-    // 文章URL
-    const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
-    
-    // 创建文章头部
     const header = utils.createHtml`
       <a href="${articleUrl}" class="block">
-        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+        <time 
+          datetime="${new Date(timestamp).toISOString()}" 
+          class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors"
+        >
+          ${formattedTime}
+        </time>
       </a>
     `;
     
-    // 创建文章内容
     const articleContent = utils.createHtml`
       ${parsedContent}
-      ${resourcesHtml}
+      ${resources.length > 0 ? createResourcesHtml(resources) : ''}
     `;
     
     return createArticleStructure(header, articleContent);
   } catch (error) {
-    console.error('渲染 memo 失败:', error)
+    console.error('渲染 memo 失败:', error);
     return createArticleStructure(
       utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
-      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
+      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error?.message || '未知错误'}</p>`
     );
   }
-}
+};
 
 // 创建资源HTML
-function createResourcesHtml(resources) {
+const createResourcesHtml = (resources) => {
+  if (!Array.isArray(resources) || resources.length === 0) return '';
+
+  const createImageElement = (resource) => utils.createHtml`
+    <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
+      <img 
+        src="${resource.externalLink || ''}" 
+        alt="${resource.filename || '图片'}"
+        class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
+        loading="lazy"
+        data-preview="true"
+      />
+      <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
+        <i class="ri-image-line text-2xl"></i>
+      </div>
+    </div>
+  `;
+
   if (resources.length === 1) {
     return utils.createHtml`
       <figure class="mt-4">
         <div class="w-full aspect-video relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-          <img 
-            src="${resources[0].externalLink || ''}" 
-            alt="${resources[0].filename || '图片'}"
-            class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-            loading="lazy"
-            data-preview="true"
-          />
-          <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-            <i class="ri-image-line text-3xl"></i>
-          </div>
-        </div>
-      </figure>
-    `;
-  } else if (resources.length === 2) {
-    return utils.createHtml`
-      <figure class="mt-4">
-        <div class="flex flex-wrap gap-1">
-          ${resources.map(resource => utils.createHtml`
-            <div class="w-[calc(50%-2px)] aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-              <img 
-                src="${resource.externalLink || ''}" 
-                alt="${resource.filename || '图片'}"
-                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-                loading="lazy"
-                data-preview="true"
-              />
-              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-                <i class="ri-image-line text-2xl"></i>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      </figure>
-    `;
-  } else {
-    return utils.createHtml`
-      <figure class="mt-4">
-        <div class="grid grid-cols-3 gap-1">
-          ${resources.map(resource => utils.createHtml`
-            <div class="aspect-square relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-              <img 
-                src="${resource.externalLink || ''}" 
-                alt="${resource.filename || '图片'}"
-                class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-                loading="lazy"
-                data-preview="true"
-              />
-              <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 opacity-100 transition-opacity duration-300 image-placeholder">
-                <i class="ri-image-line text-2xl"></i>
-              </div>
-            </div>
-          `).join('')}
+          ${createImageElement(resources[0])}
         </div>
       </figure>
     `;
   }
-}
+
+  if (resources.length === 2) {
+    return utils.createHtml`
+      <figure class="mt-4">
+        <div class="flex flex-wrap gap-1">
+          ${resources.map(resource => createImageElement(resource)).join('')}
+        </div>
+      </figure>
+    `;
+  }
+
+  return utils.createHtml`
+    <figure class="mt-4">
+      <div class="grid grid-cols-3 gap-1">
+        ${resources.map(resource => createImageElement(resource)).join('')}
+      </div>
+    </figure>
+  `;
+};
 
 // 渲染基础 HTML
 export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
@@ -244,69 +218,143 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   'indigo-timeline': '#4e5ed3',
                   'indigo-shadow': '#bab5f8',
                 },
-                scrollbar: {
-                  width: '8px',
-                  height: '8px',
-                  track: 'rgba(255, 255, 255, 0)',
-                  thumb: 'rgba(0, 0, 0, 0.1)',
-                  'thumb-hover': 'rgba(0, 0, 0, 0.11)',
-                },
-                borderRadius: {
-                  'scrollbar': '10px',
-                },
               }
             }
           }
         </script>
         <style>
-          /* 移除滚动条相关样式，因为我们将使用 Tailwind 类 */
+          html::-webkit-scrollbar, 
+          body::-webkit-scrollbar,
+          pre::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb, 
+          body::-webkit-scrollbar-thumb,
+          pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb:hover, 
+          body::-webkit-scrollbar-thumb:hover,
+          pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.11);
+            border-radius: 10px; 
+          }
+
+          html::-webkit-scrollbar-track:hover, 
+          body::-webkit-scrollbar-track:hover,
+          pre::-webkit-scrollbar-track:hover {
+            background: rgba(0, 0, 0, 0);
+            border-radius: 10px; 
+          }
+
+          article::before {
+            content: '';
+            width: 17px;
+            height: 17px;
+            background-color: white;
+            border: 1px solid #4e5ed3;
+            border-radius: 50%;
+            position: absolute;
+            left: -10px;
+            top: 0;
+            box-shadow: 3px 3px 0px #bab5f8;
+            will-change: transform;
+          }
+          .dark article::before {
+            background-color: #1f2937;
+            border-color: #818cf8;
+            box-shadow: 3px 3px 0px #6366f1;
+          }
           .image-modal.active {
-            @apply flex opacity-100;
+            display: flex;
+            opacity: 1;
           }
           .image-modal-content img.loaded {
-            @apply opacity-100;
+            opacity: 1;
           }
           .back-to-top.visible {
-            @apply opacity-100 visible;
+            opacity: 1;
+            visibility: visible;
           }
           .article-content img, .mt-4 img {
-            @apply cursor-pointer transition-opacity duration-200 bg-blue-100/10 opacity-50 will-change-opacity;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background-color: #0c7cd51c;
+            opacity: 0.5;
+            will-change: opacity;
           }
           .article-content img.loaded, .mt-4 img.loaded {
-            @apply opacity-100;
+            opacity: 1;
           }
           .article-content img:hover, .mt-4 img:hover {
-            @apply opacity-90;
+            opacity: 0.9;
           }
           .image-placeholder {
-            @apply opacity-100 transition-opacity duration-300 ease-in-out will-change-opacity;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
           }
           div.loaded .image-placeholder {
-            @apply opacity-0;
+            opacity: 0;
           }
           .code-header {
-            @apply flex justify-between items-center bg-gray-100 rounded-t-lg px-4 py-2 text-sm text-gray-600 border-b border-gray-200 mt-4 -mb-4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f3f5;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            margin-bottom: -1rem;
           }
           .dark .code-header {
-            @apply bg-gray-800 text-gray-300 border-gray-700;
+            background-color: #1a2234;
+            color: #9ca3af;
+            border-bottom: 1px solid #374151;
           }
           .copy-btn {
-            @apply relative p-1.5 text-base text-gray-600 bg-transparent border-none rounded cursor-pointer opacity-100 transition-all duration-200 z-5 flex items-center justify-center w-7 h-7;
+            position: relative;
+            padding: 6px;
+            font-size: 16px;
+            color: #4b5563;
+            background-color: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.2s, background-color 0.2s;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
           }
           .dark .copy-btn {
-            @apply text-gray-200;
+            color: #e5e7eb;
           }
           .copy-btn:hover {
-            @apply bg-black/5;
+            background-color: rgba(0, 0, 0, 0.05);
           }
           .dark .copy-btn:hover {
-            @apply bg-white/5;
+            background-color: rgba(255, 255, 255, 0.05);
           }
           .copy-btn.copied {
-            @apply bg-emerald-500 text-white;
+            background-color: #10b981;
+            color: white;
           }
           .dark .copy-btn.copied {
-            @apply bg-emerald-600;
+            background-color: #059669;
           }
         </style>
       </head>
