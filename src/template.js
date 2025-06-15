@@ -1,6 +1,6 @@
 import { html } from 'hono/html'
 import { CONFIG } from './config.js'
-import { utils, minifier } from './utils.js'
+import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
 // 优化HTML模板渲染 - 减少重复代码
@@ -197,150 +197,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
   const articlesHtml = Array.isArray(content) ? content.join('') : content;
 
-  // 提取内联样式和脚本
-  const styleContent = `
-    html::-webkit-scrollbar, 
-    body::-webkit-scrollbar,
-    pre::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-      background: rgba(255, 255, 255, 0);
-      border-radius: 10px;
-    }
-
-    html::-webkit-scrollbar-thumb, 
-    body::-webkit-scrollbar-thumb,
-    pre::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.1);
-      border-radius: 10px;
-    }
-
-    html::-webkit-scrollbar-thumb:hover, 
-    body::-webkit-scrollbar-thumb:hover,
-    pre::-webkit-scrollbar-thumb:hover {
-      background: rgba(0, 0, 0, 0.11);
-      border-radius: 10px; 
-    }
-
-    html::-webkit-scrollbar-track:hover, 
-    body::-webkit-scrollbar-track:hover,
-    pre::-webkit-scrollbar-track:hover {
-      background: rgba(0, 0, 0, 0);
-      border-radius: 10px; 
-    }
-
-    article::before {
-      content: '';
-      width: 17px;
-      height: 17px;
-      background-color: white;
-      border: 1px solid #4e5ed3;
-      border-radius: 50%;
-      position: absolute;
-      left: -10px;
-      top: 0;
-      box-shadow: 3px 3px 0px #bab5f8;
-      will-change: transform;
-    }
-    .dark article::before {
-      background-color: #1f2937;
-      border-color: #818cf8;
-      box-shadow: 3px 3px 0px #6366f1;
-    }
-    .image-modal.active {
-      display: flex;
-      opacity: 1;
-    }
-    .image-modal-content img.loaded {
-      opacity: 1;
-    }
-    .back-to-top.visible {
-      opacity: 1;
-      visibility: visible;
-    }
-    .article-content img, .mt-4 img {
-      cursor: pointer;
-      transition: opacity 0.2s;
-      background-color: #0c7cd51c;
-      opacity: 0.5;
-      will-change: opacity;
-    }
-    .article-content img.loaded, .mt-4 img.loaded {
-      opacity: 1;
-    }
-    .article-content img:hover, .mt-4 img:hover {
-      opacity: 0.9;
-    }
-    .image-placeholder {
-      opacity: 1;
-      transition: opacity 0.3s ease;
-      will-change: opacity;
-    }
-    div.loaded .image-placeholder {
-      opacity: 0;
-    }
-    .code-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background-color: #f1f3f5;
-      border-top-left-radius: 6px;
-      border-top-right-radius: 6px;
-      padding: 0.5rem 1rem;
-      font-size: 0.8rem;
-      color: #4b5563;
-      border-bottom: 1px solid #e5e7eb;
-      margin-top: 1rem;
-      margin-bottom: -1rem;
-    }
-    .dark .code-header {
-      background-color: #1a2234;
-      color: #9ca3af;
-      border-bottom: 1px solid #374151;
-    }
-    .copy-btn {
-      position: relative;
-      padding: 6px;
-      font-size: 16px;
-      color: #4b5563;
-      background-color: transparent;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      opacity: 1;
-      transition: opacity 0.2s, background-color 0.2s;
-      z-index: 5;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px;
-      height: 28px;
-    }
-    .dark .copy-btn {
-      color: #e5e7eb;
-    }
-    .copy-btn:hover {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-    .dark .copy-btn:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-    }
-    .copy-btn.copied {
-      background-color: #10b981;
-      color: white;
-    }
-    .dark .copy-btn.copied {
-      background-color: #059669;
-    }
-  `;
-
-  // 压缩内联样式
-  const minifiedStyle = minifier.minifyCss(styleContent);
-
-  // 压缩客户端脚本
-  const minifiedScript = minifier.minifyJs(clientScript);
-
-  const html = utils.createHtml`
+  return utils.createHtml`
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
       <head>
@@ -386,7 +243,141 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             }
           }
         </script>
-        <style>${minifiedStyle}</style>
+        <style>
+          html::-webkit-scrollbar, 
+          body::-webkit-scrollbar,
+          pre::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb, 
+          body::-webkit-scrollbar-thumb,
+          pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb:hover, 
+          body::-webkit-scrollbar-thumb:hover,
+          pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.11);
+            border-radius: 10px; 
+          }
+
+          html::-webkit-scrollbar-track:hover, 
+          body::-webkit-scrollbar-track:hover,
+          pre::-webkit-scrollbar-track:hover {
+            background: rgba(0, 0, 0, 0);
+            border-radius: 10px; 
+          }
+
+          article::before {
+            content: '';
+            width: 17px;
+            height: 17px;
+            background-color: white;
+            border: 1px solid #4e5ed3;
+            border-radius: 50%;
+            position: absolute;
+            left: -10px;
+            top: 0;
+            box-shadow: 3px 3px 0px #bab5f8;
+            will-change: transform;
+          }
+          .dark article::before {
+            background-color: #1f2937;
+            border-color: #818cf8;
+            box-shadow: 3px 3px 0px #6366f1;
+          }
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
+          }
+          .image-modal-content img.loaded {
+            opacity: 1;
+          }
+          .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+          }
+          .article-content img, .mt-4 img {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background-color: #0c7cd51c;
+            opacity: 0.5;
+            will-change: opacity;
+          }
+          .article-content img.loaded, .mt-4 img.loaded {
+            opacity: 1;
+          }
+          .article-content img:hover, .mt-4 img:hover {
+            opacity: 0.9;
+          }
+          .image-placeholder {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+          }
+          div.loaded .image-placeholder {
+            opacity: 0;
+          }
+          .code-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f1f3f5;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.8rem;
+            color: #4b5563;
+            border-bottom: 1px solid #e5e7eb;
+            margin-top: 1rem;
+            margin-bottom: -1rem;
+          }
+          .dark .code-header {
+            background-color: #1a2234;
+            color: #9ca3af;
+            border-bottom: 1px solid #374151;
+          }
+          .copy-btn {
+            position: relative;
+            padding: 6px;
+            font-size: 16px;
+            color: #4b5563;
+            background-color: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            opacity: 1;
+            transition: opacity 0.2s, background-color 0.2s;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+          }
+          .dark .copy-btn {
+            color: #e5e7eb;
+          }
+          .copy-btn:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+          }
+          .dark .copy-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+          }
+          .copy-btn.copied {
+            background-color: #10b981;
+            color: white;
+          }
+          .dark .copy-btn.copied {
+            background-color: #059669;
+          }
+        </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-2xl mx-auto px-4 py-12 sm:px-4 sm:py-12">
@@ -475,13 +466,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </div>
         </div>
 
-        <script>${minifiedScript}</script>
+        <script>
+        ${clientScript}
+        </script>
       </body>
     </html>
   `;
-
-  // 压缩最终的HTML输出
-  return minifier.minifyHtml(html);
 }
 
 const clientScript = `
