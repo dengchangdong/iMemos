@@ -77,7 +77,7 @@ export const markdownRenderer = {
     
     // 代码块（保留原始缩进）
     html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => 
-      utils.createHtml`<pre data-language="${lang || 'plaintext'}" class="relative bg-gray-100 dark:bg-slate-800 rounded-[6px] my-4 p-4 overflow-auto"><code class="language-${lang || 'plaintext'}">${utils.escapeHtml(code)}</code></pre>`
+      utils.createHtml`<pre data-language="${lang || 'text'}" class="relative bg-gray-100 dark:bg-slate-800 rounded-[6px] my-4 p-4 overflow-auto"><code class="language-${lang || 'text'}">${utils.escapeHtml(code)}</code></pre>`
     );
     
     // 行内代码
