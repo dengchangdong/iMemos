@@ -420,521 +420,412 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
 const clientScript = `
   (function() {
-    // 主题切换功能
+    // Helper function for consistent DOM updates
+    function safeDomUpdate(callback) {
+      requestAnimationFrame(callback);
+    }
+
+    // --- 主题切换功能 ---
     function initThemeToggle() {
       const themeToggle = document.getElementById('theme-toggle');
       const themeIcon = document.getElementById('theme-icon');
       const html = document.documentElement;
-      
-      const themes = ['system', 'light', 'dark'];
-      let currentTheme = 0;
-      
-      function updateIcon(theme) {
-        themeIcon.className = theme === 'light' 
-          ? 'ri-sun-fill text-lg' 
-          : theme === 'dark' 
-            ? 'ri-moon-fill text-lg' 
-            : 'ri-contrast-fill text-lg';
-        
-        themeToggle.setAttribute('aria-label', 
-          theme === 'light' 
-            ? '切换到深色模式' 
-            : theme === 'dark' 
-              ? '切换到浅色模式' 
-              : '切换到系统模式'
-        );
-      }
-      
-      function applyTheme(theme) {
-        requestAnimationFrame(() => {
-          if (theme === 'light') {
-            html.classList.remove('dark');
-            localStorage.theme = 'light';
-          } else if (theme === 'dark') {
-            html.classList.add('dark');
-            localStorage.theme = 'dark';
-          } else {
+
+      const THEMES = ['system', 'light', 'dark'];
+      let currentThemeIndex = 0; // 0: system, 1: light, 2: dark
+
+      const themeConfig = {
+        'light': {
+          icon: 'ri-sun-fill',
+          label: '切换到深色模式',
+          apply: () => { html.classList.remove('dark'); localStorage.theme = 'light'; }
+        },
+        'dark': {
+          icon: 'ri-moon-fill',
+          label: '切换到浅色模式',
+          apply: () => { html.classList.add('dark'); localStorage.theme = 'dark'; }
+        },
+        'system': {
+          icon: 'ri-contrast-fill',
+          label: '切换到系统模式',
+          apply: () => {
             localStorage.removeItem('theme');
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (prefersDark) {
-              html.classList.add('dark');
-            } else {
-              html.classList.remove('dark');
-            }
+            html.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
           }
-          updateIcon(theme);
+        }
+      };
+
+      function updateThemeUI(theme) {
+        const config = themeConfig[theme];
+        themeIcon.className = \`\${config.icon} text-lg\`;
+        themeToggle.setAttribute('aria-label', config.label);
+      }
+
+      function applyTheme(theme) {
+        safeDomUpdate(() => {
+          themeConfig[theme].apply();
+          updateThemeUI(theme);
+          currentThemeIndex = THEMES.indexOf(theme);
         });
       }
-      
+
+      // Initial theme setup
       const storedTheme = localStorage.theme;
-      if (storedTheme === 'dark') {
-        html.classList.add('dark');
-        currentTheme = 2;
-        updateIcon('dark');
-      } else if (storedTheme === 'light') {
-        html.classList.remove('dark');
-        currentTheme = 1;
-        updateIcon('light');
+      if (storedTheme && THEMES.includes(storedTheme)) {
+        applyTheme(storedTheme);
       } else {
+        // If no stored theme, default to system and apply dark class if system prefers dark
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
           html.classList.add('dark');
         }
-        updateIcon('system');
+        updateThemeUI('system'); // Initialize UI for system theme
       }
-      
+
+      // Toggle mechanism
       themeToggle.addEventListener('click', () => {
-        currentTheme = (currentTheme + 1) % 3;
-        const newTheme = themes[currentTheme];
+        currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
+        const newTheme = THEMES[currentThemeIndex];
         applyTheme(newTheme);
       });
 
-      const mql = window.matchMedia('(prefers-color-scheme: dark)');
-      const handleThemeChange = (e) => {
+      // Listen for system theme changes if 'system' theme is active
+      const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
+      const handleSystemPreferenceChange = (event) => {
+        // Only react if theme is currently 'system' (no localStorage.theme)
         if (!localStorage.theme) {
-          requestAnimationFrame(() => {
-            if (e.matches) {
-              html.classList.add('dark');
-            } else {
-              html.classList.remove('dark');
-            }
+          safeDomUpdate(() => {
+            html.classList.toggle('dark', event.matches);
           });
         }
       };
-      
-      mql.addEventListener('change', handleThemeChange);
+      mediaQueryList.addEventListener('change', handleSystemPreferenceChange);
     }
 
-    // 返回顶部功能
+    // --- 返回顶部功能 ---
     function initBackToTop() {
-      const backToTop = document.getElementById('back-to-top');
-      
-      const observer = new IntersectionObserver((entries) => {
-        const shouldShow = !entries[0].isIntersecting;
-        requestAnimationFrame(() => {
-          if (shouldShow) {
-            backToTop.classList.add('visible');
-          } else {
-            backToTop.classList.remove('visible');
-          }
-        });
-      }, { 
-        threshold: 0,
-        rootMargin: '300px 0px 0px 0px'
+      const backToTopBtn = document.getElementById('back-to-top');
+      if (!backToTopBtn) return;
+
+      const pageTopSentinel = document.createElement('div');
+      Object.assign(pageTopSentinel.style, {
+        position: 'absolute', top: '0', left: '0', width: '1px', height: '1px', pointerEvents: 'none'
       });
-      
-      const pageTop = document.createElement('div');
-      pageTop.style.position = 'absolute';
-      pageTop.style.top = '0';
-      pageTop.style.left = '0';
-      pageTop.style.width = '1px';
-      pageTop.style.height = '1px';
-      pageTop.style.pointerEvents = 'none';
-      document.body.appendChild(pageTop);
-      observer.observe(pageTop);
-        
-      backToTop.addEventListener('click', () => {
-        window.scrollTo({
-          top: 0,
-          behavior: 'smooth'
+      document.body.appendChild(pageTopSentinel);
+
+      const observer = new IntersectionObserver((entries) => {
+        safeDomUpdate(() => {
+          backToTopBtn.classList.toggle('visible', !entries[0].isIntersecting);
         });
+      }, {
+        threshold: 0,
+        rootMargin: '300px 0px 0px 0px' // Show button when 300px from top
+      });
+
+      observer.observe(pageTopSentinel);
+
+      backToTopBtn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       });
     }
-  
-    // 图片预览功能
+
+    // --- 图片预览功能 ---
     function initImageViewer() {
       const modal = document.getElementById('imageModal');
       const modalImg = document.getElementById('modalImage');
-      const closeBtn = modal.querySelector('.image-modal-close');
-      const prevBtn = modal.querySelector('.image-modal-prev');
-      const nextBtn = modal.querySelector('.image-modal-next');
-      const loadingIndicator = modal.querySelector('.image-loading');
-      
-      let allImages = [];
+      const closeBtn = modal?.querySelector('.image-modal-close');
+      const prevBtn = modal?.querySelector('.image-modal-prev');
+      const nextBtn = modal?.querySelector('.image-modal-next');
+      const loadingIndicator = modal?.querySelector('.image-loading');
+
+      if (!modal || !modalImg || !closeBtn || !prevBtn || !nextBtn || !loadingIndicator) {
+        console.warn('Image viewer elements not found. Skipping initialization.');
+        return;
+      }
+
       let currentArticleImages = [];
       let currentIndex = 0;
-      let isModalActive = false;
-      
+      let isModalActive = false; // Prevent re-opening while already opening
+
+      // Lazily load images that are off-screen
       const lazyLoadObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
             const img = entry.target;
             const dataSrc = img.getAttribute('data-src');
-            
             if (dataSrc) {
               img.src = dataSrc;
               img.removeAttribute('data-src');
             }
-            
             lazyLoadObserver.unobserve(img);
           }
         });
-      }, {
-        rootMargin: '200px'
-      });
-      
-      function collectImages() {
-        allImages = Array.from(document.querySelectorAll('[data-preview="true"]'));
-        return allImages;
-      }
-      
-      function getImagesInCurrentArticle(img) {
-        const article = img.closest('article');
-        if (!article) return collectImages();
-        return Array.from(article.querySelectorAll('[data-preview="true"]'));
-      }
-      
-      function showImage(img, index) {
-        if (isModalActive) return;
-        
-        isModalActive = true;
-        currentIndex = index;
-        
-        requestAnimationFrame(() => {
-          loadingIndicator.style.display = 'flex';
-          modalImg.classList.remove('loaded');
-          
-          const imgSrc = img.currentSrc || img.src;
-          
-          if (modalImg.src !== imgSrc) {
-            modalImg.src = imgSrc;
-          }
-          
-          modalImg.alt = img.alt || '预览图片';
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-          
-          if (modalImg.complete && modalImg.naturalWidth > 0) {
-            modalImg.classList.add('loaded');
-            loadingIndicator.style.display = 'none';
-          } else {
-            modalImg.onload = function() {
-              modalImg.classList.add('loaded');
-              loadingIndicator.style.display = 'none';
-            };
-            
-            modalImg.onerror = function() {
-              loadingIndicator.style.display = 'none';
-            };
-          }
-          
-          updateNavigationButtons();
-        });
-      }
-      
-      function setupImageLoadHandlers() {
-        const images = collectImages();
-        
-        requestAnimationFrame(() => {
-          images.forEach((img) => {
-            if (!img.dataset.src && !img.classList.contains('lazy-loaded')) {
-              const originalSrc = img.src;
-              if (originalSrc && !img.complete) {
-                img.setAttribute('data-src', originalSrc);
-                img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3C/svg%3E';
-                lazyLoadObserver.observe(img);
-              }
-            }
-            
-            if (!img.classList.contains('loaded')) {
-              img.removeEventListener('load', img._markAsLoadedHandler);
-              img.removeEventListener('error', img._errorHandler);
-              
-              img._markAsLoadedHandler = () => {
-                if (img.complete && img.naturalWidth > 0) {
-                  img.classList.add('loaded');
-                  if (img.parentNode) {
-                    img.parentNode.classList.add('loaded');
-                  }
-                }
-              };
-              
-              img._errorHandler = () => {
-                console.error('Image failed to load:', img.src);
-              };
+      }, { rootMargin: '200px' });
 
-              if (img.complete) {
-                if (img.naturalWidth > 0) {
-                  img._markAsLoadedHandler();
-                } else {
-                  img._errorHandler();
-                }
-              } else {
-                img.addEventListener('load', img._markAsLoadedHandler);
-                img.addEventListener('error', img._errorHandler);
-              }
-            }
-          });
-        });
-      }
-      
-      function showPreviousImage() {
-        if (currentArticleImages.length <= 1) return;
-        
-        currentIndex = (currentIndex - 1 + currentArticleImages.length) % currentArticleImages.length;
-        const prevImg = currentArticleImages[currentIndex];
-        
-        if (!prevImg) return;
-        
+      // Handles loading image into the modal and showing/hiding loading state
+      function loadImageIntoModal(imgElement) {
         loadingIndicator.style.display = 'flex';
         modalImg.classList.remove('loaded');
-        
-        const imgSrc = prevImg.currentSrc || prevImg.src;
-        
-        if (modalImg.src !== imgSrc) {
-          modalImg.src = imgSrc;
-        }
-        
-        modalImg.alt = prevImg.alt || '预览图片';
-        
-        if (modalImg.complete && modalImg.naturalWidth > 0) {
+
+        modalImg.src = imgElement.currentSrc || imgElement.src;
+        modalImg.alt = imgElement.alt || '预览图片';
+
+        // Clear previous event listeners for this image to prevent multiple calls
+        modalImg.onload = null;
+        modalImg.onerror = null;
+
+        const handleLoad = () => {
           modalImg.classList.add('loaded');
           loadingIndicator.style.display = 'none';
-        } else {
-          modalImg.onload = function() {
-            modalImg.classList.add('loaded');
-            loadingIndicator.style.display = 'none';
-          };
-          modalImg.onerror = function() {
-            loadingIndicator.style.display = 'none';
-          };
-        }
-      }
-      
-      function showNextImage() {
-        if (currentArticleImages.length <= 1) return;
-        
-        currentIndex = (currentIndex + 1) % currentArticleImages.length;
-        const nextImg = currentArticleImages[currentIndex];
-        
-        if (!nextImg) return;
-        
-        loadingIndicator.style.display = 'flex';
-        modalImg.classList.remove('loaded');
-        
-        const imgSrc = nextImg.currentSrc || nextImg.src;
-        
-        if (modalImg.src !== imgSrc) {
-          modalImg.src = imgSrc;
-        }
-        
-        modalImg.alt = nextImg.alt || '预览图片';
-        
-        if (modalImg.complete && modalImg.naturalWidth > 0) {
-          modalImg.classList.add('loaded');
+        };
+        const handleError = () => {
           loadingIndicator.style.display = 'none';
+          console.error('Modal image failed to load:', modalImg.src);
+        };
+
+        if (modalImg.complete && modalImg.naturalWidth > 0) {
+          handleLoad();
         } else {
-          modalImg.onload = function() {
-            modalImg.classList.add('loaded');
-            loadingIndicator.style.display = 'none';
-          };
-          modalImg.onerror = function() {
-            loadingIndicator.style.display = 'none';
-          };
+          modalImg.onload = handleLoad;
+          modalImg.onerror = handleError;
         }
       }
-      
+
       function updateNavigationButtons() {
         const hasMultipleImages = currentArticleImages.length > 1;
-        
-        requestAnimationFrame(() => {
+        safeDomUpdate(() => {
           prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
           nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
         });
       }
-      
-      function setupImageClickHandlers() {
-        document.addEventListener('click', (e) => {
-          const img = e.target.closest('[data-preview="true"]');
-          const container = e.target.closest('.image-container');
-          
-          if (img) {
-            e.preventDefault();
-            currentArticleImages = getImagesInCurrentArticle(img);
-            const index = currentArticleImages.indexOf(img);
-            if (index !== -1) {
-              showImage(img, index);
-            }
-          } else if (container) {
-            e.preventDefault();
-            const containerImg = container.querySelector('[data-preview="true"]');
-            if (containerImg) {
-              currentArticleImages = getImagesInCurrentArticle(containerImg);
-              const imgIndex = currentArticleImages.indexOf(containerImg);
-              if (imgIndex !== -1) {
-                showImage(containerImg, imgIndex);
-              }
-            }
-          }
-        }, { passive: false });
+
+      function showImageInModal(img, index) {
+        if (isModalActive) return;
+
+        isModalActive = true;
+        currentIndex = index;
+
+        safeDomUpdate(() => {
+          loadImageIntoModal(img);
+          modal.classList.add('active');
+          document.body.style.overflow = 'hidden'; // Prevent scrolling body
+          updateNavigationButtons();
+        });
       }
-      
+
+      function navigateImages(direction) { // direction: -1 for prev, 1 for next
+        if (currentArticleImages.length <= 1) return;
+
+        currentIndex = (currentIndex + direction + currentArticleImages.length) % currentArticleImages.length;
+        const targetImg = currentArticleImages[currentIndex];
+
+        if (targetImg) {
+          loadImageIntoModal(targetImg);
+        }
+      }
+
       function closeModal() {
         modal.classList.remove('active');
-        document.body.style.overflow = '';
+        document.body.style.overflow = ''; // Restore body scrolling
         isModalActive = false;
-        
-        currentArticleImages = [];
+
+        currentArticleImages = []; // Clear current images
         currentIndex = 0;
       }
-      
+
+      function getAllPreviewImages() {
+        return Array.from(document.querySelectorAll('[data-preview="true"]'));
+      }
+
+      function getImagesInContext(triggerImg) {
+        const article = triggerImg.closest('article');
+        return article ? Array.from(article.querySelectorAll('[data-preview="true"]')) : getAllPreviewImages();
+      }
+
+      // Sets up initial lazy loading and 'loaded' class for images on the page
+      function setupPageImages() {
+        getAllPreviewImages().forEach(img => {
+          // Prepare for lazy loading if src isn't a placeholder
+          if (!img.dataset.src && img.src && !img.src.startsWith('data:image/svg+xml')) {
+            img.setAttribute('data-src', img.src);
+            img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3C/svg%3E';
+          }
+          lazyLoadObserver.observe(img);
+
+          // Add 'loaded' class for already loaded images or attach listeners
+          if (!img.classList.contains('loaded')) {
+            const handleLoad = () => {
+              if (img.complete && img.naturalWidth > 0) {
+                img.classList.add('loaded');
+                if (img.parentNode) img.parentNode.classList.add('loaded'); // Add to parent if it's a container
+              }
+              img.removeEventListener('load', handleLoad); // Self-remove
+              img.removeEventListener('error', handleError);
+            };
+            const handleError = () => {
+              console.error('Image failed to load:', img.src);
+              img.removeEventListener('load', handleLoad);
+              img.removeEventListener('error', handleError);
+            };
+
+            if (img.complete) { // If image is already complete (e.g., cached)
+              if (img.naturalWidth > 0) {
+                handleLoad();
+              } else {
+                handleError();
+              }
+            } else {
+              img.addEventListener('load', handleLoad);
+              img.addEventListener('error', handleError);
+            }
+          }
+        });
+      }
+
+      // Event listeners for modal navigation and closing
       closeBtn.addEventListener('click', closeModal);
-      prevBtn.addEventListener('click', showPreviousImage);
-      nextBtn.addEventListener('click', showNextImage);
-      
+      prevBtn.addEventListener('click', () => navigateImages(-1));
+      nextBtn.addEventListener('click', () => navigateImages(1));
+
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
+        if (e.target === modal) { // Clicked on modal background
           closeModal();
         }
       });
-      
+
       document.addEventListener('keydown', (e) => {
         if (!modal.classList.contains('active')) return;
-        
         switch(e.key) {
-          case 'Escape':
-            closeModal();
-            break;
-          case 'ArrowLeft':
-            showPreviousImage();
-            break;
-          case 'ArrowRight':
-            showNextImage();
-            break;
+          case 'Escape': closeModal(); break;
+          case 'ArrowLeft': navigateImages(-1); break;
+          case 'ArrowRight': navigateImages(1); break;
         }
       });
-      
-      setupImageLoadHandlers();
-      
+
+      // Delegated click handler for preview images
+      document.addEventListener('click', (e) => {
+        const targetImg = e.target.closest('[data-preview="true"]');
+        if (targetImg) {
+          e.preventDefault();
+          currentArticleImages = getImagesInContext(targetImg);
+          const index = currentArticleImages.indexOf(targetImg);
+          if (index !== -1) {
+            showImageInModal(targetImg, index);
+          }
+        }
+      }, { passive: false });
+
+      // Observe DOM for new content (e.g., loaded via AJAX)
       const observer = new MutationObserver((mutations) => {
-        let hasNewImages = false;
-        
+        let hasNewPreviewImages = false;
         for (const mutation of mutations) {
           if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
             for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.querySelector('[data-preview="true"]') || 
-                    node.matches('[data-preview="true"]')) {
-                  hasNewImages = true;
-                  break;
-                }
+              if (node.nodeType === Node.ELEMENT_NODE && (node.querySelector('[data-preview="true"]') || node.matches('[data-preview="true"]'))) {
+                hasNewPreviewImages = true;
+                break;
               }
             }
-            
-            if (hasNewImages) break;
+            if (hasNewPreviewImages) break;
           }
         }
-        
-        if (hasNewImages) {
-          allImages = [];
-          setupImageLoadHandlers();
+        if (hasNewPreviewImages) {
+          setupPageImages(); // Re-initialize lazy loading and listeners for new images
         }
       });
-      
-      observer.observe(document.body, { 
-        childList: true, 
-        subtree: true,
-        attributes: false,
-        characterData: false
-      });
-      
-      setupImageLoadHandlers();
-      setupImageClickHandlers();
+
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      // Initial setup for existing images on page load
+      setupPageImages();
     }
 
-    // 初始化代码复制功能
+    // --- 初始化代码复制功能 ---
     function initCodeCopyButtons() {
+      // Helper to update button state after copy operation
+      function updateCopyButtonUI(button, success) {
+        button.innerHTML = success ? '<i class="ri-check-line"></i>' : '<i class="ri-error-warning-line"></i>';
+        button.classList.add('copied');
+        setTimeout(() => {
+          button.innerHTML = '<i class="ri-file-copy-line"></i>';
+          button.classList.remove('copied');
+        }, 2000);
+      }
+
       document.querySelectorAll('.code-block').forEach(block => {
         const button = block.querySelector('.copy-btn');
         if (!button) return;
-        
+
+        // Ensure listeners are not added multiple times if init is called by observer
+        if (button.dataset.hasCopyListener === 'true') return;
+        button.dataset.hasCopyListener = 'true';
+
         button.addEventListener('click', () => {
-          // 获取原始代码
           const originalCode = block.getAttribute('data-original-code');
-          const codeText = originalCode ? 
-            decodeURIComponent(originalCode) : 
-            block.querySelector('code')?.textContent || '';
-          
-          navigator.clipboard.writeText(codeText).then(() => {
-            button.innerHTML = '<i class="ri-check-line"></i>';
-            button.classList.add('copied');
-            
-            setTimeout(() => {
-              button.innerHTML = '<i class="ri-file-copy-line"></i>';
-              button.classList.remove('copied');
-            }, 2000);
-          }).catch(err => {
-            const textarea = document.createElement('textarea');
-            textarea.value = codeText;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            
-            try {
-              document.execCommand('copy');
-              button.innerHTML = '<i class="ri-check-line"></i>';
-              button.classList.add('copied');
-            } catch (e) {
-              button.innerHTML = '<i class="ri-error-warning-line"></i>';
-              console.error('复制失败:', e);
-            }
-            
-            document.body.removeChild(textarea);
-            
-            setTimeout(() => {
-              button.innerHTML = '<i class="ri-file-copy-line"></i>';
-              button.classList.remove('copied');
-            }, 2000);
-          });
+          const codeText = originalCode ? decodeURIComponent(originalCode) : (block.querySelector('code')?.textContent || '');
+
+          // Use modern Clipboard API first
+          navigator.clipboard.writeText(codeText)
+            .then(() => updateCopyButtonUI(button, true))
+            .catch(() => {
+              // Fallback for older browsers or denied permissions
+              const textarea = document.createElement('textarea');
+              textarea.value = codeText;
+              Object.assign(textarea.style, {
+                position: 'fixed', opacity: '0', top: '0', left: '0' // Make it invisible and off-screen
+              });
+              document.body.appendChild(textarea);
+              textarea.select();
+
+              try {
+                const successful = document.execCommand('copy');
+                updateCopyButtonUI(button, successful);
+              } catch (err) {
+                console.error('Failed to copy via execCommand:', err);
+                updateCopyButtonUI(button, false);
+              } finally {
+                document.body.removeChild(textarea);
+              }
+            });
         });
       });
     }
-    
-    // 增强的Markdown处理
+
+    // --- 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化) ---
     function enhanceMarkdown() {
+      // Observe DOM for new code blocks and re-initialize copy buttons
       const observer = new MutationObserver((mutations) => {
         let hasNewCodeBlocks = false;
-        
         for (const mutation of mutations) {
           if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
             for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE) {
-                if (node.querySelector('pre') || node.matches('pre')) {
-                  hasNewCodeBlocks = true;
-                  break;
-                }
+              if (node.nodeType === Node.ELEMENT_NODE && (node.querySelector('.code-block') || node.matches('.code-block'))) {
+                hasNewCodeBlocks = true;
+                break;
               }
             }
-            
             if (hasNewCodeBlocks) break;
           }
         }
-        
         if (hasNewCodeBlocks) {
-          initCodeCopyButtons();
+          initCodeCopyButtons(); // Re-run to find new buttons
         }
       });
-      
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: false,
-        characterData: false
-      });
-      
-      initCodeCopyButtons();
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      initCodeCopyButtons(); // Initial run for existing code blocks
     }
 
-    // 页面加载完成后初始化所有功能
+    // --- 页面加载完成后初始化所有功能 ---
     document.addEventListener('DOMContentLoaded', () => {
       initThemeToggle();
       initImageViewer();
-      enhanceMarkdown();
-      
+      enhanceMarkdown(); // Handles code copy buttons
+
+      // initBackToTop can be delayed as it's not critical for initial display
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => initBackToTop());
+        requestIdleCallback(initBackToTop);
       } else {
-        setTimeout(() => initBackToTop(), 200);
+        setTimeout(initBackToTop, 200);
       }
     });
   })();
