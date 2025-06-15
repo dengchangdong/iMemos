@@ -225,28 +225,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="${siteName} - 博客">
+        <meta name="description" content="${siteName}">
         <meta name="theme-color" content="#209cff">
-        
-        <!-- Open Graph / Facebook -->
-        <meta property="og:type" content="website">
-        <meta property="og:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
-        <meta property="og:title" content="${title}">
-        <meta property="og:description" content="${siteName} - 博客">
-        <meta property="og:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
-        
-        <!-- Twitter -->
-        <meta property="twitter:card" content="summary_large_image">
-        <meta property="twitter:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
-        <meta property="twitter:title" content="${title}">
-        <meta property="twitter:description" content="${siteName} - 博客">
-        <meta property="twitter:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
-        
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
           tailwind.config = {
