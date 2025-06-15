@@ -1,6 +1,6 @@
-import { minify as minifyHtml } from 'html-minifier-terser';
+import { minify as minifyHtml } from 'html-minifier';
 import { minify as minifyJs } from 'terser';
-import CleanCSS from 'clean-css';
+import { minify as minifyCss } from 'csso';
 
 // HTML 压缩配置
 const htmlMinifyOptions = {
@@ -49,25 +49,12 @@ const jsMinifyOptions = {
 
 // CSS 压缩配置
 const cssMinifyOptions = {
-  level: 2,                       // 压缩级别
-  format: 'keep-breaks',          // 保持换行格式
-  inline: ['none'],               // 不内联任何资源
-  rebase: false,                  // 不重写 URL
-  compatibility: '*',             // 兼容所有浏览器
-  keepSpecialComments: 0,         // 移除所有特殊注释
-  processImport: false,           // 不处理 @import
-  removeComments: true,           // 移除注释
-  removeEmpty: true,              // 移除空规则
-  removeRedundant: true,          // 移除冗余规则
-  removeWhitespace: true,         // 移除空白
-  roundingPrecision: 2,           // 数值精度
-  selectorsSortingMethod: 'standard', // 选择器排序方法
-  shorthandCompacting: true,      // 压缩简写属性
+  restructure: true,              // 重构 CSS
+  comments: false,                // 移除注释
   sourceMap: false,               // 不生成 source map
+  usage: null,                    // 不使用使用统计
+  logger: false,                  // 禁用日志
 };
-
-// 创建 CSS 压缩器实例
-const cleanCss = new CleanCSS(cssMinifyOptions);
 
 /**
  * 压缩 HTML
@@ -76,7 +63,7 @@ const cleanCss = new CleanCSS(cssMinifyOptions);
  */
 export async function minifyHtmlContent(html) {
   try {
-    return await minifyHtml(html, htmlMinifyOptions);
+    return minifyHtml(html, htmlMinifyOptions);
   } catch (error) {
     console.error('HTML 压缩失败:', error);
     return html;
@@ -105,8 +92,8 @@ export async function minifyJsContent(code) {
  */
 export function minifyCssContent(css) {
   try {
-    const result = cleanCss.minify(css);
-    return result.styles;
+    const result = minifyCss(css, cssMinifyOptions);
+    return result.css;
   } catch (error) {
     console.error('CSS 压缩失败:', error);
     return css;
