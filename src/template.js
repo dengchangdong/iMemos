@@ -89,9 +89,11 @@ export function renderMemo(memo, isHomePage = false) {
     
     // 创建文章头部
     const header = utils.createHtml`
-      <a href="${articleUrl}" class="block">
-        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-      </a>
+      <div class="flex">
+        <a class="block" href="${articleUrl}">
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+        </a>
+      </div>
     `;
     
     // 创建文章内容
