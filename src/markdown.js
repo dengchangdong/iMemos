@@ -76,9 +76,21 @@ export const markdownRenderer = {
     html = html.replace(/\n{2,}/g, '\n\n');
     
     // 代码块（保留原始缩进）
-    html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => 
-      utils.createHtml`<pre data-language="${lang || 'text'}" class="relative bg-gray-100 dark:bg-slate-800 rounded-[6px] my-4 p-4 overflow-auto"><code class="language-${lang || 'text'}">${utils.escapeHtml(code)}</code></pre>`
-    );
+    html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => {
+      // 对代码内容进行转义处理
+      const escapedCode = code
+        // 基本HTML字符转义
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;')
+        .replace(/ /g, '&nbsp;')
+        .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+        .replace(/\n/g, '<br>');
+      
+      return utils.createHtml`<pre data-language="${lang || 'text'}" class="relative bg-gray-100 dark:bg-slate-800 rounded-[6px] my-4 p-4 overflow-auto"><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`;
+    });
     
     // 行内代码
     html = html.replace(CONFIG.REGEX.MD_INLINE_CODE, '<code class="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded text-sm">$1</code>');
