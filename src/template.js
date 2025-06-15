@@ -162,7 +162,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '' }) {
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
-      <div class="pagination flex justify-center items-center mt-8 pt-4">
+      <div class="pagination flex justify-center items-center mt-8">
         <a href="/page/2" class="${buttonClass}">
           <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
         </a>
@@ -174,7 +174,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '' }) {
   const nextPageLink = `/page/${currentPage + 1}`;
 
   return utils.createHtml`
-    <div class="pagination flex justify-between items-center mt-8 pt-4">
+    <div class="pagination flex justify-between items-center mt-8">
       <a href="${prevPageLink}" class="${buttonClass}">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>

@@ -65,4 +65,25 @@ export const utils = {
       return timeB - timeA; // 降序排列
     });
   }
-}; 
+};
+
+// 轻量级 HTML 压缩函数
+export function minifyHtml(html) {
+  if (!html) return '';
+  
+  return html
+    // 移除 HTML 注释
+    .replace(/<!--[\s\S]*?-->/g, '')
+    // 移除标签之间的空白
+    .replace(/>\s+</g, '><')
+    // 移除行首空白
+    .replace(/^\s+/gm, '')
+    // 移除行尾空白
+    .replace(/\s+$/gm, '')
+    // 移除多余的空行
+    .replace(/\n\s*\n/g, '\n')
+    // 保留 pre 和 code 标签内的空白
+    .replace(/(<pre[^>]*>[\s\S]*?<\/pre>)|(<code[^>]*>[\s\S]*?<\/code>)/g, match => {
+      return match.replace(/\s+/g, ' ');
+    });
+} 
