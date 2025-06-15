@@ -3,8 +3,6 @@ import { renderMemo, renderBaseHtml, htmlTemplates } from './template.js';
 import { simpleMarkdown } from './markdown.js'; // Unused in this snippet, but kept for completeness
 import { utils } from './utils.js';
 
-// --- 辅助函数：统一响应创建和错误处理 ---
-
 /**
  * 创建统一的HTTP响应。
  * @param {string} html - 响应的HTML内容。
@@ -52,7 +50,9 @@ function createNotFoundResponse(c) {
 
 // --- API处理相关：优化HTTP请求和缓存 ---
 export const apiHandler = {
+  /** @type {Map<string, {data: any, timestamp: number}>} 缓存存储 */
   cache: new Map(),
+  /** @type {number} 缓存过期时间（毫秒） */
   cacheTTL: 60 * 1000, // 默认1分钟
 
   /**
@@ -141,8 +141,6 @@ export const apiHandler = {
     }
   }
 };
-
-// --- 辅助函数：获取页面限制和页码 ---
 
 /**
  * 获取每页显示的数量限制。

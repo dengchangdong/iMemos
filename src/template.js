@@ -3,9 +3,15 @@ import { CONFIG } from './config.js'
 import { utils } from './utils.js'
 import { simpleMarkdown } from './markdown.js'
 
-// 优化HTML模板渲染 - 减少重复代码
+/**
+ * 优化HTML模板渲染 - 减少重复代码
+ */
 export const htmlTemplates = {
-  // 错误页面模板
+  /**
+   * 错误页面模板
+   * @param {Error} error - 错误对象
+   * @returns {string} 错误页面HTML
+   */
   errorPage(error) {
     return createArticleStructure(
       utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
@@ -17,7 +23,10 @@ export const htmlTemplates = {
     );
   },
   
-  // 404页面模板
+  /**
+   * 404页面模板
+   * @returns {string} 404页面HTML
+   */
   notFoundPage() {
     return createArticleStructure(
       utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
@@ -63,7 +72,12 @@ function createArticleStructure(header, content) {
   `;
 }
 
-// 渲染单个 memo
+/**
+ * 渲染单个 memo
+ * @param {Object} memo - memo对象
+ * @param {boolean} [isHomePage=false] - 是否在首页显示
+ * @returns {string} 渲染后的HTML
+ */
 export function renderMemo(memo, isHomePage = false) {
   try {
     const timestamp = memo.createTime 
@@ -420,12 +434,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
 const clientScript = `
   (function() {
-    // Helper function for consistent DOM updates
     function safeDomUpdate(callback) {
       requestAnimationFrame(callback);
     }
 
-    // --- 主题切换功能 ---
+    // 主题切换功能
     function initThemeToggle() {
       const themeToggle = document.getElementById('theme-toggle');
       const themeIcon = document.getElementById('theme-icon');
@@ -468,30 +481,25 @@ const clientScript = `
           currentThemeIndex = THEMES.indexOf(theme);
         });
       }
-
-      // Initial theme setup
+        
       const storedTheme = localStorage.theme;
       if (storedTheme && THEMES.includes(storedTheme)) {
         applyTheme(storedTheme);
       } else {
-        // If no stored theme, default to system and apply dark class if system prefers dark
         if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
           html.classList.add('dark');
         }
-        updateThemeUI('system'); // Initialize UI for system theme
+        updateThemeUI('system');
       }
 
-      // Toggle mechanism
       themeToggle.addEventListener('click', () => {
         currentThemeIndex = (currentThemeIndex + 1) % THEMES.length;
         const newTheme = THEMES[currentThemeIndex];
         applyTheme(newTheme);
       });
 
-      // Listen for system theme changes if 'system' theme is active
       const mediaQueryList = window.matchMedia('(prefers-color-scheme: dark)');
       const handleSystemPreferenceChange = (event) => {
-        // Only react if theme is currently 'system' (no localStorage.theme)
         if (!localStorage.theme) {
           safeDomUpdate(() => {
             html.classList.toggle('dark', event.matches);
@@ -501,7 +509,7 @@ const clientScript = `
       mediaQueryList.addEventListener('change', handleSystemPreferenceChange);
     }
 
-    // --- 返回顶部功能 ---
+    // 返回顶部功能
     function initBackToTop() {
       const backToTopBtn = document.getElementById('back-to-top');
       if (!backToTopBtn) return;
@@ -518,7 +526,7 @@ const clientScript = `
         });
       }, {
         threshold: 0,
-        rootMargin: '300px 0px 0px 0px' // Show button when 300px from top
+        rootMargin: '300px 0px 0px 0px'
       });
 
       observer.observe(pageTopSentinel);
@@ -528,7 +536,7 @@ const clientScript = `
       });
     }
 
-    // --- 图片预览功能 ---
+    // 图片预览功能
     function initImageViewer() {
       const modal = document.getElementById('imageModal');
       const modalImg = document.getElementById('modalImage');
@@ -544,9 +552,8 @@ const clientScript = `
 
       let currentArticleImages = [];
       let currentIndex = 0;
-      let isModalActive = false; // Prevent re-opening while already opening
+      let isModalActive = false;
 
-      // Lazily load images that are off-screen
       const lazyLoadObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {
@@ -561,7 +568,6 @@ const clientScript = `
         });
       }, { rootMargin: '200px' });
 
-      // Handles loading image into the modal and showing/hiding loading state
       function loadImageIntoModal(imgElement) {
         loadingIndicator.style.display = 'flex';
         modalImg.classList.remove('loaded');
@@ -569,7 +575,6 @@ const clientScript = `
         modalImg.src = imgElement.currentSrc || imgElement.src;
         modalImg.alt = imgElement.alt || '预览图片';
 
-        // Clear previous event listeners for this image to prevent multiple calls
         modalImg.onload = null;
         modalImg.onerror = null;
 
@@ -607,12 +612,12 @@ const clientScript = `
         safeDomUpdate(() => {
           loadImageIntoModal(img);
           modal.classList.add('active');
-          document.body.style.overflow = 'hidden'; // Prevent scrolling body
+          document.body.style.overflow = 'hidden';
           updateNavigationButtons();
         });
       }
 
-      function navigateImages(direction) { // direction: -1 for prev, 1 for next
+      function navigateImages(direction) { 
         if (currentArticleImages.length <= 1) return;
 
         currentIndex = (currentIndex + direction + currentArticleImages.length) % currentArticleImages.length;
@@ -625,10 +630,10 @@ const clientScript = `
 
       function closeModal() {
         modal.classList.remove('active');
-        document.body.style.overflow = ''; // Restore body scrolling
+        document.body.style.overflow = '';
         isModalActive = false;
 
-        currentArticleImages = []; // Clear current images
+        currentArticleImages = [];
         currentIndex = 0;
       }
 
@@ -641,24 +646,21 @@ const clientScript = `
         return article ? Array.from(article.querySelectorAll('[data-preview="true"]')) : getAllPreviewImages();
       }
 
-      // Sets up initial lazy loading and 'loaded' class for images on the page
       function setupPageImages() {
         getAllPreviewImages().forEach(img => {
-          // Prepare for lazy loading if src isn't a placeholder
           if (!img.dataset.src && img.src && !img.src.startsWith('data:image/svg+xml')) {
             img.setAttribute('data-src', img.src);
             img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3C/svg%3E';
           }
           lazyLoadObserver.observe(img);
 
-          // Add 'loaded' class for already loaded images or attach listeners
           if (!img.classList.contains('loaded')) {
             const handleLoad = () => {
               if (img.complete && img.naturalWidth > 0) {
                 img.classList.add('loaded');
-                if (img.parentNode) img.parentNode.classList.add('loaded'); // Add to parent if it's a container
+                if (img.parentNode) img.parentNode.classList.add('loaded');
               }
-              img.removeEventListener('load', handleLoad); // Self-remove
+              img.removeEventListener('load', handleLoad); 
               img.removeEventListener('error', handleError);
             };
             const handleError = () => {
@@ -667,7 +669,7 @@ const clientScript = `
               img.removeEventListener('error', handleError);
             };
 
-            if (img.complete) { // If image is already complete (e.g., cached)
+            if (img.complete) {
               if (img.naturalWidth > 0) {
                 handleLoad();
               } else {
@@ -681,7 +683,6 @@ const clientScript = `
         });
       }
 
-      // Event listeners for modal navigation and closing
       closeBtn.addEventListener('click', closeModal);
       prevBtn.addEventListener('click', () => navigateImages(-1));
       nextBtn.addEventListener('click', () => navigateImages(1));
@@ -701,7 +702,6 @@ const clientScript = `
         }
       });
 
-      // Delegated click handler for preview images
       document.addEventListener('click', (e) => {
         const targetImg = e.target.closest('[data-preview="true"]');
         if (targetImg) {
@@ -714,7 +714,6 @@ const clientScript = `
         }
       }, { passive: false });
 
-      // Observe DOM for new content (e.g., loaded via AJAX)
       const observer = new MutationObserver((mutations) => {
         let hasNewPreviewImages = false;
         for (const mutation of mutations) {
@@ -729,17 +728,16 @@ const clientScript = `
           }
         }
         if (hasNewPreviewImages) {
-          setupPageImages(); // Re-initialize lazy loading and listeners for new images
+          setupPageImages();
         }
       });
 
       observer.observe(document.body, { childList: true, subtree: true });
 
-      // Initial setup for existing images on page load
       setupPageImages();
     }
 
-    // --- 初始化代码复制功能 ---
+    // 初始化代码复制功能
     function initCodeCopyButtons() {
       // Helper to update button state after copy operation
       function updateCopyButtonUI(button, success) {
@@ -755,7 +753,6 @@ const clientScript = `
         const button = block.querySelector('.copy-btn');
         if (!button) return;
 
-        // Ensure listeners are not added multiple times if init is called by observer
         if (button.dataset.hasCopyListener === 'true') return;
         button.dataset.hasCopyListener = 'true';
 
@@ -763,15 +760,13 @@ const clientScript = `
           const originalCode = block.getAttribute('data-original-code');
           const codeText = originalCode ? decodeURIComponent(originalCode) : (block.querySelector('code')?.textContent || '');
 
-          // Use modern Clipboard API first
           navigator.clipboard.writeText(codeText)
             .then(() => updateCopyButtonUI(button, true))
             .catch(() => {
-              // Fallback for older browsers or denied permissions
               const textarea = document.createElement('textarea');
               textarea.value = codeText;
               Object.assign(textarea.style, {
-                position: 'fixed', opacity: '0', top: '0', left: '0' // Make it invisible and off-screen
+                position: 'fixed', opacity: '0', top: '0', left: '0' 
               });
               document.body.appendChild(textarea);
               textarea.select();
@@ -790,7 +785,7 @@ const clientScript = `
       });
     }
 
-    // --- 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化) ---
+    // 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化)
     function enhanceMarkdown() {
       // Observe DOM for new code blocks and re-initialize copy buttons
       const observer = new MutationObserver((mutations) => {
@@ -807,21 +802,20 @@ const clientScript = `
           }
         }
         if (hasNewCodeBlocks) {
-          initCodeCopyButtons(); // Re-run to find new buttons
+          initCodeCopyButtons();
         }
       });
       observer.observe(document.body, { childList: true, subtree: true });
 
-      initCodeCopyButtons(); // Initial run for existing code blocks
+      initCodeCopyButtons();
     }
 
-    // --- 页面加载完成后初始化所有功能 ---
+    // 页面加载完成后初始化所有功能
     document.addEventListener('DOMContentLoaded', () => {
       initThemeToggle();
       initImageViewer();
       enhanceMarkdown(); // Handles code copy buttons
 
-      // initBackToTop can be delayed as it's not critical for initial display
       if ('requestIdleCallback' in window) {
         requestIdleCallback(initBackToTop);
       } else {

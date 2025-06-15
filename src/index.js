@@ -3,7 +3,9 @@ import { routes } from './routes.js'
 
 const app = new Hono()
 
-// 错误处理中间件
+/**
+ * 错误处理中间件
+ */ 
 app.use('*', async (c, next) => {
   try {
     await next()
@@ -13,7 +15,9 @@ app.use('*', async (c, next) => {
   }
 })
 
-// 注册路由 - 更简洁的路由处理
+/**
+ * 注册路由 - 更简洁的路由处理
+ */ 
 app.get('/', routes.home)
 app.get('/page/:number', routes.page)
 app.get('/post/:name', routes.post)
