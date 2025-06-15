@@ -26,10 +26,7 @@ function createNotFoundResponse(c) {
 
 // 创建统一的响应处理函数
 function createResponse(html, cacheTime = 300, status = 200) {
-  // 在生产环境中压缩 HTML
-  const minifiedHtml = process.env.NODE_ENV === 'production' ? utils.minifyHtml(html) : html;
-  
-  return new Response(minifiedHtml, {
+  return new Response(html, {
     headers: {
       'Content-Type': 'text/html;charset=UTF-8',
       'Cache-Control': `public, max-age=${cacheTime}`

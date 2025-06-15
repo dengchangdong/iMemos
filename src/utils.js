@@ -67,19 +67,107 @@ export const utils = {
   }
 };
 
-// 轻量级 HTML 压缩函数
-export function minifyHtml(html) {
-  if (!html) return '';
-  
-  return html
-    // 移除 HTML 注释
-    .replace(/<!--[\s\S]*?-->/g, '')
-    // 移除标签之间的空白
-    .replace(/>\s+</g, '><')
-    // 移除行首空白
-    .replace(/^\s+/gm, '')
-    // 移除行尾空白
-    .replace(/\s+$/gm, '')
-    // 移除多余的空行
-    .replace(/\n\s*\n/g, '\n')
-} 
+// HTML压缩工具
+export const minifier = {
+  // 压缩HTML
+  minifyHtml(html) {
+    return html
+      // 移除HTML注释
+      .replace(/<!--[\s\S]*?-->/g, '')
+      // 移除多余空白
+      .replace(/>\s+</g, '><')
+      .replace(/\s+/g, ' ')
+      // 移除标签内的多余空白
+      .replace(/\s+>/g, '>')
+      .replace(/<\s+/g, '<')
+      // 保留必要的空白（pre, textarea, code等标签内）
+      .replace(/(<pre[^>]*>|<\/pre>|<textarea[^>]*>|<\/textarea>|<code[^>]*>|<\/code>)/g, match => {
+        return match.replace(/\s+/g, ' ');
+      });
+  },
+
+  // 压缩CSS
+  minifyCss(css) {
+    return css
+      // 移除CSS注释
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      // 移除多余空白
+      .replace(/\s+/g, ' ')
+      // 移除选择器中的多余空白
+      .replace(/\s*{\s*/g, '{')
+      .replace(/\s*}\s*/g, '}')
+      .replace(/\s*:\s*/g, ':')
+      .replace(/\s*;\s*/g, ';')
+      .replace(/\s*,\s*/g, ',')
+      // 移除最后一个分号
+      .replace(/;}/g, '}')
+      // 移除零值单位
+      .replace(/(\s|:)0(px|em|rem|%|vh|vw|vmin|vmax)/g, '$10')
+      // 移除颜色值中的零
+      .replace(/#([0-9a-f])\1([0-9a-f])\2([0-9a-f])\3/gi, '#$1$2$3')
+      // 移除小数点前的零
+      .replace(/(\s|:)\./g, '$10.');
+  },
+
+  // 压缩JavaScript
+  minifyJs(js) {
+    // 移除单行注释
+    js = js.replace(/\/\/.*/g, '');
+    
+    // 移除多行注释
+    js = js.replace(/\/\*[\s\S]*?\*\//g, '');
+    
+    // 移除多余空白
+    js = js.replace(/\s+/g, ' ');
+    
+    // 移除分号后的空白
+    js = js.replace(/;\s+/g, ';');
+    
+    // 移除括号内的空白
+    js = js.replace(/\(\s+/g, '(');
+    js = js.replace(/\s+\)/g, ')');
+    
+    // 移除大括号内的空白
+    js = js.replace(/{\s+/g, '{');
+    js = js.replace(/\s+}/g, '}');
+    
+    // 移除逗号后的空白
+    js = js.replace(/,\s+/g, ',');
+    
+    // 移除运算符周围的空白
+    js = js.replace(/\s*([+\-*/=<>!&|^~?:])\s*/g, '$1');
+    
+    // 保护字符串内容
+    const strings = [];
+    js = js.replace(/(['"])((?:\\\1|.)*?)\1/g, (match) => {
+      strings.push(match);
+      return `__STRING${strings.length - 1}__`;
+    });
+    
+    // 执行压缩
+    js = js.trim();
+    
+    // 恢复字符串内容
+    js = js.replace(/__STRING(\d+)__/g, (_, index) => strings[index]);
+    
+    return js;
+  },
+
+  // 智能压缩 - 根据内容类型自动选择压缩方法
+  smartMinify(content, type = 'html') {
+    try {
+      switch (type) {
+        case 'css':
+          return this.minifyCss(content);
+        case 'js':
+          return this.minifyJs(content);
+        case 'html':
+        default:
+          return this.minifyHtml(content);
+      }
+    } catch (error) {
+      console.error('压缩失败:', error);
+      return content; // 如果压缩失败，返回原始内容
+    }
+  }
+}; 
