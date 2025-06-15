@@ -164,8 +164,6 @@ function getPageFromUrlParams(c) {
   return pageParam ? parseInt(pageParam) : 1;
 }
 
-// --- 路由处理：抽象化通用列表渲染逻辑 ---
-
 /**
  * 通用处理Memos列表页的路由函数。
  * @param {object} c - Hono上下文对象。
