@@ -52,11 +52,11 @@ export const markdownRenderer = {
     html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => {
       // 仅转义HTML实体，保留原始空格和换行，以便 `<pre><code>` 样式正确显示
       const escapedCodeContent = code
-        .replace(/&/g, '&')
-        .replace(/</g, '<')
-        .replace(/>/g, '>')
-        .replace(/"/g, '"')
-        .replace(/'/g, '''); // <-- 这里是修复点
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
 
       // 使用 `utils.createHtml` 构建带Tailwind样式的代码块HTML结构
       return utils.createHtml`<div class="relative bg-gray-100 dark:bg-slate-800 rounded-md my-4" data-language="${lang || 'text'}" data-original-code="${encodeURIComponent(code)}">
@@ -301,11 +301,11 @@ export const markdownRenderer = {
 
     // 对标题进行HTML实体转义，防止XSS和显示问题
     let escapedTitle = title
-      .replace(/&/g, '&')
-      .replace(/</g, '<')
-      .replace(/>/g, '>')
-      .replace(/"/g, '"')
-      .replace(/'/g, '''); // 确保这里的转义也是正确的
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;'); // <-- 这里是修复点
 
     return utils.createHtml`<div class="my-4 p-4 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center space-x-3">
       <svg class="w-6 h-6 text-green-600 dark:text-green-500" viewBox="0 0 24 24" fill="currentColor">
