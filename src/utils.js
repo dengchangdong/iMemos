@@ -82,8 +82,4 @@ export function minifyHtml(html) {
     .replace(/\s+$/gm, '')
     // 移除多余的空行
     .replace(/\n\s*\n/g, '\n')
-    // 保留 pre 和 code 标签内的空白
-    .replace(/(<pre[^>]*>[\s\S]*?<\/pre>)|(<code[^>]*>[\s\S]*?<\/code>)/g, match => {
-      return match.replace(/\s+/g, ' ');
-    });
 } 
