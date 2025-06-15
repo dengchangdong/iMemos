@@ -148,7 +148,7 @@ export const markdownRenderer = {
         return para;
       }
       // 替换段落内的单个换行为<br>
-      return `<p class="text-gray-800 dark:text-gray-200 leading-relaxed">${para.replace(/\n/g, '<br>')}</p>`;
+      return `<p class="text-gray-800 dark:text-gray-200 leading-relaxed mb-4 last:mb-0">${para.replace(/\n/g, '<br>')}</p>`;
     }).join('\n');
     
     // 处理特殊链接
