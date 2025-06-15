@@ -1,17 +1,50 @@
-import { html } from 'hono/html';
-import { CONFIG } from './config.js';
-import { utils } from './utils.js';
-import { simpleMarkdown } from './markdown.js'; // Ensure markdown is correctly imported and used
+import { html } from 'hono/html'
+import { CONFIG } from './config.js'
+import { utils } from './utils.js'
+import { simpleMarkdown } from './markdown.js'
 
-// --- 辅助函数：简化HTML结构和内容 ---
+// 优化HTML模板渲染 - 减少重复代码
+export const htmlTemplates = {
+  // 错误页面模板
+  errorPage(error) {
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`
+        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-sm">${error.message}</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+      `
+    );
+  },
+  
+  // 404页面模板
+  notFoundPage() {
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`
+        <h2 class="font-medium">未找到内容</h2>
+        <p>您访问的内容不存在或已被删除</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+      `
+    );
+  }
+}
 
-/**
- * 创建统一的文章结构HTML。
- * @param {string} headerHtml - 文章头部的HTML内容。
- * @param {string} contentHtml - 文章内容的HTML内容。
- * @returns {string} 完整的文章HTML结构。
- */
-function createArticleStructure(headerHtml, contentHtml) {
+// 解析导航链接
+export function parseNavLinks(linksStr) {
+  if (!linksStr) return []
+  try {
+    const jsonStr = linksStr.replace(/'/g, '"')
+    const linksObj = JSON.parse(jsonStr)
+    return Object.entries(linksObj).map(([text, url]) => ({ text, url }))
+  } catch (error) {
+    console.error('解析导航链接失败:', error)
+    return []
+  }
+}
+
+// 创建文章结构
+function createArticleStructure(header, content) {
   return utils.createHtml`
     <article class="
       pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0
@@ -22,89 +55,56 @@ function createArticleStructure(headerHtml, contentHtml) {
 
       dark:before:bg-[#1f2937] dark:before:border-[#818cf8] dark:before:shadow-[3px_3px_0px_#6366f1]
     ">
-      <header>${headerHtml}</header>
+      <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
-        ${contentHtml}
+        ${content}
       </section>
     </article>
   `;
 }
 
-/**
- * 创建一个通用的信息/错误页面内容。
- * @param {string} timeText - 时间或状态文本 (如 "错误", "404")。
- * @param {string} titleText - 标题文本。
- * @param {string} messageText - 消息文本。
- * @param {string} [linkText='返回首页'] - 链接文本。
- * @param {string} [linkHref='/'] - 链接地址。
- * @returns {string} 可直接传入 createArticleStructure 的内容HTML。
- */
-function createInfoPageContent(timeText, titleText, messageText, linkText = '返回首页', linkHref = '/') {
-  const timeHtml = utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">${timeText}</time>`;
-  const contentHtml = utils.createHtml`
-    <h2 class="font-medium">${titleText}</h2>
-    <p>${messageText}</p>
-    <p class="mt-4"><a href="${linkHref}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">${linkText}</a></p>
-  `;
-  return createArticleStructure(timeHtml, contentHtml);
-}
-
-// --- HTML模板集 ---
-export const htmlTemplates = {
-  /**
-   * 错误页面模板。
-   * @param {Error} error - 错误对象。
-   * @returns {string} 渲染后的错误页面HTML。
-   */
-  errorPage(error) {
-    return createInfoPageContent(
-      '错误',
-      `<span class="text-red-600 dark:text-red-400">加载失败</span>`,
-      error.message
-    );
-  },
-
-  /**
-   * 404页面模板。
-   * @returns {string} 渲染后的404页面HTML。
-   */
-  notFoundPage() {
-    return createInfoPageContent(
-      '404',
-      '未找到内容',
-      '您访问的内容不存在或已被删除'
-    );
-  }
-};
-
-
-// --- 导航链接解析 ---
-/**
- * 解析导航链接字符串为对象数组。
- * @param {string} linksStr - 导航链接的JSON字符串（键为文本，值为URL）。
- * @returns {Array<{text: string, url: string}>} 解析后的链接数组。
- */
-export function parseNavLinks(linksStr) {
-  if (!linksStr) return [];
+// 渲染单个 memo
+export function renderMemo(memo, isHomePage = false) {
   try {
-    // 假设 linksStr 已经是有效的 JSON 字符串，或尝试修复单引号为双引号
-    const jsonStr = linksStr.replace(/'/g, '"');
-    const linksObj = JSON.parse(jsonStr);
-    return Object.entries(linksObj).map(([text, url]) => ({ text, url }));
+    const timestamp = memo.createTime 
+      ? new Date(memo.createTime).getTime()
+      : memo.createdTs * 1000
+    
+    const formattedTime = utils.formatTime(timestamp)
+    const content = memo.content || ''
+    const parsedContent = simpleMarkdown(content)
+    const resources = memo.resources || memo.resourceList || []
+    
+    // 创建图片资源HTML
+    const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
+    
+    // 文章URL
+    const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
+    
+    // 创建文章头部
+    const header = utils.createHtml`
+      <a href="${articleUrl}" class="block">
+        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+      </a>
+    `;
+    
+    // 创建文章内容
+    const articleContent = utils.createHtml`
+      ${parsedContent}
+      ${resourcesHtml}
+    `;
+    
+    return createArticleStructure(header, articleContent);
   } catch (error) {
-    console.error('解析导航链接失败:', error);
-    return [];
+    console.error('渲染 memo 失败:', error)
+    return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
+    );
   }
 }
 
-// --- 资源图片渲染 ---
-
-/**
- * 根据资源数量和布局配置渲染单个图片项。
- * @param {object} resource - 图片资源对象。
- * @param {string} itemClass - 应用于图片容器的CSS类。
- * @returns {string} 单个图片项的HTML。
- */
+// 创建资源HTML
 const renderImageItem = (resource, itemClass) => utils.createHtml`
   <div class="${itemClass} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
     <img 
@@ -120,35 +120,37 @@ const renderImageItem = (resource, itemClass) => utils.createHtml`
   </div>
 `;
 
-/**
- * 根据图片数量创建图片网格HTML。
- * @param {Array<object>} resources - 图片资源数组。
- * @returns {string} 渲染后的图片网格HTML，如果无图片则返回空字符串。
- */
 function createResourcesHtml(resources) {
-  if (!Array.isArray(resources) || resources.length === 0) {
+  const count = resources.length;
+
+  if (count === 0) {
     return '';
   }
 
-  const count = resources.length;
-  // 使用 Map 或 Object.freeze() 来确保配置不变
-  const layoutConfig = Object.freeze({
-    1: { container: '', item: 'w-full aspect-video' },
-    2: { container: 'flex flex-wrap gap-1', item: 'w-[calc(50%-2px)] aspect-square' },
-    // 默认值用于3张及以上
-    default: { container: 'grid grid-cols-3 gap-1', item: 'aspect-square' },
-  });
+  const layoutConfig = {
+    1: { 
+      container: '',                 
+      item: 'w-full aspect-video' 
+    },
+    2: { 
+      container: 'flex flex-wrap gap-1', 
+      item: 'w-[calc(50%-2px)] aspect-square' 
+    },
+    default: { 
+      container: 'grid grid-cols-3 gap-1', 
+      item: 'aspect-square' 
+    },
+  };
 
-  const { container: containerClass, item: itemClass } =
+  const { container: containerClass, item: itemClass } = 
     layoutConfig[count] || layoutConfig.default;
 
   const imagesHtml = resources
     .map(resource => renderImageItem(resource, itemClass))
     .join('');
 
-  // 如果没有容器类，则直接返回图片HTML，避免多余的div
   const content = containerClass
-    ? utils.createHtml`<div class="${containerClass}">${imagesHtml}</div>`
+    ? `<div class="${containerClass}">${imagesHtml}</div>`
     : imagesHtml;
 
   return utils.createHtml`
@@ -158,350 +160,44 @@ function createResourcesHtml(resources) {
   `;
 }
 
-// --- 单个 Memo 渲染 ---
-
-/**
- * 渲染单个 memo 为文章结构。
- * @param {object} memo - memo 对象。
- * @param {boolean} [isHomePage=false] - 是否在首页显示，用于判断文章链接。
- * @returns {string} 渲染后的 memo HTML。
- */
-export function renderMemo(memo, isHomePage = false) {
-  try {
-    const timestamp = memo.createTime
-      ? new Date(memo.createTime).getTime()
-      : (typeof memo.createdTs === 'number' ? memo.createdTs * 1000 : 0);
-
-    const formattedTime = utils.formatTime(timestamp);
-    const content = memo.content || '';
-    const parsedContent = simpleMarkdown(content); // Use the simpleMarkdown from this module
-    const resources = memo.resources || memo.resourceList || [];
-
-    const resourcesHtml = createResourcesHtml(resources);
-    const articleUrl = isHomePage && memo.name ? `/post/${memo.name}` : '#';
-
-    const header = utils.createHtml`
-      <a href="${articleUrl}" class="block">
-        <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
-      </a>
-    `;
-
-    const articleContent = utils.createHtml`
-      ${parsedContent}
-      ${resourcesHtml}
-    `;
-
-    return createArticleStructure(header, articleContent);
-  } catch (error) {
-    console.error('渲染 memo 失败:', error);
-    // 渲染失败时，返回一个带有错误信息的 memo 结构
-    return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">渲染错误</time>`,
-      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
-    );
-  }
-}
-
-// --- 分页导航渲染 ---
-
-/**
- * 渲染分页导航部分。
- * @param {object} options - 分页选项。
- * @param {number} options.currentPage - 当前页码。
- * @param {boolean} options.hasMore - 是否有更多页。
- * @param {boolean} options.isHomePage - 是否是首页。
- * @param {string} [options.tag=''] - 标签名称，如果存在则用于标签分页。
- * @returns {string} 渲染后的分页导航HTML。
- */
+// 渲染分页导航
 function renderPagination({ currentPage, hasMore, isHomePage, tag = '' }) {
-  // 如果不是列表页或没有更多内容，则不显示分页
-  if (!isHomePage && !tag && !hasMore && currentPage === 1) {
-    return ''; // 无需分页
-  }
-
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow";
-  const disabledButtonClass = "opacity-50 cursor-not-allowed hover:bg-blue-500 hover:-translate-y-0 hover:shadow-none";
-
-  let prevLink = '';
-  let nextLink = '';
-
-  if (tag) {
-    // 标签页分页
-    prevLink = currentPage > 1 ? `/tag/${tag}?page=${currentPage - 1}` : `/tag/${tag}`;
-    nextLink = `/tag/${tag}?page=${currentPage + 1}`;
-  } else {
-    // 主页/普通分页
-    prevLink = currentPage > 2 ? `/page/${currentPage - 1}` : '/';
-    nextLink = `/page/${currentPage + 1}`;
-  }
-
-  const prevButton = utils.createHtml`
-    <a href="${prevLink}" class="${buttonClass} ${currentPage === 1 ? disabledButtonClass : ''}" ${currentPage === 1 ? 'aria-disabled="true"' : ''}>
-      <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
-    </a>
-  `;
-
-  const nextButton = utils.createHtml`
-    <a href="${nextLink}" class="${buttonClass} ${!hasMore ? disabledButtonClass : ''}" ${!hasMore ? 'aria-disabled="true"' : ''}>
-      下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
-    </a>
-  `;
-
-  // 首页且是第一页时的特殊处理，显示“查看更多内容”
-  if (isHomePage && currentPage === 1 && hasMore) {
-    return utils.createHtml`
-      <div class="pagination flex justify-center items-center mt-8">
-        ${nextButton.replace('下一页', '').replace('ri-arrow-right-line', 'ri-arrow-down-line').replace('ml-2', 'mr-2').replace('Next', 'View More').replace(nextLink, '/page/2')}
-        <span>查看更多内容</span>
-      </div>
-    `;
-  }
-  
-  // 仅在需要显示导航时才渲染容器
-  if (currentPage === 1 && !hasMore && !tag) { // 只有一页且没有标签的列表
+  if (!isHomePage && !tag) {
     return '';
   }
 
-  return utils.createHtml`
-    <div class="pagination flex justify-between items-center mt-8">
-      ${prevButton}
-      <span class="text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
-      ${nextButton}
-    </div>
-  `;
-}
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow";
 
-
-// --- 基础HTML页面渲染 ---
-
-// 辅助函数：渲染 `<head>` 部分的元数据和链接
-function renderHeadContent(title, siteName) {
-  // typeof window !== 'undefined' 用于在服务端渲染时安全访问 window 对象
-  const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
-
-  return utils.createHtml`
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="${siteName} - 博客">
-    <meta name="theme-color" content="#209cff">
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="${currentUrl}">
-    <meta property="og:title" content="${title}">
-    <meta property="og:description" content="${siteName} - 博客">
-    <meta property="og:image" content="${origin}/og-image.jpg">
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="${currentUrl}">
-    <meta property="twitter:title" content="${title}">
-    <meta property="twitter:description" content="${siteName} - 博客">
-    <meta property="twitter:image" content="${origin}/og-image.jpg">
-    
-    <title>${title}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-  `;
-}
-
-// 辅助函数：渲染 Tailwind CSS 配置
-function renderTailwindConfigScript() {
-  return utils.createHtml`
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            backgroundImage: {
-              'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-              'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
-            },
-            colors: {
-              'indigo-timeline': '#4e5ed3',
-              'indigo-shadow': '#bab5f8',
-            },
-          }
-        }
-      }
-    </script>
-  `;
-}
-
-// 辅助函数：渲染自定义样式
-function renderCustomStyles() {
-  return utils.createHtml`
-    <style>
-      html::-webkit-scrollbar, 
-      body::-webkit-scrollbar,
-      pre::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
-        background: rgba(255, 255, 255, 0);
-        border-radius: 10px;
-      }
-
-      html::-webkit-scrollbar-thumb, 
-      body::-webkit-scrollbar-thumb,
-      pre::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-      }
-
-      html::-webkit-scrollbar-thumb:hover, 
-      body::-webkit-scrollbar-thumb:hover,
-      pre::-webkit-scrollbar-thumb:hover {
-        background: rgba(0, 0, 0, 0.11);
-        border-radius: 10px; 
-      }
-
-      html::-webkit-scrollbar-track:hover, 
-      body::-webkit-scrollbar-track:hover,
-      pre::-webkit-scrollbar-track:hover {
-        background: rgba(0, 0, 0, 0);
-        border-radius: 10px; 
-      }
-
-      .image-modal.active {
-        display: flex;
-        opacity: 1;
-      }
-
-      .image-modal-content img.loaded {
-        opacity: 1;
-      }
-
-      .back-to-top.visible {
-        opacity: 1;
-        visibility: visible;
-      }
-
-      .article-content img, .mt-4 img {
-        cursor: pointer;
-        transition: opacity 0.2s;
-        background-color: #0c7cd51c;
-        opacity: 0.5;
-        will-change: opacity;
-      }
-
-      .article-content img.loaded, .mt-4 img.loaded {
-        opacity: 1;
-      }
-
-      .article-content img:hover, .mt-4 img:hover {
-        opacity: 0.9;
-      }
-
-      .image-placeholder {
-        opacity: 1;
-        transition: opacity 0.3s ease;
-        will-change: opacity;
-      }
-
-      div.loaded .image-placeholder {
-        opacity: 0;
-      }
-    </style>
-  `;
-}
-
-// 辅助函数：渲染页面头部导航
-function renderHeaderSection(siteName, navItemsHtml) {
-  return utils.createHtml`
-    <header class="flex items-center justify-between">
-      <div class="flex items-center">
-        <a href="/" class="flex items-center" aria-label="返回首页">
-          <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
+  if (isHomePage && currentPage === 1) {
+    return utils.createHtml`
+      <div class="pagination flex justify-center items-center mt-8">
+        <a href="/page/2" class="${buttonClass}">
+          <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
         </a>
       </div>
-      <div class="flex items-center space-x-4">
-        <nav class="mr-1" aria-label="网站导航">
-          <ul class="flex space-x-2">
-            ${navItemsHtml}
-          </ul>
-        </nav>
-        <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
-          <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
-        </button>
-      </div>
-    </header>
-  `;
-}
+    `;
+  }
 
-// 辅助函数：渲染图片预览模态框
-function renderImageModal() {
+  const prevPageLink = currentPage > 2 ? `/page/${currentPage - 1}` : '/';
+  const nextPageLink = `/page/${currentPage + 1}`;
+
   return utils.createHtml`
-    <div 
-      id="imageModal" 
-      class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
-      aria-modal="true" 
-      aria-label="图片预览"
-    >
-      <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
-        <button 
-          class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
-          aria-label="关闭预览"
-        >
-          <i class="ri-close-line" aria-hidden="true"></i>
-        </button>
-        
-        <div 
-          class="image-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
-          role="status" 
-          aria-live="polite"
-        >
-          <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
-          <span>加载中...</span>
-        </div>
-        
-        <figure class="w-full h-full flex items-center justify-center">
-          <img 
-            id="modalImage" 
-            src="" 
-            alt="预览图片" 
-            loading="lazy" 
-            class="max-w-full max-h-[90vh] max-w-[90vw] object-contain rounded opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity"
-          >
-        </figure>
-        
-        <button 
-          class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
-          aria-label="上一张"
-        >
-          <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
-        </button>
-        
-        <button 
-          class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
-          aria-label="下一张"
-        >
-          <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
-        </button>
-      </div>
+    <div class="pagination flex justify-between items-center mt-8">
+      <a href="${prevPageLink}" class="${buttonClass}">
+        <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
+      </a>
+      <span class="text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
+      <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
+        下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
+      </a>
     </div>
   `;
 }
 
-
-/**
- * 渲染完整的HTML页面。
- * @param {string} title - 页面标题。
- * @param {string|string[]} content - 页面主体内容（可以是单个HTML字符串或HTML字符串数组）。
- * @param {string} navLinks - 导航链接的原始字符串。
- * @param {string} siteName - 站点名称。
- * @param {number} [currentPage=1] - 当前页码。
- * @param {boolean} [hasMore=false] - 是否有更多内容。
- * @param {boolean} [isHomePage=false] - 是否是首页。
- * @param {string} [tag=''] - 当前标签（如果适用）。
- * @returns {Response} Hono HTML 响应。
- */
+// 渲染基础 HTML
 export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
-  const navItems = parseNavLinks(navLinks);
-  const navItemsHtml = navItems.length > 0
+  const navItems = parseNavLinks(navLinks)
+  const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
         <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700">${item.text}</a></li>
       `).join('')
@@ -509,22 +205,149 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
   const articlesHtml = Array.isArray(content) ? content.join('') : content;
 
-  return html`
+  return utils.createHtml`
     <!DOCTYPE html>
     <html lang="zh-CN" class="scroll-smooth">
       <head>
-        ${renderHeadContent(title, siteName)}
-        ${renderTailwindConfigScript()}
-        ${renderCustomStyles()}
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="${siteName} - 博客">
+        <meta name="theme-color" content="#209cff">
+        
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
+        <meta property="og:title" content="${title}">
+        <meta property="og:description" content="${siteName} - 博客">
+        <meta property="og:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
+        
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image">
+        <meta property="twitter:url" content="${typeof window !== 'undefined' ? window.location.href : ''}">
+        <meta property="twitter:title" content="${title}">
+        <meta property="twitter:description" content="${siteName} - 博客">
+        <meta property="twitter:image" content="${typeof window !== 'undefined' ? window.location.origin : ''}/og-image.jpg">
+        
+        <title>${title}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script>
+          tailwind.config = {
+            darkMode: 'class',
+            theme: {
+              extend: {
+                backgroundImage: {
+                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                },
+                colors: {
+                  'indigo-timeline': '#4e5ed3',
+                  'indigo-shadow': '#bab5f8',
+                },
+              }
+            }
+          }
+        </script>
+        <style>
+          html::-webkit-scrollbar, 
+          body::-webkit-scrollbar,
+          pre::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb, 
+          body::-webkit-scrollbar-thumb,
+          pre::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+          }
+
+          html::-webkit-scrollbar-thumb:hover, 
+          body::-webkit-scrollbar-thumb:hover,
+          pre::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.11);
+            border-radius: 10px; 
+          }
+
+          html::-webkit-scrollbar-track:hover, 
+          body::-webkit-scrollbar-track:hover,
+          pre::-webkit-scrollbar-track:hover {
+            background: rgba(0, 0, 0, 0);
+            border-radius: 10px; 
+          }
+
+          .image-modal.active {
+            display: flex;
+            opacity: 1;
+          }
+
+          .image-modal-content img.loaded {
+            opacity: 1;
+          }
+
+          .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+          }
+
+          .article-content img, .mt-4 img {
+            cursor: pointer;
+            transition: opacity 0.2s;
+            background-color: #0c7cd51c;
+            opacity: 0.5;
+            will-change: opacity;
+          }
+
+          .article-content img.loaded, .mt-4 img.loaded {
+            opacity: 1;
+          }
+
+          .article-content img:hover, .mt-4 img:hover {
+            opacity: 0.9;
+          }
+
+          .image-placeholder {
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            will-change: opacity;
+          }
+
+          div.loaded .image-placeholder {
+            opacity: 0;
+          }
+        </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-2xl mx-auto px-4 py-12 sm:px-4 sm:py-12">
           <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full">
-            ${renderHeaderSection(siteName, navItemsHtml)}
+            <header class="flex items-center justify-between">
+              <div class="flex items-center">
+                <a href="/" class="flex items-center" aria-label="返回首页">
+                  <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
+                </a>
+              </div>
+              <div class="flex items-center space-x-4">
+                <nav class="mr-1" aria-label="网站导航">
+                  <ul class="flex space-x-2">
+                    ${navItemsHtml}
+                  </ul>
+                </nav>
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+                </button>
+              </div>
+            </header>
             <main class="mt-8 relative">
               ${articlesHtml}
             </main>
             
+            <!-- 分页导航 -->
             ${renderPagination({ currentPage, hasMore, isHomePage, tag })}
           </section>
         </div>
@@ -537,7 +360,55 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
         </button>
         
-        ${renderImageModal()}
+        <!-- 图片预览模态框 -->
+        <div 
+          id="imageModal" 
+          class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden"
+          aria-modal="true" 
+          aria-label="图片预览"
+        >
+          <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+            <button 
+              class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+              aria-label="关闭预览"
+            >
+              <i class="ri-close-line" aria-hidden="true"></i>
+            </button>
+            
+            <div 
+              class="image-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
+              role="status" 
+              aria-live="polite"
+            >
+              <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <span>加载中...</span>
+            </div>
+            
+            <figure class="w-full h-full flex items-center justify-center">
+              <img 
+                id="modalImage" 
+                src="" 
+                alt="预览图片" 
+                loading="lazy" 
+                class="max-w-full max-h-[90vh] max-w-[90vw] object-contain rounded opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity"
+              >
+            </figure>
+            
+            <button 
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+              aria-label="上一张"
+            >
+              <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
+            </button>
+            
+            <button 
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-200 will-change-transform,background-color hover:bg-black/70"
+              aria-label="下一张"
+            >
+              <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
 
         <script>
         ${clientScript}
@@ -547,7 +418,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   `;
 }
 
-// 客户端脚本字符串 (保持原样，因为其内部逻辑已在之前优化)
 const clientScript = `
   (function() {
     // Helper function for consistent DOM updates
