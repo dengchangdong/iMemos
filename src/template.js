@@ -55,15 +55,7 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="
-      pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0
-      
-      before:content-[''] before:w-[17px] before:h-[17px] before:bg-white
-      before:border before:border-[#4e5ed3] before:rounded-full before:absolute
-      before:left-[-10px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8]
-
-      dark:before:bg-[#1f2937] dark:before:border-[#818cf8] dark:before:shadow-[3px_3px_0px_#6366f1]
-    ">
+    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0 before:content-[''] before:w-[17px] before:h-[17px] before:bg-white before:border before:border-[#4e5ed3] before:rounded-full before:absolute before:left-[-10px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8] dark:before:bg-[#1f2937] dark:before:border-[#818cf8] dark:before:shadow-[3px_3px_0px_#6366f1]">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
@@ -121,13 +113,7 @@ export function renderMemo(memo, isHomePage = false) {
 // 创建资源HTML
 const renderImageItem = (resource, itemClass) => utils.createHtml`
   <div class="${itemClass} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden">
-    <img 
-      src="${resource.externalLink || ''}" 
-      alt="${resource.filename || '图片'}"
-      class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10"
-      loading="lazy"
-      data-preview="true"
-    />
+    <img src="${resource.externalLink || ''}" alt="${resource.filename || '图片'}" class="rounded-lg w-full h-full object-cover hover:opacity-95 transition-opacity absolute inset-0 z-10" loading="lazy" data-preview="true"/>
     <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 image-placeholder">
       <i class="ri-image-line text-2xl"></i>
     </div>
