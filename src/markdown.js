@@ -300,7 +300,7 @@ export const markdownRenderer = {
     const cssClass = containerClass ? `${CONFIG.CSS.EMBED_CONTAINER} ${containerClass}` : CONFIG.CSS.EMBED_CONTAINER;
     
     return utils.createHtml`<div class="${cssClass}">
-      <iframe src="${embedSrc}" ${attributes} loading="lazy"></iframe>
+      <iframe src="${embedSrc}" ${attributes} class="w-full h-full" loading="lazy"></iframe>
     </div>`;
   },
   
