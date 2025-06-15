@@ -1,6 +1,6 @@
-import { minify as minifyHtml } from 'html-minifier';
+import { minify as minifyHtml } from 'html-minifier-terser';
 import { minify as minifyJs } from 'terser';
-import { minify as minifyCss } from 'csso';
+import { transform } from 'lightningcss';
 
 // HTML 压缩配置
 const htmlMinifyOptions = {
@@ -49,11 +49,18 @@ const jsMinifyOptions = {
 
 // CSS 压缩配置
 const cssMinifyOptions = {
-  restructure: true,              // 重构 CSS
-  comments: false,                // 移除注释
+  minify: true,                   // 启用压缩
   sourceMap: false,               // 不生成 source map
-  usage: null,                    // 不使用使用统计
-  logger: false,                  // 禁用日志
+  targets: {                      // 目标浏览器
+    chrome: 95 << 16,             // Chrome 95+
+    firefox: 95 << 16,            // Firefox 95+
+    safari: 15 << 16,             // Safari 15+
+    ios: 15 << 16,                // iOS 15+
+  },
+  drafts: {                       // 实验性功能
+    customMedia: true,            // 启用自定义媒体查询
+    nesting: true,                // 启用嵌套规则
+  },
 };
 
 /**
@@ -63,7 +70,7 @@ const cssMinifyOptions = {
  */
 export async function minifyHtmlContent(html) {
   try {
-    return minifyHtml(html, htmlMinifyOptions);
+    return await minifyHtml(html, htmlMinifyOptions);
   } catch (error) {
     console.error('HTML 压缩失败:', error);
     return html;
@@ -92,8 +99,11 @@ export async function minifyJsContent(code) {
  */
 export function minifyCssContent(css) {
   try {
-    const result = minifyCss(css, cssMinifyOptions);
-    return result.css;
+    const result = transform({
+      code: Buffer.from(css),
+      ...cssMinifyOptions,
+    });
+    return result.code.toString();
   } catch (error) {
     console.error('CSS 压缩失败:', error);
     return css;
