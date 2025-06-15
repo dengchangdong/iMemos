@@ -89,7 +89,7 @@ export const markdownRenderer = {
         .replace(/\n/g, '<br>');
       
       // 将原始代码存储在 data-original-code 属性中
-      return utils.createHtml`<div class="code-card relative bg-gray-100 dark:bg-slate-800 rounded-md my-4" data-language="${lang || 'text'}" data-original-code="${encodeURIComponent(code)}">
+      return utils.createHtml`<div class="code-block relative bg-gray-100 dark:bg-slate-800 rounded-md my-4" data-language="${lang || 'text'}" data-original-code="${encodeURIComponent(code)}">
         <div class="code-header flex justify-between items-center px-4 py-2 border-b border-gray-200 dark:border-gray-700">
           <span class="text-sm text-gray-500 dark:text-gray-400">${lang || 'text'}</span>
           <button class="copy-btn relative p-1.5 text-base text-gray-600 dark:text-gray-300 bg-transparent border-none rounded cursor-pointer opacity-100 transition-all duration-200 z-5 flex items-center justify-center w-7 h-7 hover:bg-black/5 dark:hover:bg-white/5" aria-label="复制代码" type="button">
