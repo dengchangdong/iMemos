@@ -11,15 +11,15 @@ export const utils = {
       return text;
     }
     return text
-      .replace(/&/g, "&")
-      .replace(/</g, "<")
-      .replace(/>/g, ">")
-      .replace(/"/g, """)
-      .replace(/'/g, "'");
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
   },
 
   /**
-   * 格式化时间戳为用户友好的字符串（如“刚刚”，“X分钟前”，“X小时前”，或特定日期格式）。
+   * 格式化时间戳为用户友好的字符串（如"刚刚"，"X分钟前"，"X小时前"，或特定日期格式）。
    * 优先使用相对时间格式，然后是日期格式。
    * @param {number|string} timestamp - 时间戳（毫秒或ISO字符串）。
    * @returns {string} 格式化后的时间字符串。
@@ -45,7 +45,7 @@ export const utils = {
 
     // 24小时以内
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    // 检查是否是同一天，避免跨天但不足24小时的情况显示为“昨天”或“前天”
+    // 检查是否是同一天，避免跨天但不足24小时的情况显示为"昨天"或"前天"
     // 这里采用更精确的判断：是否在过去24小时内
     if (hours < 24) {
       return rtf.format(-hours, 'hour');
