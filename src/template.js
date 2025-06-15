@@ -324,6 +324,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           div.loaded .image-placeholder {
             opacity: 0;
           }
+          .copy-btn.copied {
+            background-color: #10b981;
+            color: white;
+          }
+          .dark .copy-btn.copied {
+            background-color: #059669;
+          }
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
