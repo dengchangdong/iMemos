@@ -46,7 +46,15 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="
+      pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0
+      
+      before:content-[''] before:w-[17px] before:h-[17px] before:bg-white
+      before:border before:border-[#4e5ed3] before:rounded-full before:absolute
+      before:left-[-10px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8]
+
+      dark:before:bg-[#1f2937] dark:before:border-[#818cf8] dark:before:shadow-[3px_3px_0px_#6366f1]
+    ">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
@@ -274,35 +282,20 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             border-radius: 10px; 
           }
 
-          article::before {
-            content: '';
-            width: 17px;
-            height: 17px;
-            background-color: white;
-            border: 1px solid #4e5ed3;
-            border-radius: 50%;
-            position: absolute;
-            left: -10px;
-            top: 0;
-            box-shadow: 3px 3px 0px #bab5f8;
-            will-change: transform;
-          }
-          .dark article::before {
-            background-color: #1f2937;
-            border-color: #818cf8;
-            box-shadow: 3px 3px 0px #6366f1;
-          }
           .image-modal.active {
             display: flex;
             opacity: 1;
           }
+
           .image-modal-content img.loaded {
             opacity: 1;
           }
+
           .back-to-top.visible {
             opacity: 1;
             visibility: visible;
           }
+
           .article-content img, .mt-4 img {
             cursor: pointer;
             transition: opacity 0.2s;
@@ -310,26 +303,23 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             opacity: 0.5;
             will-change: opacity;
           }
+
           .article-content img.loaded, .mt-4 img.loaded {
             opacity: 1;
           }
+
           .article-content img:hover, .mt-4 img:hover {
             opacity: 0.9;
           }
+
           .image-placeholder {
             opacity: 1;
             transition: opacity 0.3s ease;
             will-change: opacity;
           }
+
           div.loaded .image-placeholder {
             opacity: 0;
-          }
-          .copy-btn.copied {
-            background-color: #10b981;
-            color: white;
-          }
-          .dark .copy-btn.copied {
-            background-color: #059669;
           }
         </style>
       </head>
