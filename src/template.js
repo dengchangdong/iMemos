@@ -927,7 +927,11 @@ const clientScript = `
         block.parentNode.insertBefore(header, block);
         
         button.addEventListener('click', () => {
-          const codeText = code?.textContent || block.textContent;
+          // 获取原始代码（如果存在）
+          const originalCode = block.getAttribute('data-original-code');
+          const codeText = originalCode ? 
+            decodeURIComponent(originalCode) : 
+            (code?.textContent || block.textContent);
           
           navigator.clipboard.writeText(codeText).then(() => {
             button.innerHTML = '<i class="ri-check-line"></i>';

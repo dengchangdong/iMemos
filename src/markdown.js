@@ -79,7 +79,6 @@ export const markdownRenderer = {
     html = html.replace(CONFIG.REGEX.MD_CODE_BLOCK, (match, lang, code) => {
       // 对代码内容进行转义处理
       const escapedCode = code
-        // 基本HTML字符转义
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -89,7 +88,8 @@ export const markdownRenderer = {
         .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
         .replace(/\n/g, '<br>');
       
-      return utils.createHtml`<pre data-language="${lang || 'text'}" class="relative bg-gray-100 dark:bg-slate-800 rounded-[6px] my-4 p-4 overflow-auto"><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`;
+      // 将原始代码存储在 data-original-code 属性中
+      return utils.createHtml`<pre data-language="${lang || 'text'}" class="relative bg-gray-100 dark:bg-slate-800 rounded-[6px] my-4 p-4 overflow-auto" data-original-code="${encodeURIComponent(code)}"><code class="language-${lang || 'text'}">${escapedCode}</code></pre>`;
     });
     
     // 行内代码
