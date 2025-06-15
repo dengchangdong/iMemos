@@ -324,59 +324,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           div.loaded .image-placeholder {
             opacity: 0;
           }
-          .code-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #f1f3f5;
-            border-top-left-radius: 6px;
-            border-top-right-radius: 6px;
-            padding: 0.5rem 1rem;
-            font-size: 0.8rem;
-            color: #4b5563;
-            border-bottom: 1px solid #e5e7eb;
-            margin-top: 1rem;
-            margin-bottom: -1rem;
-          }
-          .dark .code-header {
-            background-color: #1a2234;
-            color: #9ca3af;
-            border-bottom: 1px solid #374151;
-          }
-          .copy-btn {
-            position: relative;
-            padding: 6px;
-            font-size: 16px;
-            color: #4b5563;
-            background-color: transparent;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            opacity: 1;
-            transition: opacity 0.2s, background-color 0.2s;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 28px;
-            height: 28px;
-          }
-          .dark .copy-btn {
-            color: #e5e7eb;
-          }
-          .copy-btn:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-          }
-          .dark .copy-btn:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-          }
-          .copy-btn.copied {
-            background-color: #10b981;
-            color: white;
-          }
-          .dark .copy-btn.copied {
-            background-color: #059669;
-          }
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -899,39 +846,16 @@ const clientScript = `
 
     // 初始化代码复制功能
     function initCodeCopyButtons() {
-      document.querySelectorAll('pre').forEach(block => {
-        if (block.previousElementSibling && block.previousElementSibling.classList.contains('code-header')) {
-          return;
-        }
-        
-        const code = block.querySelector('code');
-        const language = code && code.className ? 
-          code.className.replace('language-', '') : 
-          block.getAttribute('data-language') || 'plaintext';
-        
-        const header = document.createElement('div');
-        header.className = 'code-header';
-        
-        const langLabel = document.createElement('span');
-        langLabel.className = 'code-language';
-        langLabel.textContent = language;
-        header.appendChild(langLabel);
-        
-        const button = document.createElement('button');
-        button.className = 'copy-btn';
-        button.innerHTML = '<i class="ri-file-copy-line"></i>';
-        button.setAttribute('aria-label', '复制代码');
-        button.setAttribute('type', 'button');
-        header.appendChild(button);
-        
-        block.parentNode.insertBefore(header, block);
+      document.querySelectorAll('.code-block').forEach(block => {
+        const button = block.querySelector('.copy-btn');
+        if (!button) return;
         
         button.addEventListener('click', () => {
-          // 获取原始代码（如果存在）
+          // 获取原始代码
           const originalCode = block.getAttribute('data-original-code');
           const codeText = originalCode ? 
             decodeURIComponent(originalCode) : 
-            (code?.textContent || block.textContent);
+            block.querySelector('code')?.textContent || '';
           
           navigator.clipboard.writeText(codeText).then(() => {
             button.innerHTML = '<i class="ri-check-line"></i>';
