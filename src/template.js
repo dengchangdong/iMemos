@@ -511,7 +511,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           aria-modal="true" 
           aria-label="图片预览"
         >
-          <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
+          <div class="image-modal-content relative max-w-[90%] max-h-[70%] will-change-transform transform-gpu">
             <button 
               class="image-modal-close absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
               aria-label="关闭预览"
