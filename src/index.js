@@ -24,5 +24,6 @@ app.get('/post/:name', routes.post)
 app.get('/tag/:tag', routes.tag)
 app.get('/api/v1/memo', routes.api)
 app.get('/robots.txt', routes.robots)
+app.get('/rss.xml', routes.rss)
 
 export default app

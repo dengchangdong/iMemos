@@ -228,6 +228,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
+        <link rel="alternate" type="application/rss+xml" title="${siteName}" href="/rss.xml" />
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
           tailwind.config = {
@@ -482,6 +483,9 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     ${navItemsHtml}
                   </ul>
                 </nav>
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-orange-100 hover:bg-orange-200 text-orange-500 hover:text-orange-700 focus:outline-none transition-all shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
+                </a>
                 <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-all shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>

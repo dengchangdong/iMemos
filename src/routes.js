@@ -268,6 +268,40 @@ export const routes = {
     });
   },
 
+  // RSS订阅路由处理
+  async rss(c) {
+    try {
+      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const memos = await apiHandler.fetchMemos(c, '', 1);
+      
+      const sortedMemos = utils.sortMemosByTime(memos);
+      
+      // 获取站点基础URL
+      const url = new URL(c.req.url);
+      const siteUrl = `${url.protocol}//${url.host}`;
+      
+      // 生成RSS XML
+      const rssXml = utils.generateRSSXml(sortedMemos, {
+        siteUrl,
+        siteName: c.env.SITE_NAME,
+        siteDescription: c.env.SITE_DESCRIPTION || c.env.SITE_NAME
+      });
+      
+      return new Response(rssXml, {
+        headers: {
+          'Content-Type': 'application/xml; charset=utf-8',
+          'Cache-Control': 'public, max-age=3600' // 1小时缓存
+        }
+      });
+    } catch (error) {
+      console.error('RSS生成失败:', error);
+      return new Response('RSS生成失败', { 
+        status: 500,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    }
+  },
+
   // 主页路由处理
   async home(c) {
     return handleMemoListRoute(c, {

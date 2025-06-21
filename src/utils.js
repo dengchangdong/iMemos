@@ -17,6 +17,85 @@ export const utils = {
   },
   
   /**
+   * 生成RSS XML
+   * @param {Array<Object>} memos - memo对象数组
+   * @param {Object} options - RSS选项
+   * @param {string} options.siteUrl - 网站URL
+   * @param {string} options.siteName - 网站名称
+   * @param {string} options.siteDescription - 网站描述
+   * @returns {string} RSS XML内容
+   */
+  generateRSSXml(memos, options) {
+    const { siteUrl, siteName, siteDescription } = options;
+    const now = new Date().toUTCString();
+    
+    // 创建RSS头部
+    let rssXml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" 
+    xmlns:atom="http://www.w3.org/2005/Atom" 
+    xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>${this.escapeHtml(siteName)}</title>
+    <link>${siteUrl}</link>
+    <description>${this.escapeHtml(siteDescription || siteName)}</description>
+    <language>zh-cn</language>
+    <pubDate>${now}</pubDate>
+    <lastBuildDate>${now}</lastBuildDate>
+    <atom:link href="${siteUrl}/rss.xml" rel="self" type="application/rss+xml" />
+`;
+    
+    // 添加每个memo作为一个item
+    memos.forEach(memo => {
+      const timestamp = memo.createTime 
+        ? new Date(memo.createTime).getTime()
+        : memo.createdTs * 1000;
+      const pubDate = new Date(timestamp).toUTCString();
+      const content = memo.content || '';
+      
+      // 提取标题（使用内容的第一行或前30个字符）
+      let title = content.split('\n')[0].trim();
+      if (title.length > 30) {
+        title = title.substring(0, 30) + '...';
+      }
+      if (!title) {
+        title = pubDate; // 如果没有标题，使用发布日期
+      }
+      
+      // 生成唯一ID
+      const id = memo.id || memo.name || memo.memoId;
+      const url = `${siteUrl}/post/${id}`;
+      
+      // 处理资源（图片）
+      let contentWithImages = content;
+      const resources = memo.resources || memo.resourceList || [];
+      if (resources.length > 0) {
+        resources.forEach(resource => {
+          const imageUrl = resource.externalLink || '';
+          if (imageUrl) {
+            contentWithImages += `\n\n<img src="${imageUrl}" alt="${resource.filename || '图片'}" />`;
+          }
+        });
+      }
+      
+      // 添加该条目到RSS
+      rssXml += `    <item>
+      <title>${this.escapeHtml(title)}</title>
+      <link>${url}</link>
+      <guid>${url}</guid>
+      <pubDate>${pubDate}</pubDate>
+      <content:encoded><![CDATA[${contentWithImages}]]></content:encoded>
+    </item>
+`;
+    });
+    
+    // 结束RSS
+    rssXml += `  </channel>
+</rss>`;
+    
+    return rssXml;
+  },
+  
+  /**
    * 格式化时间
    * @param {number} timestamp - 时间戳
    * @returns {string} 格式化后的时间字符串
