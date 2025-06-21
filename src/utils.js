@@ -83,5 +83,29 @@ export const utils = {
       const timeB = b.createTime ? new Date(b.createTime).getTime() : b.createdTs * 1000;
       return timeB - timeA; // 降序排列
     });
+  },
+  
+  /**
+   * 压缩HTML以减少传输大小 - 专为Cloudflare Workers优化
+   * @param {string} html - 原始HTML
+   * @returns {string} 压缩后的HTML
+   */
+  minifyHtml(html) {
+    if (!html || typeof html !== 'string') return '';
+    
+    return html
+      // 移除HTML注释 (但保留条件注释和SSI指令)
+      .replace(/<!--(?![\[<]|>)(?:(?!-->)[\s\S])*-->/g, '')
+      // 压缩空格
+      .replace(/\s{2,}/g, ' ')
+      // 移除换行符
+      .replace(/\n/g, '')
+      // 移除不必要的空格
+      .replace(/>\s+</g, '><')
+      // 移除标签之间的空格
+      .replace(/\s+>/g, '>')
+      .replace(/<\s+/g, '<')
+      // 保留脚本和样式内容
+      .replace(/<(script|style)([^>]*)>([\s\S]*?)<\/\1>/gi, (match) => match);
   }
 }; 

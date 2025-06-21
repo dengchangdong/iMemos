@@ -11,10 +11,15 @@ import { utils } from './utils.js';
  * @returns {Response}
  */
 function createHtmlResponse(html, cacheTime = 300, status = 200) {
-  return new Response(html, {
+  // 应用HTML压缩以提高在Cloudflare Workers上的性能
+  const minifiedHtml = utils.minifyHtml(html);
+  
+  return new Response(minifiedHtml, {
     headers: {
       'Content-Type': 'text/html;charset=UTF-8',
-      'Cache-Control': `public, max-age=${cacheTime}`
+      'Cache-Control': `public, max-age=${cacheTime}`,
+      'Content-Length': minifiedHtml.length.toString(), // 添加内容长度以优化传输
+      'Server': 'Cloudflare Workers' // 标识服务器类型
     },
     status
   });

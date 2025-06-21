@@ -411,30 +411,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             content: none;
           }
           
-          /* 导航链接样式 */
-          nav a {
-            position: relative;
-            overflow: hidden;
-          }
-          
-          nav a::after {
-            content: '';
-            position: absolute;
-            bottom: 2px;
-            left: 50%;
-            width: 0;
-            height: 2px;
-            background-color: currentColor;
-            transform: translateX(-50%);
-            transition: width 0.3s ease;
-            border-radius: 2px;
-            opacity: 0.7;
-          }
-          
-          nav a:hover::after {
-            width: calc(100% - 20px);
-          }
-          
           /* 代码块优化 */
           pre {
             border-radius: 8px;
