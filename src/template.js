@@ -209,7 +209,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700 hover:scale-105">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -409,30 +409,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           
           a:not(.pagination a):after {
             content: none;
-          }
-          
-          /* 导航链接样式 - 修复下划线动画 */
-          nav ul li a {
-            position: relative;
-            overflow: hidden;
-            display: inline-block;
-          }
-          
-          nav ul li a::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background-color: currentColor;
-            transition: width 0.3s ease;
-            border-radius: 2px;
-            opacity: 0.7;
-          }
-          
-          nav ul li a:hover::after {
-            width: 100%;
           }
           
           /* 代码块优化 */
