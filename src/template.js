@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-purple-600 dark:text-purple-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
         <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
         <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-purple-600 dark:text-purple-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
         <h2 class="font-medium">未找到内容</h2>
         <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300">返回首页</a></p>
       `
     );
   }
@@ -55,7 +55,7 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0 before:content-[''] before:w-[17px] before:h-[17px] before:bg-white before:border before:border-[#4e5ed3] before:rounded-full before:absolute before:left-[-9px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8] dark:before:bg-[#1f2937] dark:before:border-[#818cf8] dark:before:shadow-[3px_3px_0px_#6366f1]">
+    <article class="pb-8 border-l border-purple-300 relative pl-5 ml-3 last:border-0 last:pb-0 before:content-[''] before:w-[17px] before:h-[17px] before:bg-white before:border before:border-[#8b5cf6] before:rounded-full before:absolute before:left-[-9px] before:top-0 before:shadow-[3px_3px_0px_#d8b4fe] dark:before:bg-[#1f1937] dark:before:border-[#a78bfa] dark:before:shadow-[3px_3px_0px_#8b5cf6]">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
@@ -91,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs hover:text-indigo-800 dark:hover:text-indigo-300 transition-colors">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-purple-600 dark:text-purple-400 font-poppins font-semibold block md:text-sm text-xs hover:text-purple-800 dark:hover:text-purple-300 transition-colors">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -106,7 +106,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-purple-600 dark:text-purple-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -176,7 +176,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '' }) {
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-blue-500 text-white no-underline border-none cursor-pointer hover:bg-blue-700 hover:-translate-y-0.5 hover:shadow";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-purple-500 text-white no-underline border-none cursor-pointer hover:bg-purple-700 hover:-translate-y-0.5 hover:shadow";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
@@ -209,7 +209,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-colors hover:bg-purple-100/70 dark:hover:bg-purple-900/50 text-sm font-medium text-purple-500 hover:text-purple-700">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -222,11 +222,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName}">
-        <meta name="theme-color" content="#209cff">
+        <meta name="theme-color" content="#8b5cf6">
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
@@ -234,13 +234,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             darkMode: 'class',
             theme: {
               extend: {
+                fontFamily: {
+                  sans: ['Inter', 'sans-serif'],
+                  poppins: ['Poppins', 'sans-serif']
+                },
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                  'custom-gradient': 'linear-gradient(45deg, #8b5cf6, #c084fc)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #4c1d95, #6d28d9)',
                 },
                 colors: {
-                  'indigo-timeline': '#4e5ed3',
-                  'indigo-shadow': '#bab5f8',
+                  'purple-timeline': '#8b5cf6',
+                  'purple-shadow': '#d8b4fe',
                 },
               }
             }
@@ -259,14 +263,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           html::-webkit-scrollbar-thumb, 
           body::-webkit-scrollbar-thumb,
           pre::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
+            background: rgba(139, 92, 246, 0.3);
             border-radius: 10px;
           }
 
           html::-webkit-scrollbar-thumb:hover, 
           body::-webkit-scrollbar-thumb:hover,
           pre::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.11);
+            background: rgba(139, 92, 246, 0.5);
             border-radius: 10px; 
           }
 
@@ -294,7 +298,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           .article-content img, .mt-4 img {
             cursor: pointer;
             transition: opacity 0.2s;
-            background-color: #0c7cd51c;
+            background-color: #8b5cf61c;
             opacity: 0.5;
             will-change: opacity;
           }
@@ -320,7 +324,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-12 sm:px-4 sm:py-12">
-          <section class="bg-blue-50 dark:bg-gray-800 p-8 rounded-xl shadow-lg w-full">
+          <section class="bg-white dark:bg-gray-900 p-8 rounded-xl shadow-lg w-full">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
@@ -333,7 +337,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     ${navItemsHtml}
                   </ul>
                 </nav>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-purple-100 hover:bg-purple-200 text-purple-500 hover:text-purple-700 focus:outline-none transition-colors shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -349,7 +353,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-blue-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-blue-700 hover:-translate-y-0.5"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-purple-500 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-purple-700 hover:-translate-y-0.5"
           aria-label="返回顶部"
         >
           <i class="ri-skip-up-fill text-xl" aria-hidden="true"></i>
@@ -375,7 +379,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               role="status" 
               aria-live="polite"
             >
-              <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-purple-400 animate-spin will-change-transform"></div>
               <span>加载中...</span>
             </div>
             
