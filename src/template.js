@@ -398,7 +398,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           
           /* 链接过渡效果 */
           a {
-            transition: color 0.3s ease, text-decoration 0.3s ease;
+            transition: color 0.3s ease;
             position: relative;
           }
           
@@ -411,11 +411,47 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             content: none;
           }
           
+          /* 导航链接样式 */
+          nav a {
+            position: relative;
+            overflow: hidden;
+          }
+          
+          nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: currentColor;
+            transition: width 0.3s ease;
+            border-radius: 2px;
+            opacity: 0.7;
+          }
+          
+          nav a:hover::after {
+            width: calc(100% - 12px);
+          }
+          
           /* 代码块优化 */
           pre {
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             margin: 1.5em 0;
+          }
+          
+          .code-header {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          }
+          
+          .code-header + pre {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+            margin-top: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
           }
           
           code {
