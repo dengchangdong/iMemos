@@ -91,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all bg-blue-100/70 dark:bg-blue-900/30 px-3 py-1 rounded-full hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -209,7 +209,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700 hover:scale-105 flex items-center"><i class="ri-link mr-1 text-xs"></i>${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all hover:bg-blue-100/70 dark:hover:bg-blue-900/50 text-sm font-medium text-blue-500 hover:text-blue-700 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -235,8 +235,8 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(135deg, #3b82f6, #10b981)',
-                  'custom-gradient-dark': 'linear-gradient(135deg, #1e3a8a, #065f46)',
+                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
                 },
                 colors: {
                   'indigo-timeline': '#4e5ed3',
@@ -380,21 +380,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           
           a:not(.pagination a):hover {
             text-decoration: none;
+            border-radius: 0.375rem;
           }
           
           a:not(.pagination a):after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -2px;
-            left: 0;
-            background: currentColor;
-            transition: width 0.3s ease;
-          }
-          
-          a:not(.pagination a):hover:after {
-            width: 100%;
+            content: none;
           }
           
           /* 代码块优化 */
