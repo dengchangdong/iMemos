@@ -86,13 +86,62 @@ export const utils = {
   },
   
   /**
-   * 压缩HTML以减少传输大小 - 专为Cloudflare Workers优化
-   * @param {string} html - 原始HTML
-   * @returns {string} 压缩后的HTML
+   * 统一的代码压缩函数 - 能够根据内容类型自动选择压缩策略
+   * @param {string} content - 需要压缩的内容
+   * @param {string} [type='auto'] - 内容类型: 'html', 'css', 'js', 或 'auto'(自动检测)
+   * @param {object} [options={}] - 压缩选项
+   * @returns {string} 压缩后的内容
    */
-  minifyHtml(html) {
-    if (!html || typeof html !== 'string') return '';
+  minify(content, type = 'auto', options = {}) {
+    if (!content || typeof content !== 'string') return '';
     
+    // 默认选项
+    const defaultOptions = {
+      minifyHtml: true,
+      minifyCss: true,  
+      minifyJs: true,
+      debug: false
+    };
+    
+    const opts = { ...defaultOptions, ...options };
+    
+    // 自动检测内容类型
+    if (type === 'auto') {
+      if (content.trim().startsWith('<!DOCTYPE') || content.trim().startsWith('<html') || 
+          (content.includes('<') && content.includes('</') && content.includes('>'))) {
+        type = 'html';
+      } else if (content.includes('{') && (content.includes(':') || content.includes('@media') || 
+                content.includes('@keyframes'))) {
+        type = 'css';
+      } else {
+        type = 'js';
+      }
+    }
+    
+    try {
+      // 根据类型调用相应的压缩方法
+      switch (type.toLowerCase()) {
+        case 'html':
+          return this._minifyHtml(content, opts);
+        case 'css':
+          return this._minifyCss(content, opts);
+        case 'js':
+          return this._minifyJs(content, opts);
+        default:
+          console.warn(`未知的内容类型: ${type}, 使用原始内容`);
+          return content;
+      }
+    } catch (error) {
+      console.error(`压缩错误 (类型: ${type}):`, error);
+      return content; // 出错时返回原始内容
+    }
+  },
+  
+  /**
+   * 内部HTML压缩函数
+   * @private
+   */
+  _minifyHtml(html, options) {
     try {
       // 先提取并保存所有script和style标签内容
       const preservedContent = new Map();
@@ -106,32 +155,47 @@ export const utils = {
         return placeholder;
       };
       
-      // 处理脚本标签 - 提取后压缩JS
-      let processedHtml = html.replace(/(<script[\s\S]*?>)([\s\S]*?)(<\/script>)/gi, 
-        (match, openTag, content, closeTag) => {
-          // 如果是外部脚本或空内容，直接保留
-          if (openTag.includes('src=') || !content.trim()) {
-            return createPlaceholder(match);
-          }
+      let processedHtml = html;
+      
+      // 如果启用了JS压缩，处理脚本标签
+      if (options.minifyJs) {
+        processedHtml = processedHtml.replace(/(<script[\s\S]*?>)([\s\S]*?)(<\/script>)/gi, 
+          (match, openTag, content, closeTag) => {
+            // 如果是外部脚本或空内容，直接保留
+            if (openTag.includes('src=') || !content.trim()) {
+              return createPlaceholder(match);
+            }
+            
+            // 压缩JS代码
+            const minifiedJs = this._minifyJs(content, options);
+            return createPlaceholder(openTag + minifiedJs + closeTag);
+          });
+      } else {
+        // 否则仅保留脚本标签
+        processedHtml = processedHtml.replace(/(<script[\s\S]*?<\/script>)/gi, 
+          match => createPlaceholder(match));
+      }
+      
+      // 如果启用了CSS压缩，处理样式标签
+      if (options.minifyCss) {
+        // 处理样式标签
+        processedHtml = processedHtml.replace(/(<style[\s\S]*?>)([\s\S]*?)(<\/style>)/gi, 
+          (match, openTag, content, closeTag) => {
+            // 压缩CSS代码
+            const minifiedCss = this._minifyCss(content, options);
+            return createPlaceholder(openTag + minifiedCss + closeTag);
+          });
           
-          // 压缩JS代码
-          const minifiedJs = this.minifyJs(content);
-          return createPlaceholder(openTag + minifiedJs + closeTag);
-        });
-      
-      // 处理样式标签 - 提取后压缩CSS
-      processedHtml = processedHtml.replace(/(<style[\s\S]*?>)([\s\S]*?)(<\/style>)/gi, 
-        (match, openTag, content, closeTag) => {
-          // 压缩CSS代码
-          const minifiedCss = this.minifyCss(content);
-          return createPlaceholder(openTag + minifiedCss + closeTag);
-        });
-      
-      // 保护行内样式
-      processedHtml = processedHtml.replace(/style=(['"])([\s\S]*?)\1/gi, (match, quote, content) => {
-          const minifiedInlineStyle = this.minifyCss(content);
+        // 处理行内样式
+        processedHtml = processedHtml.replace(/style=(['"])([\s\S]*?)\1/gi, (match, quote, content) => {
+          const minifiedInlineStyle = this._minifyCss(content, options);
           return `style=${quote}${minifiedInlineStyle}${quote}`;
-      });
+        });
+      } else {
+        // 否则仅保留样式标签
+        processedHtml = processedHtml.replace(/(<style[\s\S]*?<\/style>)/gi, 
+          match => createPlaceholder(match));
+      }
       
       // 保护模板字符串 ${...}
       processedHtml = processedHtml.replace(/(\${[^}]*})/g, 
@@ -162,19 +226,15 @@ export const utils = {
       return processedHtml;
     } catch (error) {
       console.error('HTML压缩过程出错:', error);
-      // 出错时返回原始HTML
-      return html;
+      throw error; // 重新抛出错误由主函数处理
     }
   },
   
   /**
-   * 安全压缩CSS代码，保留功能完整性
-   * @param {string} css - CSS代码
-   * @returns {string} 压缩后的CSS
+   * 内部CSS压缩函数
+   * @private
    */
-  minifyCss(css) {
-    if (!css || typeof css !== 'string') return '';
-    
+  _minifyCss(css, options) {
     try {
       // 保存字符串和重要片段
       const preserved = [];
@@ -244,18 +304,15 @@ export const utils = {
       return processedCss;
     } catch (error) {
       console.error('CSS压缩错误:', error);
-      return css; // 返回未压缩的CSS
+      throw error; // 重新抛出错误由主函数处理
     }
   },
   
   /**
-   * 安全压缩JS代码，保留功能完整性
-   * @param {string} js - JavaScript代码
-   * @returns {string} 压缩后的JavaScript
+   * 内部JS压缩函数
+   * @private
    */
-  minifyJs(js) {
-    if (!js || typeof js !== 'string') return '';
-    
+  _minifyJs(js, options) {
     try {
       // 保存模板字符串和常规字符串字面量
       const strings = [];
@@ -312,7 +369,20 @@ export const utils = {
       return processedJs.trim();
     } catch (error) {
       console.error('JS压缩错误:', error);
-      return js; // 返回未压缩的JS
+      throw error; // 重新抛出错误由主函数处理
     }
+  },
+  
+  // 兼容性函数，保持向后兼容
+  minifyHtml(html) {
+    return this.minify(html, 'html');
+  },
+  
+  minifyCss(css) {
+    return this.minify(css, 'css');
+  },
+  
+  minifyJs(js) {
+    return this.minify(js, 'js');
   }
 }; 

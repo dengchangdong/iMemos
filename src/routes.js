@@ -20,13 +20,14 @@ function createHtmlResponse(html, cacheTime = 300, status = 200) {
     debug: false,       // 是否在控制台输出压缩统计
   };
   
-  // 应用HTML压缩以提高在Cloudflare Workers上的性能
+  // 应用压缩以提高在Cloudflare Workers上的性能
   let minifiedHtml = html;
   let compressionStats = { originalSize: html.length };
   
   if (compressionConfig.enabled) {
     try {
-      minifiedHtml = utils.minifyHtml(html);
+      // 使用新的统一压缩函数
+      minifiedHtml = utils.minify(html, 'html', compressionConfig);
       
       // 简单验证压缩后的HTML是否包含必要的结构
       if (!minifiedHtml.includes('<html') || !minifiedHtml.includes('<body') || !minifiedHtml.includes('</body>')) {
@@ -47,7 +48,7 @@ function createHtmlResponse(html, cacheTime = 300, status = 200) {
         );
       }
     } catch (error) {
-      console.error('HTML压缩失败，使用原始HTML:', error);
+      console.error('内容压缩失败，使用原始HTML:', error);
       minifiedHtml = html;
     }
   }
