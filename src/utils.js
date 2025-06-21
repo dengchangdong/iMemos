@@ -93,19 +93,47 @@ export const utils = {
   minifyHtml(html) {
     if (!html || typeof html !== 'string') return '';
     
-    return html
-      // 移除HTML注释 (但保留条件注释和SSI指令)
-      .replace(/<!--(?![\[<]|>)(?:(?!-->)[\s\S])*-->/g, '')
-      // 压缩空格
-      .replace(/\s{2,}/g, ' ')
-      // 移除换行符
-      .replace(/\n/g, '')
-      // 移除不必要的空格
-      .replace(/>\s+</g, '><')
-      // 移除标签之间的空格
-      .replace(/\s+>/g, '>')
-      .replace(/<\s+/g, '<')
-      // 保留脚本和样式内容
-      .replace(/<(script|style)([^>]*)>([\s\S]*?)<\/\1>/gi, (match) => match);
+    try {
+      // 保存已知的块以避免处理它们(scripts, styles, pre, textarea等)
+      const savedBlocks = [];
+      let processedHtml = html;
+      
+      // 识别和保存特殊块
+      const saveSpecialBlocks = (html, tagName) => {
+        return html.replace(
+          new RegExp(`<${tagName}([\\s\\S]*?)>([\\s\\S]*?)<\\/${tagName}>`, 'gi'),
+          (match) => {
+            savedBlocks.push(match);
+            return `###SAVED_BLOCK_${savedBlocks.length - 1}###`;
+          }
+        );
+      };
+      
+      // 预先保存所有的特殊块
+      ['script', 'style', 'pre', 'textarea'].forEach(tag => {
+        processedHtml = saveSpecialBlocks(processedHtml, tag);
+      });
+      
+      // 移除HTML注释 (但保留条件注释)
+      processedHtml = processedHtml.replace(
+        /<!--(?![\[\]><])(?:(?!-->).)*-->/gs, 
+        ''
+      );
+      
+      // 1. 移除不会影响内容展示的空白字符
+      processedHtml = processedHtml
+        .replace(/>\s+</g, '><') // 标签之间的空白
+        .replace(/\s{2,}/g, ' '); // 连续的空格
+      
+      // 还原所有保存的块
+      savedBlocks.forEach((block, i) => {
+        processedHtml = processedHtml.replace(`###SAVED_BLOCK_${i}###`, block);
+      });
+      
+      return processedHtml;
+    } catch (error) {
+      console.error('HTML压缩失败，返回原始HTML:', error);
+      return html; // 出错时返回原始HTML而不是空字符串
+    }
   }
 }; 
