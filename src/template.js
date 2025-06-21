@@ -411,16 +411,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             content: none;
           }
           
-          /* 导航链接样式 */
-          nav a {
+          /* 导航链接样式 - 修复下划线动画 */
+          nav ul li a {
             position: relative;
             overflow: hidden;
+            display: inline-block;
           }
           
-          nav a::after {
+          nav ul li a::after {
             content: '';
             position: absolute;
-            bottom: 2px;
+            bottom: 0;
             left: 0;
             width: 0;
             height: 2px;
@@ -430,8 +431,8 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             opacity: 0.7;
           }
           
-          nav a:hover::after {
-            width: calc(100% - 12px);
+          nav ul li a:hover::after {
+            width: 100%;
           }
           
           /* 代码块优化 */
@@ -496,7 +497,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-xl md:text-lg font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
+                  <h1 class="text-xl md:text-xl font-semibold font-poppins text-gray-800 dark:text-gray-100 mb-0 tracking-wide">${siteName}</h1>
                 </a>
               </div>
               <div class="flex items-center space-x-4">
