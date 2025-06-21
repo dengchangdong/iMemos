@@ -340,16 +340,16 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
           
           /* 按钮动画效果 */
-          button, .pagination a {
+          button, .pagination a, a.w-9 {
             transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
           }
           
-          button:hover, .pagination a:hover {
+          button:hover, .pagination a:hover, a.w-9:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
           }
           
-          button:active, .pagination a:active {
+          button:active, .pagination a:active, a.w-9:active {
             transform: translateY(0);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
@@ -483,10 +483,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                     ${navItemsHtml}
                   </ul>
                 </nav>
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-orange-100 hover:bg-orange-200 text-orange-500 hover:text-orange-700 focus:outline-none transition-all shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-orange-100 hover:bg-orange-200 text-orange-500 hover:text-orange-700 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-all shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-blue-100 hover:bg-blue-200 text-blue-500 hover:text-blue-700 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
