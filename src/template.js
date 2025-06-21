@@ -513,7 +513,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         >
           <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
             <button 
-              class="image-modal-close absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+              class="image-modal-close absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform hidden"
               aria-label="关闭预览"
             >
               <i class="ri-close-line" aria-hidden="true"></i>
@@ -539,14 +539,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </figure>
             
             <button 
-              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
               aria-label="上一张"
             >
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
             </button>
             
             <button 
-              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
               aria-label="下一张"
             >
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
@@ -701,6 +701,11 @@ const clientScript = `
       function loadImageIntoModal(imgElement) {
         loadingIndicator.style.display = 'flex';
         modalImg.classList.remove('loaded');
+        
+        // 隐藏所有控制按钮
+        closeBtn.style.display = 'none';
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
 
         modalImg.src = imgElement.currentSrc || imgElement.src;
         modalImg.alt = imgElement.alt || '预览图片';
@@ -711,9 +716,18 @@ const clientScript = `
         const handleLoad = () => {
           modalImg.classList.add('loaded');
           loadingIndicator.style.display = 'none';
+          
+          // 显示关闭按钮
+          closeBtn.style.display = 'flex';
+          
+          // 根据图片数量决定是否显示导航按钮
+          const hasMultipleImages = currentArticleImages.length > 1;
+          prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
+          nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
         };
         const handleError = () => {
           loadingIndicator.style.display = 'none';
+          closeBtn.style.display = 'flex'; // 图片加载错误时也显示关闭按钮
           console.error('Modal image failed to load:', modalImg.src);
         };
 
@@ -743,7 +757,7 @@ const clientScript = `
           loadImageIntoModal(img);
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
-          updateNavigationButtons();
+          // 不再需要调用updateNavigationButtons，因为这个逻辑已经在loadImageIntoModal中处理了
         });
       }
 
@@ -762,6 +776,11 @@ const clientScript = `
         modal.classList.remove('active');
         document.body.style.overflow = '';
         isModalActive = false;
+        
+        // 关闭模态框时隐藏所有控制按钮
+        closeBtn.style.display = 'none';
+        prevBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
 
         currentArticleImages = [];
         currentIndex = 0;
