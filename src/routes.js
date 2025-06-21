@@ -11,29 +11,60 @@ import { utils } from './utils.js';
  * @returns {Response}
  */
 function createHtmlResponse(html, cacheTime = 300, status = 200) {
+  // 压缩配置
+  const compressionConfig = {
+    enabled: true,      // 是否启用压缩
+    minifyHtml: true,   // 是否压缩HTML
+    minifyJs: true,     // 是否压缩JS
+    minifyCss: true,    // 是否压缩CSS
+    debug: false,       // 是否在控制台输出压缩统计
+  };
+  
   // 应用HTML压缩以提高在Cloudflare Workers上的性能
-  let minifiedHtml;
-  try {
-    minifiedHtml = utils.minifyHtml(html);
-    // 简单验证压缩后的HTML是否包含必要的结构
-    if (!minifiedHtml.includes('<html') || !minifiedHtml.includes('<body') || !minifiedHtml.includes('</body>')) {
-      console.error('HTML压缩可能导致损坏，使用原始HTML');
+  let minifiedHtml = html;
+  let compressionStats = { originalSize: html.length };
+  
+  if (compressionConfig.enabled) {
+    try {
+      minifiedHtml = utils.minifyHtml(html);
+      
+      // 简单验证压缩后的HTML是否包含必要的结构
+      if (!minifiedHtml.includes('<html') || !minifiedHtml.includes('<body') || !minifiedHtml.includes('</body>')) {
+        console.error('HTML压缩可能导致损坏，使用原始HTML');
+        minifiedHtml = html;
+      }
+      
+      // 计算压缩统计
+      compressionStats.minifiedSize = minifiedHtml.length;
+      compressionStats.savedBytes = html.length - minifiedHtml.length;
+      compressionStats.savedPercentage = ((html.length - minifiedHtml.length) / html.length * 100).toFixed(2);
+      
+      if (compressionConfig.debug) {
+        console.log(
+          `压缩统计 - 原始: ${compressionStats.originalSize} 字节, ` +
+          `压缩后: ${compressionStats.minifiedSize} 字节, ` +
+          `节省: ${compressionStats.savedBytes} 字节 (${compressionStats.savedPercentage}%)`
+        );
+      }
+    } catch (error) {
+      console.error('HTML压缩失败，使用原始HTML:', error);
       minifiedHtml = html;
     }
-  } catch (error) {
-    console.error('HTML压缩失败，使用原始HTML:', error);
-    minifiedHtml = html;
   }
   
-  return new Response(minifiedHtml, {
-    headers: {
-      'Content-Type': 'text/html;charset=UTF-8',
-      'Cache-Control': `public, max-age=${cacheTime}`,
-      'Content-Length': minifiedHtml.length.toString(),
-      'Server': 'Cloudflare Workers'
-    },
-    status
-  });
+  const headers = {
+    'Content-Type': 'text/html;charset=UTF-8',
+    'Cache-Control': `public, max-age=${cacheTime}`,
+    'Content-Length': minifiedHtml.length.toString(),
+    'Server': 'Cloudflare Workers'
+  };
+  
+  // 在生产环境中，可以添加更多性能相关的头
+  if (process.env.NODE_ENV === 'production') {
+    headers['X-Content-Type-Options'] = 'nosniff';
+  }
+  
+  return new Response(minifiedHtml, { headers, status });
 }
 
 /**
