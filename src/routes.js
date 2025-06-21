@@ -252,7 +252,7 @@ export const routes = {
 
       const memoHtml = renderMemo(data.memo, false);
       // 提取memo内容的前50个字符作为标题，或使用站点名称
-      const postTitle = (data.memo.content?.split('\n')[0]?.substring(0, 30) + '...' || c.env.SITE_NAME);
+      const postTitle = (data.memo.content?.split('\n')[0]?.substring(0, 30) + ' - ' + c.env.SITE_NAME);
 
       return createHtmlResponse(
         renderBaseHtml(

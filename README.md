@@ -8,7 +8,7 @@
 - 自动适应系统深色/浅色模式
 - 优雅的图片展示
 - 分页加载
-- 基于 TailwindCSS 的现代化 UI
+- 基于原生 CSS3 的现代化 UI
 
 ## 开发环境设置
 
@@ -40,8 +40,8 @@ npm run deploy
 
 - Cloudflare Workers
 - Hono
-- TailwindCSS
-- Tabler Icons
+- 原生 CSS3
+- Remix Icon
 
 ## 许可证
 
