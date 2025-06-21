@@ -520,7 +520,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </button>
             
             <div 
-              class="image-loading absolute w-full h-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
+              class="image-loading absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-white text-base flex flex-col items-center gap-2.5"
               role="status" 
               aria-live="polite"
             >
