@@ -531,10 +531,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </div>
 
         <script>
-        /* 通过注释包装确保压缩算法不会修改客户端代码 */
-        /* <![CDATA[  */
         ${clientScript}
-        /* ]]> */
         </script>
       </body>
     </html>

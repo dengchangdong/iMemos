@@ -12,14 +12,25 @@ import { utils } from './utils.js';
  */
 function createHtmlResponse(html, cacheTime = 300, status = 200) {
   // 应用HTML压缩以提高在Cloudflare Workers上的性能
-  const minifiedHtml = utils.minifyHtml(html);
+  let minifiedHtml;
+  try {
+    minifiedHtml = utils.minifyHtml(html);
+    // 简单验证压缩后的HTML是否包含必要的结构
+    if (!minifiedHtml.includes('<html') || !minifiedHtml.includes('<body') || !minifiedHtml.includes('</body>')) {
+      console.error('HTML压缩可能导致损坏，使用原始HTML');
+      minifiedHtml = html;
+    }
+  } catch (error) {
+    console.error('HTML压缩失败，使用原始HTML:', error);
+    minifiedHtml = html;
+  }
   
   return new Response(minifiedHtml, {
     headers: {
       'Content-Type': 'text/html;charset=UTF-8',
       'Cache-Control': `public, max-age=${cacheTime}`,
-      'Content-Length': minifiedHtml.length.toString(), // 添加内容长度以优化传输
-      'Server': 'Cloudflare Workers' // 标识服务器类型
+      'Content-Length': minifiedHtml.length.toString(),
+      'Server': 'Cloudflare Workers'
     },
     status
   });

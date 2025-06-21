@@ -94,46 +94,53 @@ export const utils = {
     if (!html || typeof html !== 'string') return '';
     
     try {
-      // 保存已知的块以避免处理它们(scripts, styles, pre, textarea等)
-      const savedBlocks = [];
-      let processedHtml = html;
+      // 先提取并保存所有script和style标签内容
+      const preservedContent = new Map();
+      let counter = 0;
       
-      // 识别和保存特殊块
-      const saveSpecialBlocks = (html, tagName) => {
-        return html.replace(
-          new RegExp(`<${tagName}([\\s\\S]*?)>([\\s\\S]*?)<\\/${tagName}>`, 'gi'),
-          (match) => {
-            savedBlocks.push(match);
-            return `###SAVED_BLOCK_${savedBlocks.length - 1}###`;
-          }
-        );
+      // 创建唯一占位符并保存内容
+      const createPlaceholder = (content) => {
+        const id = counter++;
+        const placeholder = `___PRESERVED_CONTENT_${id}___`;
+        preservedContent.set(placeholder, content);
+        return placeholder;
       };
       
-      // 预先保存所有的特殊块
-      ['script', 'style', 'pre', 'textarea'].forEach(tag => {
-        processedHtml = saveSpecialBlocks(processedHtml, tag);
+      // 处理脚本和样式标签 - 整体保留
+      let processedHtml = html.replace(/(<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>)/gi, 
+        match => createPlaceholder(match));
+      
+      // 保护模板字符串 ${...}
+      processedHtml = processedHtml.replace(/(\${[^}]*})/g, 
+        match => createPlaceholder(match));
+      
+      // 保护HTML特性中的引号内容，避免意外移除空格
+      processedHtml = processedHtml.replace(/=\s*(["'])(.*?)\1/g, (match, quote, content) => {
+        return '=' + quote + content + quote;
       });
       
-      // 移除HTML注释 (但保留条件注释)
-      processedHtml = processedHtml.replace(
-        /<!--(?![\[\]><])(?:(?!-->).)*-->/gs, 
-        ''
-      );
-      
-      // 1. 移除不会影响内容展示的空白字符
+      // 执行HTML压缩 - 谨慎处理
       processedHtml = processedHtml
-        .replace(/>\s+</g, '><') // 标签之间的空白
-        .replace(/\s{2,}/g, ' '); // 连续的空格
+        // 移除HTML注释 (但保留条件注释)
+        .replace(/<!--(?!\[if)(?:(?!-->)[\s\S])*-->/g, '')
+        // 压缩连续空白字符但保留一个空格
+        .replace(/\s{2,}/g, ' ')
+        // 小心移除标签间的空白
+        .replace(/>\s+</g, '><')
+        // 移除标签开始和结束处的空白
+        .replace(/\s+>/g, '>')
+        .replace(/<\s+/g, '<');
       
-      // 还原所有保存的块
-      savedBlocks.forEach((block, i) => {
-        processedHtml = processedHtml.replace(`###SAVED_BLOCK_${i}###`, block);
+      // 恢复所有保留的内容
+      preservedContent.forEach((content, placeholder) => {
+        processedHtml = processedHtml.replace(placeholder, content);
       });
       
       return processedHtml;
     } catch (error) {
-      console.error('HTML压缩失败，返回原始HTML:', error);
-      return html; // 出错时返回原始HTML而不是空字符串
+      console.error('HTML压缩过程出错:', error);
+      // 出错时返回原始HTML
+      return html;
     }
   }
 }; 
