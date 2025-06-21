@@ -513,7 +513,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         >
           <div class="image-modal-content relative max-w-[90%] max-h-[90%] will-change-transform transform-gpu">
             <button 
-              class="image-modal-close absolute -top-10 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
+              class="image-modal-close absolute -top-12 right-0 text-white text-2xl cursor-pointer bg-transparent border-none p-2 will-change-transform"
               aria-label="关闭预览"
             >
               <i class="ri-close-line" aria-hidden="true"></i>
@@ -534,7 +534,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 src="" 
                 alt="预览图片" 
                 loading="lazy" 
-                class="max-w-full max-h-[90vh] max-w-[90vw] object-contain rounded opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity"
+                class="max-w-full h-[70vh] max-w-[90vw] object-contain rounded opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity"
               >
             </figure>
             
