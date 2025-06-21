@@ -405,7 +405,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           
           a:not(.pagination a):hover {
             text-decoration: none;
-            border-radius: 0.375rem;
           }
           
           a:not(.pagination a):after {
