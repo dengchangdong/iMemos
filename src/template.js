@@ -55,7 +55,7 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0 before:content-[''] before:w-[17px] before:h-[17px] before:bg-white before:border before:border-[#4e5ed3] before:rounded-full before:absolute before:left-[-9px] before:top-0 before:shadow-[3px_3px_0px_#bab5f8] dark:before:bg-[#1f2937] dark:before:border-[#818cf8] dark:before:shadow-[3px_3px_0px_#6366f1] hover:before:scale-110 hover:before:shadow-[4px_4px_0px_#bab5f8] dark:hover:before:shadow-[4px_4px_0px_#6366f1] before:transition-all before:duration-300">
+    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
@@ -303,15 +303,39 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                         0 10px 20px -5px rgba(0, 0, 0, 0.07);
           }
           
-          /* 卡片动画效果 */
+          /* 文章样式与动画 */
           article {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
           }
           
+          /* article的before伪元素样式 */
+          article::before {
+            content: '';
+            width: 17px;
+            height: 17px;
+            background-color: white;
+            border: 1px solid #4e5ed3;
+            border-radius: 50%;
+            position: absolute;
+            left: -9px;
+            top: 0;
+            box-shadow: 3px 3px 0px #bab5f8;
+            transition: all 0.3s ease;
+          }
+          
+          .dark article::before {
+            background-color: #1f2937;
+            border-color: #818cf8;
+            box-shadow: 3px 3px 0px #6366f1;
+          }
+          
           article:hover::before {
-            box-shadow: 4px 4px 0px #bab5f8;
             transform: scale(1.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 4px 4px 0px #bab5f8;
+          }
+          
+          .dark article:hover::before {
+            box-shadow: 4px 4px 0px #6366f1;
           }
           
           /* 按钮动画效果 */
