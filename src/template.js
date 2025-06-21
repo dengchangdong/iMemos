@@ -435,23 +435,34 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
           
           /* 代码块优化 */
-          pre {
+          .code-block {
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             margin: 1.5em 0;
+            overflow: hidden;
+          }
+          
+          pre {
+            border-radius: 8px;
+            margin: 1.5em 0;
+            box-shadow: none;
           }
           
           .code-header {
             border-top-left-radius: 8px;
             border-top-right-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: none;
           }
           
           .code-header + pre {
             border-top-left-radius: 0;
             border-top-right-radius: 0;
             margin-top: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: none;
+          }
+          
+          .code-block pre {
+            margin: 0;
           }
           
           code {
@@ -965,3 +976,4 @@ const clientScript = `
     });
   })();
 `;
+
