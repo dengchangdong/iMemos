@@ -468,7 +468,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-12 sm:py-8">
+        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
           <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
@@ -492,7 +492,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 </button>
               </div>
             </header>
-            <main class="mt-10 sm:mt-8 relative">
+            <main class="mt-8 sm:mt-10 relative">
               ${articlesHtml}
             </main>
             
