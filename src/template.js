@@ -252,219 +252,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
         </script>
         <style>
-          html::-webkit-scrollbar, 
-          body::-webkit-scrollbar,
-          pre::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0);
-            border-radius: 10px;
-          }
-
-          html::-webkit-scrollbar-thumb, 
-          body::-webkit-scrollbar-thumb,
-          pre::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-          }
-
-          html::-webkit-scrollbar-thumb:hover, 
-          body::-webkit-scrollbar-thumb:hover,
-          pre::-webkit-scrollbar-thumb:hover {
-            background: rgba(0, 0, 0, 0.11);
-            border-radius: 10px; 
-          }
-
-          html::-webkit-scrollbar-track:hover, 
-          body::-webkit-scrollbar-track:hover,
-          pre::-webkit-scrollbar-track:hover {
-            background: rgba(0, 0, 0, 0);
-            border-radius: 10px; 
-          }
-          
-          /* 新增字体样式 */
-          body {
-            font-family: 'Noto Sans SC', sans-serif;
-            letter-spacing: 0.015em;
-          }
-          
-          h1, h2, h3, h4, h5, h6 {
-            font-family: 'Noto Sans SC', sans-serif;
-          }
-          
-          /* 改进阴影效果 */
-          .shadow-lg {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
-                        0 8px 10px -6px rgba(0, 0, 0, 0.03);
-            transition: box-shadow 0.3s ease, transform 0.3s ease;
-          }
-          
-          .shadow-lg:hover {
-            box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
-                        0 10px 20px -5px rgba(0, 0, 0, 0.07);
-          }
-          
-          /* 文章样式与动画 */
-          article {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-          }
-          
-          /* article的before伪元素样式 */
-          article::before {
-            content: '';
-            width: 17px;
-            height: 17px;
-            background-color: white;
-            border: 1px solid #4e5ed3;
-            border-radius: 50%;
-            position: absolute;
-            left: -9px;
-            top: 0;
-            box-shadow: 3px 3px 0px #bab5f8;
-            transition: all 0.3s ease;
-          }
-          
-          .dark article::before {
-            background-color: #1f2937;
-            border-color: #818cf8;
-            box-shadow: 3px 3px 0px #6366f1;
-          }
-          
-          article:hover::before {
-            transform: scale(1.1);
-            box-shadow: 4px 4px 0px #bab5f8;
-          }
-          
-          .dark article:hover::before {
-            box-shadow: 4px 4px 0px #6366f1;
-          }
-          
-          /* 按钮动画效果 */
-          button, .pagination a {
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-          }
-          
-          button:hover, .pagination a:hover{
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-          }
-          
-          button:active, .pagination a:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          }
-
-          .image-modal.active {
-            display: flex;
-            opacity: 1;
-          }
-
-          .image-modal-content img.loaded {
-            opacity: 1;
-          }
-
-          .back-to-top.visible {
-            opacity: 1;
-            visibility: visible;
-          }
-
-          .article-content img, .mt-4 img {
-            cursor: pointer;
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            background-color: #0c7cd51c;
-            opacity: 0.5;
-            will-change: opacity, transform;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-          }
-
-          .article-content img.loaded, .mt-4 img.loaded {
-            opacity: 1;
-          }
-
-          .article-content img:hover, .mt-4 img:hover {
-            opacity: 0.95;
-            transform: scale(1.01);
-          }
-
-          .image-placeholder {
-            opacity: 1;
-            transition: opacity 0.3s ease;
-            will-change: opacity;
-          }
-
-          div.loaded .image-placeholder {
-            opacity: 0;
-          }
-          
-          /* 链接过渡效果 */
-          a {
-            transition: color 0.3s ease;
-            position: relative;
-          }
-          
-          a:not(.pagination a):hover {
-            text-decoration: none;
-          }
-          
-          a:not(.pagination a):after {
-            content: none;
-          }
-          
-          /* 代码块优化 */
-          .code-block {
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin: 1.5em 0;
-            overflow: hidden;
-          }
-          
-          pre {
-            border-radius: 8px;
-            margin: 1.5em 0;
-            box-shadow: none;
-          }
-          
-          .code-header {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-            box-shadow: none;
-          }
-          
-          .code-header + pre {
-            border-top-left-radius: 0;
-            border-top-right-radius: 0;
-            margin-top: 0;
-            box-shadow: none;
-          }
-          
-          .code-block pre {
-            margin: 0;
-          }
-          
-          code {
-            font-family: 'Roboto Mono', monospace;
-          }
-          
-          /* 页面加载动画 */
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-          }
-          
-          main {
-            animation: fadeIn 0.6s ease-out;
-          }
-          
-          article {
-            animation: fadeIn 0.6s ease-out;
-            animation-fill-mode: both;
-          }
-          
-          article:nth-child(2) { animation-delay: 0.1s; }
-          article:nth-child(3) { animation-delay: 0.2s; }
-          article:nth-child(4) { animation-delay: 0.3s; }
-          article:nth-child(5) { animation-delay: 0.4s; }
+          ${clientStyle}
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
@@ -559,12 +347,228 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </div>
 
         <script>
-        ${clientScript}
+          ${clientScript}
         </script>
       </body>
     </html>
   `;
 }
+
+const clientStyle = `
+  html::-webkit-scrollbar, 
+  body::-webkit-scrollbar,
+  pre::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0);
+    border-radius: 10px;
+  }
+
+  html::-webkit-scrollbar-thumb, 
+  body::-webkit-scrollbar-thumb,
+  pre::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+
+  html::-webkit-scrollbar-thumb:hover, 
+  body::-webkit-scrollbar-thumb:hover,
+  pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.11);
+    border-radius: 10px; 
+  }
+
+  html::-webkit-scrollbar-track:hover, 
+  body::-webkit-scrollbar-track:hover,
+  pre::-webkit-scrollbar-track:hover {
+    background: rgba(0, 0, 0, 0);
+    border-radius: 10px; 
+  }
+  
+  /* 新增字体样式 */
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 0.015em;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  
+  /* 改进阴影效果 */
+  .shadow-lg {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
+                0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  
+  .shadow-lg:hover {
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
+                0 10px 20px -5px rgba(0, 0, 0, 0.07);
+  }
+  
+  /* 文章样式与动画 */
+  article {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* article的before伪元素样式 */
+  article::before {
+    content: '';
+    width: 17px;
+    height: 17px;
+    background-color: white;
+    border: 1px solid #4e5ed3;
+    border-radius: 50%;
+    position: absolute;
+    left: -9px;
+    top: 0;
+    box-shadow: 3px 3px 0px #bab5f8;
+    transition: all 0.3s ease;
+  }
+  
+  .dark article::before {
+    background-color: #1f2937;
+    border-color: #818cf8;
+    box-shadow: 3px 3px 0px #6366f1;
+  }
+  
+  article:hover::before {
+    transform: scale(1.1);
+    box-shadow: 4px 4px 0px #bab5f8;
+  }
+  
+  .dark article:hover::before {
+    box-shadow: 4px 4px 0px #6366f1;
+  }
+  
+  /* 按钮动画效果 */
+  button, .pagination a {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  
+  button:hover, .pagination a:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  button:active, .pagination a:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .image-modal.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .image-modal-content img.loaded {
+    opacity: 1;
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .article-content img, .mt-4 img {
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    background-color: #0c7cd51c;
+    opacity: 0.5;
+    will-change: opacity, transform;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .article-content img.loaded, .mt-4 img.loaded {
+    opacity: 1;
+  }
+
+  .article-content img:hover, .mt-4 img:hover {
+    opacity: 0.95;
+    transform: scale(1.01);
+  }
+
+  .image-placeholder {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    will-change: opacity;
+  }
+
+  div.loaded .image-placeholder {
+    opacity: 0;
+  }
+  
+  /* 链接过渡效果 */
+  a {
+    transition: color 0.3s ease;
+    position: relative;
+  }
+  
+  a:not(.pagination a):hover {
+    text-decoration: none;
+  }
+  
+  a:not(.pagination a):after {
+    content: none;
+  }
+  
+  /* 代码块优化 */
+  .code-block {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin: 1.5em 0;
+    overflow: hidden;
+  }
+  
+  pre {
+    border-radius: 8px;
+    margin: 1.5em 0;
+    box-shadow: none;
+  }
+  
+  .code-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    box-shadow: none;
+  }
+  
+  .code-header + pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
+    box-shadow: none;
+  }
+  
+  .code-block pre {
+    margin: 0;
+  }
+  
+  code {
+    font-family: 'Roboto Mono', monospace;
+  }
+  
+  /* 页面加载动画 */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  main {
+    animation: fadeIn 0.6s ease-out;
+  }
+  
+  article {
+    animation: fadeIn 0.6s ease-out;
+    animation-fill-mode: both;
+  }
+  
+  article:nth-child(2) { animation-delay: 0.1s; }
+  article:nth-child(3) { animation-delay: 0.2s; }
+  article:nth-child(4) { animation-delay: 0.3s; }
+  article:nth-child(5) { animation-delay: 0.4s; }
+`;
 
 const clientScript = `
   (function() {
