@@ -66,6 +66,10 @@ export const markdownRenderer = {
       text.includes('```') || 
       text.includes('*') || 
       text.includes('> ') ||
+      text.includes('[ ]') ||
+      text.includes('[x]') ||
+      text.includes('(x)') ||
+      text.includes('( )') ||
       /\[.*\]\(.*\)/.test(text);
     
     // 如果已经是Markdown格式，直接返回
@@ -125,8 +129,36 @@ export const markdownRenderer = {
     // 引用
     html = html.replace(CONFIG.REGEX.MD_QUOTE, '<blockquote class="pl-4 border-l-4 border-gray-300 dark:border-gray-600 my-4 text-gray-600 dark:text-gray-400">$1</blockquote>');
     
-    // 列表项
-    html = html.replace(CONFIG.REGEX.MD_LIST_ITEM, '<li class="ml-4 list-disc">$1</li>');
+    // 处理复选框 - 需要在列表项处理前进行
+    html = html.replace(CONFIG.REGEX.MD_CHECKBOX, (match, checked, text) => {
+      const isChecked = checked === 'x';
+      return utils.createHtml`<div class="flex items-center gap-2 my-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+        <div class="relative flex items-center justify-center min-w-5 h-5 rounded border border-gray-400 dark:border-gray-500 ${isChecked ? 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600' : 'bg-white dark:bg-gray-700'}">
+          ${isChecked ? '<i class="ri-check-line text-white text-sm absolute"></i>' : ''}
+        </div>
+        <span class="${isChecked ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-800 dark:text-gray-200'}">${text}</span>
+      </div>`;
+    });
+    
+    // 处理单选框 - 同样在列表项处理前进行
+    html = html.replace(CONFIG.REGEX.MD_RADIO, (match, radio, text) => {
+      const isChecked = radio.toLowerCase().includes('x') || radio.toLowerCase().includes('o');
+      return utils.createHtml`<div class="flex items-center gap-2 my-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+        <div class="relative flex items-center justify-center min-w-5 h-5 rounded-full border border-gray-400 dark:border-gray-500 ${isChecked ? 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600' : 'bg-white dark:bg-gray-700'}">
+          ${isChecked ? '<div class="w-2.5 h-2.5 bg-white dark:bg-white rounded-full"></div>' : ''}
+        </div>
+        <span class="text-gray-800 dark:text-gray-200">${text}</span>
+      </div>`;
+    });
+    
+    // 列表项 - 现在只处理非复选框的列表项
+    html = html.replace(CONFIG.REGEX.MD_LIST_ITEM, (match, content) => {
+      // 忽略已经被复选框处理过的列表项
+      if (match.includes('[') && match.includes(']')) {
+        return match;
+      }
+      return `<li class="ml-4 list-disc">${content}</li>`;
+    });
     html = html.replace(CONFIG.REGEX.MD_NUM_LIST, '<li class="ml-4 list-decimal">$2</li>');
     
     // 包装列表

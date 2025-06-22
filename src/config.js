@@ -53,6 +53,10 @@ export const CONFIG = {
     MD_LINK: /\[([^\]]+)\]\((?!https?:\/\/mp\.weixin\.qq\.com)([^)]+)\)/g,
     /** @type {RegExp} Markdown图片匹配 */
     MD_IMAGE: /!\[([^\]]*)\]\(([^)]+)\)/g,
+    /** @type {RegExp} 复选框匹配 - [ ]和[x]格式 */
+    MD_CHECKBOX: /^(?:\s*[-*+]\s+)?\[([ x])\]\s+(.*)/gm,
+    /** @type {RegExp} 单选框匹配 - (x)格式 */
+    MD_RADIO: /^(?:\s*[-*+]\s+)?(\([ xo]\))\s+(.*)/gim,
     /** @type {RegExp} 标签匹配 */
     TAG: /#([a-zA-Z0-9_\u4e00-\u9fa5]+)/g
   },
