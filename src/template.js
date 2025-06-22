@@ -492,7 +492,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 </button>
               </div>
             </header>
-            <main class="mt-10 relative">
+            <main class="mt-10 sm:mt-8 relative">
               ${articlesHtml}
             </main>
             
