@@ -132,7 +132,7 @@ export const markdownRenderer = {
     // 处理复选框 - 需要在列表项处理前进行
     html = html.replace(CONFIG.REGEX.MD_CHECKBOX, (match, checked, text) => {
       const isChecked = checked === 'x';
-      return utils.createHtml`<div class="flex items-center gap-2 my-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+      return utils.createHtml`<div class="flex items-center gap-2 my-1.5 p-2.5 rounded-md bg-gray-50 dark:bg-gray-800/50 shadow-md dark:shadow-gray-900/30">
         <div class="relative flex items-center justify-center min-w-5 h-5 rounded border border-gray-400 dark:border-gray-500 ${isChecked ? 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600' : 'bg-white dark:bg-gray-700'}">
           ${isChecked ? '<i class="ri-check-line text-white text-sm absolute"></i>' : ''}
         </div>
@@ -143,7 +143,7 @@ export const markdownRenderer = {
     // 处理单选框 - 同样在列表项处理前进行
     html = html.replace(CONFIG.REGEX.MD_RADIO, (match, radio, text) => {
       const isChecked = radio.toLowerCase().includes('x') || radio.toLowerCase().includes('o');
-      return utils.createHtml`<div class="flex items-center gap-2 my-1.5 p-2 rounded-md bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+      return utils.createHtml`<div class="flex items-center gap-2 my-1.5 p-2.5 rounded-md bg-gray-50 dark:bg-gray-800/50 shadow-md dark:shadow-gray-900/30">
         <div class="relative flex items-center justify-center min-w-5 h-5 rounded-full border border-gray-400 dark:border-gray-500 ${isChecked ? 'bg-orange-500 dark:bg-orange-600 border-orange-500 dark:border-orange-600' : 'bg-white dark:bg-gray-700'}">
           ${isChecked ? '<div class="w-2.5 h-2.5 bg-white dark:bg-white rounded-full"></div>' : ''}
         </div>
