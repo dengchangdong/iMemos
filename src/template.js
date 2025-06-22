@@ -340,16 +340,16 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           }
           
           /* 按钮动画效果 */
-          button, .pagination a, a.w-9 {
+          button, .pagination a {
             transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
           }
           
-          button:hover, .pagination a:hover, a.w-9:hover {
+          button:hover, .pagination a:hover{
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
           }
           
-          button:active, .pagination a:active, a.w-9:active {
+          button:active, .pagination a:active {
             transform: translateY(0);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
           }
