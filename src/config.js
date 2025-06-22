@@ -2,8 +2,8 @@
  * 常量配置 - 集中管理所有常量
  */
 export const CONFIG = {
-  /** @type {string} 每页显示的数量限制 */
-  PAGE_LIMIT: '10',
+  /** @type {number} 每页显示的数量限制 */
+  PAGE_LIMIT: 10,
   
   /** @type {Object} HTTP请求头 */
   HEADERS: {

@@ -171,8 +171,13 @@ function createResourcesHtml(resources) {
 }
 
 // 渲染分页导航
-function renderPagination({ currentPage, hasMore, isHomePage, tag = '' }) {
+function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCount = 0, pageLimit = CONFIG.PAGE_LIMIT }) {
   if (!isHomePage && !tag) {
+    return '';
+  }
+  
+  // 当文章数量少于PAGE_LIMIT配置的数量时不显示分页导航
+  if (!hasMore && memosCount < pageLimit) {
     return '';
   }
 
@@ -205,7 +210,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '' }) {
 }
 
 // 渲染基础 HTML
-export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '') {
+export function renderBaseHtml(title, content, navLinks, siteName, currentPage = 1, hasMore = false, isHomePage = false, tag = '', memosCount = 0, pageLimit = CONFIG.PAGE_LIMIT) {
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
@@ -285,7 +290,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </main>
             
             <!-- 分页导航 -->
-            ${renderPagination({ currentPage, hasMore, isHomePage, tag })}
+            ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
           </section>
         </div>
 

@@ -159,7 +159,7 @@ export const apiHandler = {
    */
   async fetchMemos(c, tag = '', page = 1) {
     try {
-      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const limit = parseInt(c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT);
       const offset = (page - 1) * limit;
       const cacheKey = `memos_${tag}_${limit}_${offset}`;
       const apiUrl = `${c.env.API_HOST}/api/v1/memo?rowStatus=NORMAL&creatorId=1&tag=${tag}&limit=${limit}&offset=${offset}`;
@@ -196,7 +196,8 @@ export const apiHandler = {
  * @returns {number}
  */
 function getPageLimit(c) {
-  return c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+  // 确保返回数字类型
+  return parseInt(c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT);
 }
 
 /**
@@ -251,8 +252,10 @@ async function handleMemoListRoute(c, { getPage, tag = '', isExplicitPageRoute =
         c.env.SITE_NAME,
         currentPage,
         hasMore,
-        true, // isList
-        tag
+        true, // isHomePage
+        tag,
+        memos.length, // 添加memos数量
+        limit // 添加页面限制
       )
     );
   } catch (error) {
@@ -271,7 +274,7 @@ export const routes = {
   // RSS订阅路由处理
   async rss(c) {
     try {
-      const limit = c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT;
+      const limit = parseInt(c.env.PAGE_LIMIT || CONFIG.PAGE_LIMIT);
       const memos = await apiHandler.fetchMemos(c, '', 1);
       
       const sortedMemos = utils.sortMemosByTime(memos);
@@ -341,7 +344,13 @@ export const routes = {
           postTitle,
           memoHtml,
           c.env.NAV_LINKS,
-          c.env.SITE_NAME
+          c.env.SITE_NAME,
+          1,         // currentPage
+          false,     // hasMore
+          false,     // isHomePage
+          '',        // tag
+          0,         // memosCount
+          getPageLimit(c) // pageLimit
         ),
         1800 // 30分钟缓存
       );
