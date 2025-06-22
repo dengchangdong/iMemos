@@ -477,11 +477,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 </a>
               </div>
               <div class="flex items-center space-x-4">
+                <!-- 网站导航
                 <nav class="mr-1" aria-label="网站导航">
                   <ul class="flex space-x-2">
                     ${navItemsHtml}
                   </ul>
                 </nav>
+                 -->
                 <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-orange-100 hover:bg-orange-200 dark:bg-orange-200 text-orange-500 hover:text-orange-700 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
