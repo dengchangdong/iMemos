@@ -272,10 +272,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -362,6 +362,16 @@ const clientStyle = `
     height: 8px;
     background: rgba(255, 255, 255, 0);
     border-radius: 10px;
+  }
+
+  /* 移除按钮和链接的焦点边框 */
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus, a:focus {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   html::-webkit-scrollbar-thumb, 
