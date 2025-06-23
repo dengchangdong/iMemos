@@ -27,7 +27,11 @@ export const utils = {
    */
   generateRSSXml(memos, options) {
     const { siteUrl, siteName, siteDescription } = options;
-    const now = new Date().toUTCString();
+    
+    // 使用UTC+8时区（中国时区）
+    const utc8Offset = 8 * 60 * 60 * 1000; // 8小时的毫秒数
+    const utc8Now = new Date(new Date().getTime() + utc8Offset);
+    const now = utc8Now.toUTCString();
     
     // 创建RSS头部
     let rssXml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -49,7 +53,11 @@ export const utils = {
       const timestamp = memo.createTime 
         ? new Date(memo.createTime).getTime()
         : memo.createdTs * 1000;
-      const pubDate = new Date(timestamp).toUTCString();
+      
+      // 调整为UTC+8时区
+      const utc8Timestamp = timestamp + utc8Offset;
+      const utc8Date = new Date(utc8Timestamp);
+      const pubDate = utc8Date.toUTCString();
       const content = memo.content || '';
       
       // 提取标题（使用内容的第一行或前30个字符）
@@ -101,9 +109,16 @@ export const utils = {
    * @returns {string} 格式化后的时间字符串
    */
   formatTime(timestamp) {
+    // 创建UTC+8时区的日期对象（中国时区）
+    const utc8Offset = 8 * 60 * 60 * 1000 // 8小时的毫秒数
     const now = new Date()
     const date = new Date(timestamp)
-    const diff = now - date
+    
+    // 调整为UTC+8时区
+    const utc8Now = new Date(now.getTime() + utc8Offset)
+    const utc8Date = new Date(date.getTime() + utc8Offset)
+    
+    const diff = utc8Now - utc8Date
     const minutes = Math.floor(diff / (1000 * 60))
     const hours = Math.floor(diff / (1000 * 60 * 60))
     
@@ -114,28 +129,30 @@ export const utils = {
     if (minutes < 60) return `${minutes} 分钟前`
     
     // 当天发布的且24小时以内
-    if (hours < 24 && date.getDate() === now.getDate()) 
+    if (hours < 24 && utc8Date.getDate() === utc8Now.getDate()) 
       return `${hours} 小时前`
     
     // 非当天发布但是是当年发布的
-    if (date.getFullYear() === now.getFullYear()) {
-      return date.toLocaleString('zh-CN', {
+    if (utc8Date.getFullYear() === utc8Now.getFullYear()) {
+      return utc8Date.toLocaleString('zh-CN', {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-        hour12: false
+        hour12: false,
+        timeZone: 'UTC'
       }).replace(/\//g, '-')
     }
     
     // 非当年发布的
-    return date.toLocaleString('zh-CN', {
+    return utc8Date.toLocaleString('zh-CN', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false
+      hour12: false,
+      timeZone: 'UTC'
     }).replace(/\//g, '-')
   },
   
