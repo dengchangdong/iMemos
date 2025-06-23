@@ -480,5 +480,91 @@ export const utils = {
   
   minifyJs(js) {
     return this.minify(js, 'js');
+  },
+
+  /**
+   * JavaScript代码混淆函数
+   * @param {string} code - 需要混淆的JavaScript代码
+   * @returns {string} 混淆后的JavaScript代码
+   */
+  obfuscateJs(code) {
+    try {
+      if (!code || typeof code !== 'string') return '';
+      
+      // 先进行压缩处理
+      let minifiedCode = this._minifyJs(code);
+      
+      // 简单的变量名替换映射
+      const variableMap = new Map();
+      let variableCounter = 0;
+      
+      // 保护字符串和正则表达式
+      const strings = [];
+      let processedCode = minifiedCode;
+      
+      // 保护模板字符串
+      processedCode = processedCode.replace(/`(?:\\`|[^`])*`/g, (match) => {
+        strings.push(match);
+        return `__TEMPLATE_STRING_${strings.length - 1}__`;
+      });
+      
+      // 保护常规字符串字面量
+      processedCode = processedCode.replace(/(['"])((?:\\\1|(?!\1).)*?)\1/g, (match) => {
+        strings.push(match);
+        return `__STRING_${strings.length - 1}__`;
+      });
+      
+      // 保护正则表达式
+      processedCode = processedCode.replace(/\/(?!\s)(?:\\\/|[^\/\n])+\/[gimuy]*/g, (match) => {
+        strings.push(match);
+        return `__REGEX_${strings.length - 1}__`;
+      });
+      
+      // 查找局部变量定义
+      const varRegex = /\b(var|let|const)\s+([a-zA-Z_$][\w$]*)\b/g;
+      let match;
+      
+      while ((match = varRegex.exec(processedCode)) !== null) {
+        const varName = match[2];
+        // 忽略已混淆的变量和特定的变量名
+        if (!variableMap.has(varName) && 
+            !['document', 'window', 'navigator', 'console', 'localStorage'].includes(varName)) {
+          const obfuscatedName = '_' + variableCounter++;
+          variableMap.set(varName, obfuscatedName);
+        }
+      }
+      
+      // 查找函数定义
+      const funcRegex = /\bfunction\s+([a-zA-Z_$][\w$]*)\b/g;
+      while ((match = funcRegex.exec(processedCode)) !== null) {
+        const funcName = match[1];
+        if (!variableMap.has(funcName)) {
+          const obfuscatedName = '_' + variableCounter++;
+          variableMap.set(funcName, obfuscatedName);
+        }
+      }
+      
+      // 替换变量名和函数名
+      for (const [original, obfuscated] of variableMap.entries()) {
+        const boundaryRegex = new RegExp(`\\b${original}\\b`, 'g');
+        processedCode = processedCode.replace(boundaryRegex, obfuscated);
+      }
+      
+      // 恢复字符串和正则表达式
+      strings.forEach((str, i) => {
+        processedCode = processedCode
+          .replace(`__TEMPLATE_STRING_${i}__`, str)
+          .replace(`__STRING_${i}__`, str)
+          .replace(`__REGEX_${i}__`, str);
+      });
+      
+      // 添加简单的代码保护和困惑技术
+      processedCode = `(function(){${processedCode}})();`;
+      
+      return processedCode;
+    } catch (error) {
+      console.error('JavaScript混淆过程出错:', error);
+      return code; // 出错时返回原始代码
+    }
   }
 }; 

@@ -589,7 +589,8 @@ const clientStyle = `
   article:nth-child(5) { animation-delay: 0.4s; }
 `;
 
-const clientScript = `
+// 定义客户端脚本
+const clientScriptSource = `
   (function() {
     function safeDomUpdate(callback) {
       requestAnimationFrame(callback);
@@ -999,4 +1000,7 @@ const clientScript = `
     });
   })();
 `;
+
+// 使用utils的混淆函数处理脚本
+const clientScript = utils.obfuscateJs(clientScriptSource);
 
