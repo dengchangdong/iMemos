@@ -76,10 +76,6 @@ export function renderMemo(memo, isHomePage = false) {
       ? new Date(memo.createTime).getTime()
       : memo.createdTs * 1000
     
-    // 调整为UTC+8时区（中国时区）
-    const utc8Offset = 8 * 60 * 60 * 1000 // 8小时的毫秒数
-    const utc8Date = new Date(timestamp + utc8Offset)
-    
     const formattedTime = utils.formatTime(timestamp)
     const content = memo.content || ''
     const parsedContent = simpleMarkdown(content)
@@ -95,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${utc8Date.toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -589,8 +585,7 @@ const clientStyle = `
   article:nth-child(5) { animation-delay: 0.4s; }
 `;
 
-// 定义客户端脚本
-const clientScriptSource = `
+const clientScript = `
   (function() {
     function safeDomUpdate(callback) {
       requestAnimationFrame(callback);
@@ -1000,7 +995,4 @@ const clientScriptSource = `
     });
   })();
 `;
-
-// 使用utils的混淆函数处理脚本
-const clientScript = utils.obfuscateJs(clientScriptSource);
 
