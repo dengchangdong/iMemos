@@ -64,12 +64,12 @@ export const CONFIG = {
   /** @type {Object} CSS类名配置 */
   CSS: {
     /** @type {string} 卡片样式 */
-    CARD: 'bg-white dark:bg-zinc-900 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden',
+    CARD: 'bg-white dark:bg-gray-900 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden',
     /** @type {string} 文章内容样式 */
     PROSE: 'prose dark:prose-invert max-w-none',
     /** @type {string} 链接样式 */
-    LINK: 'text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 transition-colors',
+    LINK: 'text-orange-500 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300 transition-colors',
     /** @type {string} 嵌入容器样式 */
-    EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-zinc-800'
+    EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800'
   }
 }; 
