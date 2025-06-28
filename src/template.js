@@ -55,9 +55,9 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l-2 border-gray-300 dark:border-gray-600 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="pb-8 border-l border-neutral-200 dark:border-neutral-700 relative pl-5 ml-3 last:border-0 last:pb-0">
       <header>${header}</header>
-      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
+      <section class="text-neutral-800 dark:text-neutral-200 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
       </section>
     </article>
@@ -91,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-gray-600 dark:text-gray-400 font-mono font-semibold block md:text-sm text-xs hover:text-blue-600 dark:hover:text-blue-400 transition-all">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-neutral-600 dark:text-neutral-400 font-poppins font-semibold block md:text-sm text-xs hover:text-neutral-800 dark:hover:text-neutral-200 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -121,9 +121,9 @@ const renderImageItem = (resource, itemClass) => {
   );
 
   return utils.createHtml`
-    <div class="${itemClass} relative bg-gray-100 dark:bg-gray-800 rounded-md overflow-hidden transition-all duration-300">
-      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-md w-full h-full object-cover transition-all duration-300 absolute inset-0 z-10 hover:scale-102 opacity-0" loading="lazy" data-preview="true"/>
-      <div class="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 image-placeholder">
+    <div class="${itemClass} relative bg-neutral-50/50 dark:bg-neutral-800/30 rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl">
+      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-xl w-full h-full object-cover transition-all duration-500 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
+      <div class="absolute inset-0 flex items-center justify-center text-neutral-400 dark:text-neutral-500 image-placeholder">
         <i class="ri-image-line text-2xl animate-pulse"></i>
       </div>
     </div>
@@ -143,8 +143,8 @@ function createResourcesHtml(resources) {
       item: 'w-full aspect-video' 
     },
     2: { 
-      container: 'grid grid-cols-2 gap-2', 
-      item: 'aspect-square' 
+      container: 'flex flex-wrap gap-2', 
+      item: 'w-[calc(50%-4px)] aspect-square' 
     },
     default: { 
       container: 'grid grid-cols-3 gap-2', 
@@ -164,7 +164,7 @@ function createResourcesHtml(resources) {
     : imagesHtml;
 
   return utils.createHtml`
-    <figure class="mt-4">
+    <figure class="mt-5 mb-2">
       ${content}
     </figure>
   `;
@@ -181,7 +181,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 no-underline cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600";
+  const buttonClass = "inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 no-underline border-none cursor-pointer shadow-lg hover:shadow-xl active:shadow-inner active:translate-y-0.5";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
@@ -197,12 +197,11 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
   const nextPageLink = `/page/${currentPage + 1}`;
 
   return utils.createHtml`
-    <div class="pagination flex justify-between items-center mt-8">
-      <a href="${prevPageLink}" class="${buttonClass}">
+    <div class="pagination flex justify-between items-center mt-8 gap-4">
+      <a href="${prevPageLink}" class="${buttonClass} hover:-translate-x-1">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <span class="text-sm bg-blue-100/70 dark:bg-blue-900/30 px-4 py-1.5 rounded-full text-blue-700 dark:text-blue-300 font-medium">第 ${currentPage} 页</span>
-      <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
+      <a href="${nextPageLink}" class="${buttonClass} hover:translate-x-1">
         下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
     </div>
@@ -214,7 +213,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-orange-200 text-orange-500 hover:text-orange-700 hover:scale-105">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-neutral-100 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -227,7 +226,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName}">
-        <meta name="theme-color" content="#209cff">
+        <meta name="theme-color" content="#f5f5f5">
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -241,19 +240,16 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(to right, #f8f9fa, #f1f3f5)',
-                  'custom-gradient-dark': 'linear-gradient(to right, #111827, #1f2937)',
+                  'custom-gradient': 'linear-gradient(to right, #f5f5f5, #fafafa)',
+                  'custom-gradient-dark': 'linear-gradient(to right, #171717, #1a1a1a)',
                 },
                 colors: {
-                  'gray-timeline': '#d1d5db',
-                  'gray-shadow': '#9ca3af',
+                  'neutral-timeline': '#d4d4d4',
+                  'neutral-shadow': '#e5e5e5',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
-                  'mono': ['Roboto Mono', 'monospace'],
-                },
-                scale: {
-                  '102': '1.02',
+                  'poppins': ['Poppins', 'sans-serif'],
                 }
               }
             }
@@ -265,11 +261,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white dark:bg-gray-900 p-6 sm:p-12 rounded-md shadow-md w-full transition-all duration-300">
+          <section class="bg-white/90 dark:bg-neutral-900/90 p-6 sm:p-12 rounded-3xl shadow-xl w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-2xl font-semibold mb-0 tracking-wide text-gray-800 dark:text-gray-100">${siteName}</h1>
+                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-neutral-800 dark:text-neutral-100">${siteName}</h1>
                 </a>
               </div>
               <div class="flex items-center space-x-4">
@@ -280,10 +276,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="切换主题">
+                <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -299,7 +295,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-md bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-800 shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 shadow-lg cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-xl"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -308,7 +304,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <!-- 图片预览模态框 -->
         <div 
           id="imageModal" 
-          class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden backdrop-blur-sm"
+          class="image-modal fixed inset-0 w-full h-full bg-neutral-900/95 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden backdrop-blur-sm"
           aria-modal="true" 
           aria-label="图片预览"
         >
@@ -366,8 +362,8 @@ const clientStyle = `
   html::-webkit-scrollbar, 
   body::-webkit-scrollbar,
   pre::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     background: rgba(255, 255, 255, 0);
     border-radius: 10px;
   }
@@ -385,14 +381,14 @@ const clientStyle = `
   html::-webkit-scrollbar-thumb, 
   body::-webkit-scrollbar-thumb,
   pre::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
+    background: rgba(0, 0, 0, 0.05);
     border-radius: 10px;
   }
 
   html::-webkit-scrollbar-thumb:hover, 
   body::-webkit-scrollbar-thumb:hover,
   pre::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.11);
+    background: rgba(0, 0, 0, 0.1);
     border-radius: 10px; 
   }
 
@@ -413,16 +409,26 @@ const clientStyle = `
     font-family: 'Noto Sans SC', sans-serif;
   }
   
-  /* 改进阴影效果 */
-  .shadow-lg {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
-                0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  /* 改进阴影效果 - 拟物风格 */
+  .shadow-xl {
+    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.06), 
+                -8px -8px 30px rgba(255, 255, 255, 0.8);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   
-  .shadow-lg:hover {
-    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
-                0 10px 20px -5px rgba(0, 0, 0, 0.07);
+  .dark .shadow-xl {
+    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), 
+                -8px -8px 30px rgba(30, 30, 30, 0.2);
+  }
+  
+  .shadow-xl:hover {
+    box-shadow: 10px 10px 35px rgba(0, 0, 0, 0.08), 
+                -10px -10px 35px rgba(255, 255, 255, 0.9);
+  }
+  
+  .dark .shadow-xl:hover {
+    box-shadow: 10px 10px 35px rgba(0, 0, 0, 0.35), 
+                -10px -10px 35px rgba(35, 35, 35, 0.25);
   }
   
   /* 文章样式与动画 */
@@ -433,44 +439,65 @@ const clientStyle = `
   /* article的before伪元素样式 */
   article::before {
     content: '';
-    width: 10px;
-    height: 10px;
-    background-color: #e5e7eb;
-    border: none;
-    border-radius: 0;
+    width: 14px;
+    height: 14px;
+    background-color: white;
+    border: 1px solid #d4d4d4;
+    border-radius: 50%;
     position: absolute;
-    left: -5.5px;
-    top: 6px;
-    transform: rotate(45deg);
+    left: -7px;
+    top: 4px;
+    box-shadow: 3px 3px 0px #e5e5e5, inset 2px 2px 3px rgba(0, 0, 0, 0.03);
     transition: all 0.3s ease;
   }
   
   .dark article::before {
-    background-color: #4b5563;
+    background-color: #262626;
+    border-color: #525252;
+    box-shadow: 3px 3px 0px #404040, inset 2px 2px 3px rgba(255, 255, 255, 0.03);
   }
   
   article:hover::before {
-    background-color: #3b82f6;
-    transform: rotate(45deg) scale(1.2);
+    transform: scale(1.1);
+    box-shadow: 4px 4px 0px #e5e5e5, inset 2px 2px 4px rgba(0, 0, 0, 0.05);
   }
   
   .dark article:hover::before {
-    background-color: #60a5fa;
+    box-shadow: 4px 4px 0px #404040, inset 2px 2px 4px rgba(255, 255, 255, 0.05);
   }
   
-  /* 按钮动画效果 */
+  /* 按钮拟物效果 */
   button, .pagination a {
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05), 
+                -2px -2px 6px rgba(255, 255, 255, 0.9);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   }
   
-  button:hover, .pagination a:hover{
+  .dark button, .dark .pagination a {
+    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2), 
+                -2px -2px 6px rgba(40, 40, 40, 0.2);
+  }
+  
+  button:hover, .pagination a:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.07), 
+                -3px -3px 10px rgba(255, 255, 255, 1);
+  }
+  
+  .dark button:hover, .dark .pagination a:hover {
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.25), 
+                -3px -3px 10px rgba(40, 40, 40, 0.25);
   }
   
   button:active, .pagination a:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1) inset, 
+                -1px -1px 4px rgba(255, 255, 255, 0.7) inset;
+  }
+  
+  .dark button:active, .dark .pagination a:active {
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) inset, 
+                -1px -1px 4px rgba(40, 40, 40, 0.2) inset;
   }
 
   .image-modal.active {
@@ -490,11 +517,18 @@ const clientStyle = `
   .article-content img, .mt-4 img {
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    background-color: #0c7cd51c;
+    background-color: rgba(0, 0, 0, 0.02);
     opacity: 0.5;
     will-change: opacity, transform;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.05),
+                -4px -4px 10px rgba(255, 255, 255, 0.8);
+  }
+  
+  .dark .article-content img, .dark .mt-4 img {
+    background-color: rgba(255, 255, 255, 0.02);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2),
+                -4px -4px 10px rgba(40, 40, 40, 0.2);
   }
 
   .article-content img.loaded, .mt-4 img.loaded {
@@ -532,33 +566,28 @@ const clientStyle = `
   
   /* 代码块优化 */
   .code-block {
-    border-radius: 4px;
-    box-shadow: none;
+    border-radius: 12px;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05),
+                -4px -4px 12px rgba(255, 255, 255, 0.8);
     margin: 1.5em 0;
     overflow: hidden;
-    border: 1px solid #e5e7eb;
   }
   
   .dark .code-block {
-    border-color: #374151;
+    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2),
+                -4px -4px 12px rgba(40, 40, 40, 0.2);
   }
   
   pre {
-    border-radius: 4px;
+    border-radius: 12px;
     margin: 1.5em 0;
     box-shadow: none;
   }
   
   .code-header {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    background-color: #f8fafc;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .dark .code-header {
-    background-color: #1e293b;
-    border-bottom: 1px solid #374151;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    box-shadow: none;
   }
   
   .code-header + pre {
@@ -578,23 +607,141 @@ const clientStyle = `
   
   /* 页面加载动画 */
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(5px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
   
   main {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.6s ease-out;
   }
   
   article {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.6s ease-out;
     animation-fill-mode: both;
   }
   
-  article:nth-child(2) { animation-delay: 0.05s; }
-  article:nth-child(3) { animation-delay: 0.1s; }
-  article:nth-child(4) { animation-delay: 0.15s; }
-  article:nth-child(5) { animation-delay: 0.2s; }
+  article:nth-child(2) { animation-delay: 0.1s; }
+  article:nth-child(3) { animation-delay: 0.2s; }
+  article:nth-child(4) { animation-delay: 0.3s; }
+  article:nth-child(5) { animation-delay: 0.4s; }
+  
+  /* 内容强调效果 */
+  .article-content strong {
+    color: #171717;
+    font-weight: 600;
+    background-color: rgba(212, 212, 212, 0.2);
+    padding: 0.1em 0.3em;
+    border-radius: 4px;
+  }
+  
+  .dark .article-content strong {
+    color: #fafafa;
+    background-color: rgba(64, 64, 64, 0.3);
+  }
+  
+  /* 标题样式优化 */
+  .article-content h1, 
+  .article-content h2, 
+  .article-content h3, 
+  .article-content h4, 
+  .article-content h5, 
+  .article-content h6 {
+    color: #171717;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+    position: relative;
+    padding-left: 0.5em;
+  }
+  
+  .dark .article-content h1, 
+  .dark .article-content h2, 
+  .dark .article-content h3, 
+  .dark .article-content h4, 
+  .dark .article-content h5, 
+  .dark .article-content h6 {
+    color: #fafafa;
+  }
+  
+  .article-content h1::before, 
+  .article-content h2::before, 
+  .article-content h3::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.2em;
+    bottom: 0.2em;
+    width: 3px;
+    background-color: #d4d4d4;
+    border-radius: 3px;
+  }
+  
+  .dark .article-content h1::before, 
+  .dark .article-content h2::before, 
+  .dark .article-content h3::before {
+    background-color: #525252;
+  }
+  
+  .article-content h1 {
+    font-size: 1.5em;
+    border-bottom: 1px solid rgba(212, 212, 212, 0.5);
+    padding-bottom: 0.3em;
+  }
+  
+  .dark .article-content h1 {
+    border-bottom: 1px solid rgba(82, 82, 82, 0.5);
+  }
+  
+  .article-content h2 {
+    font-size: 1.3em;
+  }
+  
+  .article-content h3 {
+    font-size: 1.15em;
+  }
+  
+  /* 引用样式优化 */
+  .article-content blockquote {
+    border-left: 3px solid #d4d4d4;
+    background-color: rgba(229, 229, 229, 0.2);
+    border-radius: 6px;
+    padding: 0.8em 1.2em;
+    margin: 1.5em 0;
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.02);
+  }
+  
+  .dark .article-content blockquote {
+    border-left: 3px solid #525252;
+    background-color: rgba(38, 38, 38, 0.3);
+    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* 列表样式优化 */
+  .article-content ul,
+  .article-content ol {
+    padding-left: 1.5em;
+    margin: 1em 0;
+  }
+  
+  .article-content li {
+    margin-bottom: 0.5em;
+    position: relative;
+  }
+  
+  .article-content ul li::before {
+    content: '';
+    position: absolute;
+    left: -1em;
+    top: 0.5em;
+    width: 6px;
+    height: 6px;
+    background-color: #d4d4d4;
+    border-radius: 50%;
+  }
+  
+  .dark .article-content ul li::before {
+    background-color: #525252;
+  }
 `;
 
 const clientScript = `
