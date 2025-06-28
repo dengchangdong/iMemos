@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-slate-500 dark:text-slate-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
-        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="text-red-500 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-sm text-slate-600 dark:text-slate-300">${error.message}</p>
+        <p class="mt-4"><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-slate-500 dark:text-slate-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
-        <h2 class="font-medium">未找到内容</h2>
-        <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <h2 class="font-medium text-slate-700 dark:text-slate-300">未找到内容</h2>
+        <p class="text-slate-600 dark:text-slate-400">您访问的内容不存在或已被删除</p>
+        <p class="mt-4"><a href="/" class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300">返回首页</a></p>
       `
     );
   }
@@ -55,9 +55,9 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-neutral-200 dark:border-neutral-700 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="pb-8 border-l border-slate-300 dark:border-slate-500 relative pl-5 ml-3 last:border-0 last:pb-0">
       <header>${header}</header>
-      <section class="text-neutral-800 dark:text-neutral-200 leading-relaxed mt-4 md:text-base text-sm article-content">
+      <section class="text-slate-700 dark:text-slate-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
       </section>
     </article>
@@ -91,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-neutral-600 dark:text-neutral-400 font-poppins font-semibold block md:text-sm text-xs hover:text-neutral-800 dark:hover:text-neutral-200 transition-all hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-slate-500 dark:text-slate-400 font-poppins font-semibold block md:text-sm text-xs hover:text-slate-700 dark:hover:text-slate-300 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -106,7 +106,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-slate-500 dark:text-slate-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -121,9 +121,9 @@ const renderImageItem = (resource, itemClass) => {
   );
 
   return utils.createHtml`
-    <div class="${itemClass} relative bg-neutral-50/50 dark:bg-neutral-800/30 rounded-xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl">
-      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-xl w-full h-full object-cover transition-all duration-500 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
-      <div class="absolute inset-0 flex items-center justify-center text-neutral-400 dark:text-neutral-500 image-placeholder">
+    <div class="${itemClass} relative bg-slate-50/30 dark:bg-slate-700/30 rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-lg w-full h-full object-cover transition-all duration-300 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
+      <div class="absolute inset-0 flex items-center justify-center text-slate-400 dark:text-slate-300 image-placeholder">
         <i class="ri-image-line text-2xl animate-pulse"></i>
       </div>
     </div>
@@ -143,11 +143,11 @@ function createResourcesHtml(resources) {
       item: 'w-full aspect-video' 
     },
     2: { 
-      container: 'flex flex-wrap gap-2', 
-      item: 'w-[calc(50%-4px)] aspect-square' 
+      container: 'flex flex-wrap gap-1', 
+      item: 'w-[calc(50%-2px)] aspect-square' 
     },
     default: { 
-      container: 'grid grid-cols-3 gap-2', 
+      container: 'grid grid-cols-3 gap-1', 
       item: 'aspect-square' 
     },
   };
@@ -164,7 +164,7 @@ function createResourcesHtml(resources) {
     : imagesHtml;
 
   return utils.createHtml`
-    <figure class="mt-5 mb-2">
+    <figure class="mt-4">
       ${content}
     </figure>
   `;
@@ -181,7 +181,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 no-underline border-none cursor-pointer shadow-lg hover:shadow-xl active:shadow-inner active:translate-y-0.5";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-slate-400 to-slate-500 dark:from-slate-500 dark:to-slate-600 text-white no-underline border-none cursor-pointer hover:from-slate-500 hover:to-slate-600 dark:hover:from-slate-400 dark:hover:to-slate-500 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
@@ -197,11 +197,12 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
   const nextPageLink = `/page/${currentPage + 1}`;
 
   return utils.createHtml`
-    <div class="pagination flex justify-between items-center mt-8 gap-4">
-      <a href="${prevPageLink}" class="${buttonClass} hover:-translate-x-1">
+    <div class="pagination flex justify-between items-center mt-8">
+      <a href="${prevPageLink}" class="${buttonClass}">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <a href="${nextPageLink}" class="${buttonClass} hover:translate-x-1">
+      <span class="text-sm bg-slate-100/70 dark:bg-slate-700/30 px-4 py-1.5 rounded-full text-slate-600 dark:text-slate-300 font-medium">第 ${currentPage} 页</span>
+      <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
         下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
     </div>
@@ -213,7 +214,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-neutral-100 hover:scale-105">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-slate-200 text-slate-500 hover:text-slate-700 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -226,7 +227,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName}">
-        <meta name="theme-color" content="#f5f5f5">
+        <meta name="theme-color" content="#f8fafc">
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -240,12 +241,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(to right, #f5f5f5, #fafafa)',
-                  'custom-gradient-dark': 'linear-gradient(to right, #171717, #1a1a1a)',
+                  'custom-gradient': 'linear-gradient(45deg, #f8fafc, #f1f5f9)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #1e293b, #0f172a)',
                 },
                 colors: {
-                  'neutral-timeline': '#d4d4d4',
-                  'neutral-shadow': '#e5e5e5',
+                  'slate-timeline': '#94a3b8',
+                  'slate-shadow': '#cbd5e1',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
@@ -261,11 +262,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/90 dark:bg-neutral-900/90 p-6 sm:p-12 rounded-3xl shadow-xl w-full backdrop-blur-sm transition-all duration-300">
+          <section class="bg-white/95 dark:bg-slate-800/95 p-6 sm:p-10 rounded-lg shadow-sm w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-neutral-800 dark:text-neutral-100">${siteName}</h1>
+                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-slate-700 dark:text-slate-300">${siteName}</h1>
                 </a>
               </div>
               <div class="flex items-center space-x-4">
@@ -276,10 +277,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -295,7 +296,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-neutral-800 dark:bg-neutral-200 text-white dark:text-neutral-800 shadow-lg cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-xl"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-slate-500 dark:bg-slate-600 text-white shadow-sm cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-slate-600 dark:hover:bg-slate-700 hover:scale-110 hover:shadow-md"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -304,7 +305,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <!-- 图片预览模态框 -->
         <div 
           id="imageModal" 
-          class="image-modal fixed inset-0 w-full h-full bg-neutral-900/95 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden backdrop-blur-sm"
+          class="image-modal fixed inset-0 w-full h-full bg-black/80 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden backdrop-blur-sm"
           aria-modal="true" 
           aria-label="图片预览"
         >
@@ -321,7 +322,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               role="status" 
               aria-live="polite"
             >
-              <div class="spinner w-10 h-10 border-[3px] border-white/30 rounded-full border-t-white animate-spin will-change-transform"></div>
+              <div class="spinner w-10 h-10 border-[3px] border-white/20 rounded-full border-t-white animate-spin will-change-transform"></div>
             </div>
             
             <figure class="w-full h-full flex items-center justify-center">
@@ -335,14 +336,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </figure>
             
             <button 
-              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/40 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/60 hover:scale-110"
               aria-label="上一张"
             >
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
             </button>
             
             <button 
-              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/40 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/60 hover:scale-110"
               aria-label="下一张"
             >
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
@@ -362,8 +363,8 @@ const clientStyle = `
   html::-webkit-scrollbar, 
   body::-webkit-scrollbar,
   pre::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     background: rgba(255, 255, 255, 0);
     border-radius: 10px;
   }
@@ -381,7 +382,7 @@ const clientStyle = `
   html::-webkit-scrollbar-thumb, 
   body::-webkit-scrollbar-thumb,
   pre::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(0, 0, 0, 0.08);
     border-radius: 10px;
   }
 
@@ -409,26 +410,16 @@ const clientStyle = `
     font-family: 'Noto Sans SC', sans-serif;
   }
   
-  /* 改进阴影效果 - 拟物风格 */
-  .shadow-xl {
-    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.06), 
-                -8px -8px 30px rgba(255, 255, 255, 0.8);
+  /* 改进阴影效果 */
+  .shadow-lg {
+    box-shadow: 0 6px 15px -3px rgba(0, 0, 0, 0.03), 
+                0 4px 6px -4px rgba(0, 0, 0, 0.01);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   
-  .dark .shadow-xl {
-    box-shadow: 8px 8px 30px rgba(0, 0, 0, 0.3), 
-                -8px -8px 30px rgba(30, 30, 30, 0.2);
-  }
-  
-  .shadow-xl:hover {
-    box-shadow: 10px 10px 35px rgba(0, 0, 0, 0.08), 
-                -10px -10px 35px rgba(255, 255, 255, 0.9);
-  }
-  
-  .dark .shadow-xl:hover {
-    box-shadow: 10px 10px 35px rgba(0, 0, 0, 0.35), 
-                -10px -10px 35px rgba(35, 35, 35, 0.25);
+  .shadow-lg:hover {
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05), 
+                0 5px 10px -3px rgba(0, 0, 0, 0.03);
   }
   
   /* 文章样式与动画 */
@@ -439,65 +430,46 @@ const clientStyle = `
   /* article的before伪元素样式 */
   article::before {
     content: '';
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
     background-color: white;
-    border: 1px solid #d4d4d4;
+    border: 1px solid #94a3b8;
     border-radius: 50%;
     position: absolute;
-    left: -7px;
-    top: 4px;
-    box-shadow: 3px 3px 0px #e5e5e5, inset 2px 2px 3px rgba(0, 0, 0, 0.03);
+    left: -6.5px;
+    top: 0;
+    box-shadow: 2px 2px 0px #cbd5e1;
     transition: all 0.3s ease;
   }
   
   .dark article::before {
-    background-color: #262626;
-    border-color: #525252;
-    box-shadow: 3px 3px 0px #404040, inset 2px 2px 3px rgba(255, 255, 255, 0.03);
+    background-color: #1e293b;
+    border-color: #64748b;
+    box-shadow: 2px 2px 0px #475569;
   }
   
   article:hover::before {
     transform: scale(1.1);
-    box-shadow: 4px 4px 0px #e5e5e5, inset 2px 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 3px 3px 0px #cbd5e1;
   }
   
   .dark article:hover::before {
-    box-shadow: 4px 4px 0px #404040, inset 2px 2px 4px rgba(255, 255, 255, 0.05);
+    box-shadow: 3px 3px 0px #475569;
   }
   
-  /* 按钮拟物效果 */
+  /* 按钮动画效果 */
   button, .pagination a {
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.05), 
-                -2px -2px 6px rgba(255, 255, 255, 0.9);
     transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   }
   
-  .dark button, .dark .pagination a {
-    box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2), 
-                -2px -2px 6px rgba(40, 40, 40, 0.2);
-  }
-  
-  button:hover, .pagination a:hover {
+  button:hover, .pagination a:hover{
     transform: translateY(-2px);
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.07), 
-                -3px -3px 10px rgba(255, 255, 255, 1);
-  }
-  
-  .dark button:hover, .dark .pagination a:hover {
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.25), 
-                -3px -3px 10px rgba(40, 40, 40, 0.25);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
   }
   
   button:active, .pagination a:active {
     transform: translateY(0);
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1) inset, 
-                -1px -1px 4px rgba(255, 255, 255, 0.7) inset;
-  }
-  
-  .dark button:active, .dark .pagination a:active {
-    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3) inset, 
-                -1px -1px 4px rgba(40, 40, 40, 0.2) inset;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   .image-modal.active {
@@ -517,18 +489,11 @@ const clientStyle = `
   .article-content img, .mt-4 img {
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: #f1f5f91c;
     opacity: 0.5;
     will-change: opacity, transform;
-    border-radius: 12px;
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.05),
-                -4px -4px 10px rgba(255, 255, 255, 0.8);
-  }
-  
-  .dark .article-content img, .dark .mt-4 img {
-    background-color: rgba(255, 255, 255, 0.02);
-    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2),
-                -4px -4px 10px rgba(40, 40, 40, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
   }
 
   .article-content img.loaded, .mt-4 img.loaded {
@@ -566,27 +531,21 @@ const clientStyle = `
   
   /* 代码块优化 */
   .code-block {
-    border-radius: 12px;
-    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05),
-                -4px -4px 12px rgba(255, 255, 255, 0.8);
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
     margin: 1.5em 0;
     overflow: hidden;
   }
   
-  .dark .code-block {
-    box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.2),
-                -4px -4px 12px rgba(40, 40, 40, 0.2);
-  }
-  
   pre {
-    border-radius: 12px;
+    border-radius: 6px;
     margin: 1.5em 0;
     box-shadow: none;
   }
   
   .code-header {
-    border-top-left-radius: 12px;
-    border-top-right-radius: 12px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
     box-shadow: none;
   }
   
@@ -607,140 +566,154 @@ const clientStyle = `
   
   /* 页面加载动画 */
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
   
   main {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.5s ease-out;
   }
   
   article {
-    animation: fadeIn 0.6s ease-out;
+    animation: fadeIn 0.5s ease-out;
     animation-fill-mode: both;
   }
   
-  article:nth-child(2) { animation-delay: 0.1s; }
-  article:nth-child(3) { animation-delay: 0.2s; }
-  article:nth-child(4) { animation-delay: 0.3s; }
-  article:nth-child(5) { animation-delay: 0.4s; }
+  article:nth-child(2) { animation-delay: 0.08s; }
+  article:nth-child(3) { animation-delay: 0.16s; }
+  article:nth-child(4) { animation-delay: 0.24s; }
+  article:nth-child(5) { animation-delay: 0.32s; }
+
+  /* 增强文字可读性 */
+  .article-content {
+    line-height: 1.7;
+    color: #334155;
+  }
   
-  /* 内容强调效果 */
+  .dark .article-content {
+    color: #cbd5e1;
+  }
+  
+  .article-content p {
+    margin-bottom: 1em;
+  }
+  
   .article-content strong {
-    color: #171717;
+    color: #1e293b;
     font-weight: 600;
-    background-color: rgba(212, 212, 212, 0.2);
-    padding: 0.1em 0.3em;
-    border-radius: 4px;
   }
   
   .dark .article-content strong {
-    color: #fafafa;
-    background-color: rgba(64, 64, 64, 0.3);
+    color: #f1f5f9;
   }
   
-  /* 标题样式优化 */
-  .article-content h1, 
-  .article-content h2, 
-  .article-content h3, 
-  .article-content h4, 
-  .article-content h5, 
-  .article-content h6 {
-    color: #171717;
+  /* 突出重点内容 */
+  .article-content h2 {
     font-weight: 600;
+    color: #334155;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.5em;
     margin-top: 1.5em;
     margin-bottom: 0.8em;
-    position: relative;
-    padding-left: 0.5em;
   }
   
-  .dark .article-content h1, 
-  .dark .article-content h2, 
-  .dark .article-content h3, 
-  .dark .article-content h4, 
-  .dark .article-content h5, 
-  .dark .article-content h6 {
-    color: #fafafa;
-  }
-  
-  .article-content h1::before, 
-  .article-content h2::before, 
-  .article-content h3::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.2em;
-    bottom: 0.2em;
-    width: 3px;
-    background-color: #d4d4d4;
-    border-radius: 3px;
-  }
-  
-  .dark .article-content h1::before, 
-  .dark .article-content h2::before, 
-  .dark .article-content h3::before {
-    background-color: #525252;
-  }
-  
-  .article-content h1 {
-    font-size: 1.5em;
-    border-bottom: 1px solid rgba(212, 212, 212, 0.5);
-    padding-bottom: 0.3em;
-  }
-  
-  .dark .article-content h1 {
-    border-bottom: 1px solid rgba(82, 82, 82, 0.5);
-  }
-  
-  .article-content h2 {
-    font-size: 1.3em;
+  .dark .article-content h2 {
+    color: #f1f5f9;
+    border-bottom-color: #475569;
   }
   
   .article-content h3 {
-    font-size: 1.15em;
+    color: #475569;
+    font-weight: 500;
+    margin-top: 1.3em;
+    margin-bottom: 0.7em;
   }
   
-  /* 引用样式优化 */
+  .dark .article-content h3 {
+    color: #e2e8f0;
+  }
+  
   .article-content blockquote {
-    border-left: 3px solid #d4d4d4;
-    background-color: rgba(229, 229, 229, 0.2);
-    border-radius: 6px;
-    padding: 0.8em 1.2em;
-    margin: 1.5em 0;
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.02);
+    border-left: 3px solid #94a3b8;
+    padding-left: 1em;
+    margin-left: 0;
+    color: #64748b;
+    font-style: italic;
   }
   
   .dark .article-content blockquote {
-    border-left: 3px solid #525252;
-    background-color: rgba(38, 38, 38, 0.3);
-    box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.1);
+    border-left-color: #64748b;
+    color: #cbd5e1;
   }
   
-  /* 列表样式优化 */
-  .article-content ul,
+  /* 优化列表和链接 */
+  .article-content ul {
+    list-style-type: disc;
+    margin-left: 1.5em;
+    margin-bottom: 1em;
+  }
+  
   .article-content ol {
-    padding-left: 1.5em;
-    margin: 1em 0;
+    list-style-type: decimal;
+    margin-left: 1.5em;
+    margin-bottom: 1em;
   }
   
   .article-content li {
     margin-bottom: 0.5em;
-    position: relative;
   }
   
-  .article-content ul li::before {
-    content: '';
-    position: absolute;
-    left: -1em;
-    top: 0.5em;
-    width: 6px;
-    height: 6px;
-    background-color: #d4d4d4;
-    border-radius: 50%;
+  .article-content a {
+    color: #475569;
+    text-decoration: none;
+    border-bottom: 1px dashed #94a3b8;
+    transition: all 0.2s ease;
   }
   
-  .dark .article-content ul li::before {
-    background-color: #525252;
+  .dark .article-content a {
+    color: #e2e8f0;
+    border-bottom-color: #64748b;
+  }
+  
+  .article-content a:hover {
+    color: #334155;
+    border-bottom-color: #475569;
+  }
+  
+  .dark .article-content a:hover {
+    color: #f8fafc;
+    border-bottom-color: #94a3b8;
+  }
+  
+  /* 高亮文本 */
+  .article-content mark {
+    background-color: #fef3c7;
+    color: #92400e;
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+  }
+  
+  .dark .article-content mark {
+    background-color: #422006;
+    color: #fcd34d;
+  }
+
+  /* 代码复制按钮状态 */
+  .copy-btn {
+    opacity: 0.8;
+    transition: opacity 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+  }
+  
+  .copy-btn:hover {
+    opacity: 1;
+  }
+  
+  .copy-btn.copied-success {
+    color: #10b981 !important;
+  }
+  
+  .copy-btn.copied-error {
+    color: #ef4444 !important;
   }
 `;
 
@@ -1073,10 +1046,10 @@ const clientScript = `
       // Helper to update button state after copy operation
       function updateCopyButtonUI(button, success) {
         button.innerHTML = success ? '<i class="ri-check-line"></i>' : '<i class="ri-error-warning-line"></i>';
-        button.classList.add('copied');
+        button.classList.add(success ? 'copied-success' : 'copied-error');
         setTimeout(() => {
           button.innerHTML = '<i class="ri-file-copy-line"></i>';
-          button.classList.remove('copied');
+          button.classList.remove('copied-success', 'copied-error');
         }, 2000);
       }
 
@@ -1086,7 +1059,10 @@ const clientScript = `
 
         if (button.dataset.hasCopyListener === 'true') return;
         button.dataset.hasCopyListener = 'true';
-
+        
+        // 添加统一风格的样式
+        button.classList.add('bg-slate-100', 'dark:bg-slate-700', 'text-slate-500', 'dark:text-slate-400', 'hover:text-slate-700', 'dark:hover:text-slate-300');
+        
         button.addEventListener('click', () => {
           const originalCode = block.getAttribute('data-original-code');
           const codeText = originalCode ? decodeURIComponent(originalCode) : (block.querySelector('code')?.textContent || '');
