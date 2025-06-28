@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
         <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
         <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
         <h2 class="font-medium">未找到内容</h2>
         <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-300">返回首页</a></p>
       `
     );
   }
@@ -55,10 +55,9 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l-2 border-timeline dark:border-timeline-dark relative pl-5 ml-3 last:border-0 last:pb-0">
-      <div class="absolute -left-[9px] top-0 w-[16px] h-[16px] rounded-full bg-primary dark:bg-primary-dark shadow-md"></div>
-      <header>${header}</header>
-      <section class="text-gray-800 dark:text-gray-200 leading-relaxed mt-4 md:text-base text-sm article-content">
+    <article class="pb-8 border-l border-gray-300 dark:border-gray-600 relative pl-5 ml-3 last:border-0 last:pb-0 mb-6 last:mb-0">
+      <header class="mb-2">${header}</header>
+      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-2 md:text-base text-sm article-content border-t border-gray-100 dark:border-gray-700 pt-3">
         ${content}
       </section>
     </article>
@@ -92,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-primary dark:text-primary font-mono font-medium block md:text-sm text-xs hover:text-primary-dark dark:hover:text-primary-dark transition-all">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs hover:text-gray-800 dark:hover:text-gray-300 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -182,11 +181,13 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 no-underline border-none cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
+
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
       <div class="pagination flex justify-center items-center mt-8">
-        <a href="/page/2" class="inline-flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-primary text-white no-underline border-none cursor-pointer hover:bg-primary-dark hover:shadow-md shadow-sm">
-          查看更多内容 <i class="ri-arrow-down-line text-lg ml-1"></i>
+        <a href="/page/2" class="${buttonClass}">
+          <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
         </a>
       </div>
     `;
@@ -197,12 +198,12 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
 
   return utils.createHtml`
     <div class="pagination flex justify-between items-center mt-8">
-      <a href="${prevPageLink}" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all bg-primary text-white no-underline border-none cursor-pointer hover:bg-primary-dark hover:shadow-md shadow-sm">
-        <i class="ri-arrow-left-line text-lg mr-1"></i> 上一页
+      <a href="${prevPageLink}" class="${buttonClass}">
+        <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <span class="text-sm bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-md text-secondary dark:text-gray-400 font-medium">${currentPage}</span>
-      <a href="${nextPageLink}" class="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all bg-primary text-white no-underline border-none cursor-pointer hover:bg-primary-dark hover:shadow-md shadow-sm ${hasMore ? '' : 'invisible'}">
-        下一页 <i class="ri-arrow-right-line text-lg ml-1"></i>
+      <span class="text-sm bg-gray-100 dark:bg-gray-800 px-4 py-1.5 rounded-md text-gray-700 dark:text-gray-300 font-medium">${currentPage}</span>
+      <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
+        下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
     </div>
   `;
@@ -230,7 +231,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <link rel="alternate" type="application/rss+xml" title="${siteName}" href="/rss.xml" />
         <script src="https://cdn.tailwindcss.com"></script>
@@ -240,20 +241,15 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #f8f9fa, #e9ecef)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #212529, #343a40)',
+                  'custom-gradient': 'linear-gradient(45deg, #f4f1ec, #f4f1ec)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #2d2926, #1a1816)',
                 },
                 colors: {
-                  'primary': '#0d6efd',
-                  'primary-dark': '#0a58ca',
-                  'secondary': '#6c757d',
-                  'secondary-dark': '#495057',
-                  'timeline': '#dee2e6',
-                  'timeline-dark': '#495057',
+                  'indigo-timeline': '#b2a89f',
+                  'indigo-shadow': '#d8d0ca',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
-                  'mono': ['JetBrains Mono', 'monospace'],
                   'poppins': ['Poppins', 'sans-serif'],
                 }
               }
@@ -265,12 +261,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-        <div class="container w-full max-w-2xl [@media(min-width:1921px)]:max-w-3xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/90 dark:bg-gray-900/90 p-6 sm:p-8 rounded-lg shadow-md w-full backdrop-blur-sm transition-all duration-300">
-            <header class="flex items-center justify-between">
+        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
+          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
+            <header class="flex items-center justify-between border-b pb-4 border-gray-200 dark:border-gray-700">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-xl font-medium font-mono mb-0 tracking-tight text-gray-800 dark:text-gray-100">${siteName}</h1>
+                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-gray-700 to-gray-900 dark:from-gray-300 dark:to-gray-100">${siteName}</h1>
                 </a>
               </div>
               <div class="flex items-center space-x-4">
@@ -281,15 +277,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 hover:bg-grey-200 dark:bg-gray-800 text-primary hover:text-primary-dark dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="RSS订阅" title="RSS订阅">
-                  <i class="ri-rss-line text-lg" aria-hidden="true"></i>
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-8 h-8 flex items-center justify-center rounded-md bg-gray-100 hover:bg-grey-200 dark:bg-gray-800 text-primary hover:text-primary-dark dark:text-gray-300 dark:hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="切换主题">
-                  <i class="ri-sun-line text-lg" id="theme-icon" aria-hidden="true"></i>
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
             </header>
-            <main class="mt-6 sm:mt-8 relative">${articlesHtml}</main>
+            <main class="mt-8 sm:mt-10 relative">
+              ${articlesHtml}
+            </main>
             
             <!-- 分页导航 -->
             ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
@@ -298,7 +296,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-md bg-primary text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-primary-dark hover:shadow-lg"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-gray-300 dark:hover:bg-gray-600 hover:scale-110 hover:shadow-lg"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -362,28 +360,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 }
 
 const clientStyle = `
-  /* 滚动条样式 */
   html::-webkit-scrollbar, 
   body::-webkit-scrollbar,
   pre::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-    background: transparent;
-    border-radius: 3px;
-  }
-
-  html::-webkit-scrollbar-thumb, 
-  body::-webkit-scrollbar-thumb,
-  pre::-webkit-scrollbar-thumb {
-    background: rgba(100, 100, 100, 0.2);
-    border-radius: 3px;
-  }
-
-  html::-webkit-scrollbar-thumb:hover, 
-  body::-webkit-scrollbar-thumb:hover,
-  pre::-webkit-scrollbar-thumb:hover {
-    background: rgba(100, 100, 100, 0.3);
-    border-radius: 3px; 
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0);
+    border-radius: 10px;
   }
 
   /* 移除按钮和链接的焦点边框 */
@@ -396,18 +379,128 @@ const clientStyle = `
     box-shadow: none !important;
   }
 
-  /* 图片样式 */
-  .article-content img {
-    border-radius: 4px;
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 1rem 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+  html::-webkit-scrollbar-thumb, 
+  body::-webkit-scrollbar-thumb,
+  pre::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
   }
 
-  .article-content img:hover {
+  html::-webkit-scrollbar-thumb:hover, 
+  body::-webkit-scrollbar-thumb:hover,
+  pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.11);
+    border-radius: 10px; 
+  }
+
+  html::-webkit-scrollbar-track:hover, 
+  body::-webkit-scrollbar-track:hover,
+  pre::-webkit-scrollbar-track:hover {
+    background: rgba(0, 0, 0, 0);
+    border-radius: 10px; 
+  }
+  
+  /* 新增字体样式 */
+  body {
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 0.015em;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  
+  /* 改进阴影效果 */
+  .shadow-lg {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
+                0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+  
+  .shadow-lg:hover {
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
+                0 10px 20px -5px rgba(0, 0, 0, 0.07);
+  }
+  
+  /* 文章样式与动画 */
+  article {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  /* article的before伪元素样式 */
+  article::before {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background-color: white;
+    border: 1px solid #b2a89f;
+    border-radius: 0;
+    position: absolute;
+    left: -6px;
+    top: 0;
+    box-shadow: 2px 2px 0px #d8d0ca;
+    transition: all 0.3s ease;
+  }
+  
+  .dark article::before {
+    background-color: #1f2937;
+    border-color: #6b7280;
+    box-shadow: 2px 2px 0px #4b5563;
+  }
+  
+  article:hover::before {
+    transform: scale(1.1);
+    box-shadow: 3px 3px 0px #d8d0ca;
+  }
+  
+  .dark article:hover::before {
+    box-shadow: 3px 3px 0px #4b5563;
+  }
+  
+  /* 按钮动画效果 */
+  button, .pagination a {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  
+  button:hover, .pagination a:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  button:active, .pagination a:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .image-modal.active {
+    display: flex;
+    opacity: 1;
+  }
+
+  .image-modal-content img.loaded {
+    opacity: 1;
+  }
+
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .article-content img, .mt-4 img {
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    background-color: #f0ede8;
+    opacity: 0.5;
+    will-change: opacity, transform;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .article-content img.loaded, .mt-4 img.loaded {
+    opacity: 1;
+  }
+
+  .article-content img:hover, .mt-4 img:hover {
     opacity: 0.95;
     transform: scale(1.01);
   }
@@ -415,79 +508,52 @@ const clientStyle = `
   .image-placeholder {
     opacity: 1;
     transition: opacity 0.3s ease;
+    will-change: opacity;
   }
 
   div.loaded .image-placeholder {
     opacity: 0;
   }
   
-  /* 链接样式 */
+  /* 链接过渡效果 */
   a {
-    transition: color 0.2s ease;
+    transition: color 0.3s ease;
     position: relative;
+  }
+  
+  a:not(.pagination a):hover {
     text-decoration: none;
   }
   
-  .article-content a {
-    color: #0d6efd;
-    border-bottom: 1px solid rgba(13, 110, 253, 0.2);
-    padding-bottom: 1px;
-    transition: all 0.2s ease;
-  }
-  
-  .article-content a:hover {
-    border-bottom-color: rgba(13, 110, 253, 0.5);
-  }
-  
-  .dark .article-content a {
-    color: #0d6efd;
-    border-bottom: 1px solid rgba(13, 110, 253, 0.2);
-  }
-  
-  .dark .article-content a:hover {
-    border-bottom-color: rgba(13, 110, 253, 0.5);
+  a:not(.pagination a):after {
+    content: none;
   }
   
   /* 代码块优化 */
   .code-block {
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     margin: 1.5em 0;
     overflow: hidden;
-    background-color: #f8f9fa;
-  }
-  
-  .dark .code-block {
-    background-color: #2d3748;
   }
   
   pre {
-    border-radius: 4px;
+    border-radius: 8px;
     margin: 1.5em 0;
-    padding: 1em;
-    font-size: 0.9rem;
-    overflow-x: auto;
+    box-shadow: none;
   }
   
   .code-header {
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    padding: 0.5em 1em;
-    background-color: #edf2f7;
-    font-size: 0.85rem;
-    color: #4a5568;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  
-  .dark .code-header {
-    background-color: #2d3748;
-    color: #e2e8f0;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    box-shadow: none;
   }
   
   .code-header + pre {
     border-top-left-radius: 0;
     border-top-right-radius: 0;
     margin-top: 0;
+    box-shadow: none;
   }
   
   .code-block pre {
@@ -495,73 +561,28 @@ const clientStyle = `
   }
   
   code {
-    font-family: 'JetBrains Mono', monospace;
-  }
-  
-  /* 文章内容排版 */
-  .article-content p {
-    margin: 1em 0;
-    line-height: 1.75;
-  }
-  
-  .article-content h1, 
-  .article-content h2, 
-  .article-content h3, 
-  .article-content h4, 
-  .article-content h5, 
-  .article-content h6 {
-    font-weight: 600;
-    margin: 1.5em 0 0.8em;
-  }
-  
-  .article-content ul, 
-  .article-content ol {
-    padding-left: 1.5em;
-    margin: 1em 0;
-  }
-  
-  .article-content li {
-    margin: 0.3em 0;
-  }
-  
-  .article-content blockquote {
-    border-left: 3px solid #d1d5db;
-    padding-left: 1em;
-    margin: 1em 0;
-    color: #6b7280;
-    font-style: italic;
-  }
-  
-  .dark .article-content blockquote {
-    border-left: 3px solid #4b5563;
-    color: #9ca3af;
+    font-family: 'Roboto Mono', monospace;
   }
   
   /* 页面加载动画 */
   @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(8px); }
+    from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
   }
   
   main {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.6s ease-out;
   }
   
   article {
-    animation: fadeIn 0.4s ease-out;
+    animation: fadeIn 0.6s ease-out;
     animation-fill-mode: both;
   }
   
-  article:nth-child(2) { animation-delay: 0.08s; }
-  article:nth-child(3) { animation-delay: 0.16s; }
-  article:nth-child(4) { animation-delay: 0.24s; }
-  article:nth-child(5) { animation-delay: 0.32s; }
-  
-  /* 返回顶部按钮 */
-  .back-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-  }
+  article:nth-child(2) { animation-delay: 0.1s; }
+  article:nth-child(3) { animation-delay: 0.2s; }
+  article:nth-child(4) { animation-delay: 0.3s; }
+  article:nth-child(5) { animation-delay: 0.4s; }
 `;
 
 const clientScript = `
@@ -581,17 +602,17 @@ const clientScript = `
 
       const themeConfig = {
         'light': {
-          icon: 'ri-sun-line',
+          icon: 'ri-sun-fill',
           label: '切换到深色模式',
           apply: () => { html.classList.remove('dark'); localStorage.theme = 'light'; }
         },
         'dark': {
-          icon: 'ri-moon-line',
+          icon: 'ri-moon-fill',
           label: '切换到浅色模式',
           apply: () => { html.classList.add('dark'); localStorage.theme = 'dark'; }
         },
         'system': {
-          icon: 'ri-contrast-2-line',
+          icon: 'ri-contrast-fill',
           label: '切换到系统模式',
           apply: () => {
             localStorage.removeItem('theme');
