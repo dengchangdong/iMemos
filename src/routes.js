@@ -237,14 +237,7 @@ async function handleMemoListRoute(c, { getPage, tag = '', isExplicitPageRoute =
     }
 
     const sortedMemos = utils.sortMemosByTime(memos);
-    
-    // 获取视图布局模式 (默认是列表)
-    const url = new URL(c.req.url);
-    const viewMode = url.searchParams.get('view') || 'list';
-    const isBentoLayout = viewMode === 'bento' && currentPage === 1 && !tag;
-    
-    // 渲染memos
-    const memosHtml = sortedMemos.map(memo => renderMemo(memo, true, isBentoLayout));
+    const memosHtml = sortedMemos.map(memo => renderMemo(memo, true));
 
     const limit = getPageLimit(c);
     const hasMore = memos.length >= limit;
@@ -262,8 +255,7 @@ async function handleMemoListRoute(c, { getPage, tag = '', isExplicitPageRoute =
         true, // isHomePage
         tag,
         memos.length, // 添加memos数量
-        limit, // 添加页面限制
-        isBentoLayout // 添加是否使用Bento布局
+        limit // 添加页面限制
       )
     );
   } catch (error) {
