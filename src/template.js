@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-primary dark:text-primary font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
         <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
         <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-primary dark:text-primary hover:text-primary-dark dark:hover:text-primary-dark">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-primary dark:text-primary font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
         <h2 class="font-medium">未找到内容</h2>
         <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-primary dark:text-primary hover:text-primary-dark dark:hover:text-primary-dark">返回首页</a></p>
       `
     );
   }
@@ -55,12 +55,11 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-[#ff4500]/30 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="pb-8 border-0 relative pl-5 ml-3 mb-8 border-b border-gray-200 dark:border-gray-700 last:border-0 last:pb-0 last:mb-0">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
       </section>
-      <hr class="mt-6 border-gray-200 dark:border-gray-700">
     </article>
   `;
 }
@@ -92,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-[#ff4500] dark:text-[#ff4500] font-poppins font-semibold block md:text-sm text-xs hover:text-[#ff6a33] dark:hover:text-[#ff6a33] transition-all hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-primary dark:text-primary font-poppins font-semibold block md:text-sm text-xs hover:text-primary-dark dark:hover:text-primary-dark transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -107,7 +106,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-primary dark:text-primary font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -182,7 +181,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-[#ff4500] to-[#ff6a33] text-white no-underline border-none cursor-pointer hover:from-[#ff6a33] hover:to-[#ff4500] hover:-translate-y-0.5 hover:shadow-lg shadow-md";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-primary text-white no-underline border-none cursor-pointer hover:bg-primary-dark hover:-translate-y-0.5 hover:shadow-lg shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
@@ -202,7 +201,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
       <a href="${prevPageLink}" class="${buttonClass}">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <span class="text-sm bg-[#fff1ea] dark:bg-[#ff4500]/30 px-4 py-1.5 rounded-full text-[#ff4500] dark:text-[#ff4500] font-medium">第 ${currentPage} 页</span>
+      <span class="text-sm bg-blue-100/70 dark:bg-blue-900/30 px-4 py-1.5 rounded-full text-blue-700 dark:text-blue-300 font-medium">第 ${currentPage} 页</span>
       <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
         下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
@@ -215,7 +214,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-orange-200 text-[#ff4500] hover:text-[#ff6a33] hover:scale-105">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-orange-200 text-orange-500 hover:text-orange-700 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -243,11 +242,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
               extend: {
                 backgroundImage: {
                   'custom-gradient': 'linear-gradient(45deg, #f4f1ec, #f4f1ec)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #2d2d2d, #1a1a1a)',
                 },
                 colors: {
-                  'indigo-timeline': '#ff4500',
-                  'indigo-shadow': '#ffac8c',
+                  'primary': '#ff4500',
+                  'primary-dark': '#e03e00',
+                  'background': '#f4f1ec',
+                  'background-dark': '#2d2d2d',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
@@ -261,13 +262,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="min-h-screen bg-[#f4f1ec] dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
+          <section class="bg-background/95 dark:bg-background-dark/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-[#ff4500] to-[#ff6a33] dark:from-[#ff4500] dark:to-[#ff6a33]">${siteName}</h1>
+                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary-dark dark:from-primary dark:to-primary-dark">${siteName}</h1>
                 </a>
               </div>
               <div class="flex items-center space-x-4">
@@ -278,10 +279,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-[#ff4500] text-[#ff4500] hover:text-[#ff6a33] dark:text-white dark:hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-primary/20 text-primary hover:text-primary-dark dark:text-primary dark:hover:text-primary-dark focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-[#ff4500] text-[#ff4500] hover:text-[#ff6a33] dark:text-white dark:hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-primary/20 text-primary hover:text-primary-dark dark:text-primary dark:hover:text-primary-dark focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -297,7 +298,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-[#ff4500] to-[#ff6a33] text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-[#ff6a33] hover:to-[#ff4500] hover:scale-110 hover:shadow-lg"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-primary-dark hover:scale-110 hover:shadow-lg"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -405,6 +406,11 @@ const clientStyle = `
   body {
     font-family: 'Noto Sans SC', sans-serif;
     letter-spacing: 0.015em;
+    background-color: #f4f1ec;
+  }
+  
+  .dark body {
+    background-color: #2d2d2d;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -426,36 +432,43 @@ const clientStyle = `
   /* 文章样式与动画 */
   article {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+  }
+  
+  /* 文章分隔线 */
+  article:not(:last-child)::after {
+    content: '';
+    height: 100%;
+    width: 1px;
+    background-color: #e2e2e2;
+    position: absolute;
+    left: -5px;
+    top: 0;
+  }
+  
+  .dark article:not(:last-child)::after {
+    background-color: #4a4a4a;
   }
   
   /* article的before伪元素样式 */
   article::before {
     content: '';
-    width: 17px;
-    height: 17px;
-    background-color: white;
-    border: 1px solid #ff4500;
+    width: 10px;
+    height: 10px;
+    background-color: #ff4500;
     border-radius: 50%;
     position: absolute;
     left: -9px;
-    top: 0;
-    box-shadow: 3px 3px 0px #ffac8c;
+    top: 5px;
     transition: all 0.3s ease;
   }
   
   .dark article::before {
-    background-color: #1f2937;
-    border-color: #ff4500;
-    box-shadow: 3px 3px 0px #ff6a33;
+    background-color: #ff4500;
   }
   
   article:hover::before {
-    transform: scale(1.1);
-    box-shadow: 4px 4px 0px #ffac8c;
-  }
-  
-  .dark article:hover::before {
-    box-shadow: 4px 4px 0px #ff6a33;
+    transform: scale(1.2);
   }
   
   /* 按钮动画效果 */
@@ -490,7 +503,7 @@ const clientStyle = `
   .article-content img, .mt-4 img {
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    background-color: #0c7cd51c;
+    background-color: #ff450010;
     opacity: 0.5;
     will-change: opacity, transform;
     border-radius: 8px;
@@ -520,10 +533,20 @@ const clientStyle = `
   a {
     transition: color 0.3s ease;
     position: relative;
+    color: #ff4500;
+  }
+  
+  .dark a {
+    color: #ff4500;
   }
   
   a:not(.pagination a):hover {
     text-decoration: none;
+    color: #e03e00;
+  }
+  
+  .dark a:not(.pagination a):hover {
+    color: #e03e00;
   }
   
   a:not(.pagination a):after {
@@ -536,12 +559,22 @@ const clientStyle = `
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     margin: 1.5em 0;
     overflow: hidden;
+    background-color: #fff;
+  }
+  
+  .dark .code-block {
+    background-color: #363636;
   }
   
   pre {
     border-radius: 8px;
     margin: 1.5em 0;
     box-shadow: none;
+    background-color: #fff;
+  }
+  
+  .dark pre {
+    background-color: #363636;
   }
   
   .code-header {
