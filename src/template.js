@@ -218,7 +218,41 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       `).join('')
     : '';
 
-  const articlesHtml = Array.isArray(content) ? content.join('') : content;
+  // 将内容数组转换为 fullPage.js 的 section 结构
+  let articlesHtml;
+  if (Array.isArray(content)) {
+    articlesHtml = content.map(article => utils.createHtml`
+      <div class="section">
+        <div class="article-container">
+          ${article}
+        </div>
+      </div>
+    `).join('');
+    
+    // 添加导航按钮到最后一个 section
+    articlesHtml += utils.createHtml`
+      <div class="section fp-auto-height">
+        <div class="article-container">
+          <div class="navigation-buttons">
+            <a href="#" id="prev-page" class="nav-btn prev-btn">
+              <i class="ri-arrow-left-s-line"></i> 上一页
+            </a>
+            <a href="#" id="next-page" class="nav-btn next-btn">
+              下一页 <i class="ri-arrow-right-s-line"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  } else {
+    articlesHtml = utils.createHtml`
+      <div class="section">
+        <div class="article-container">
+          ${content}
+        </div>
+      </div>
+    `;
+  }
 
   return utils.createHtml`
     <!DOCTYPE html>
@@ -234,6 +268,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <link rel="alternate" type="application/rss+xml" title="${siteName}" href="/rss.xml" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css">
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
           tailwind.config = {
@@ -261,47 +296,24 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
-            <header class="flex items-center justify-between">
-              <div class="flex items-center">
-                <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">${siteName}</h1>
-                </a>
-              </div>
-              <div class="flex items-center space-x-4">
-                <!-- 网站导航
-                <nav class="mr-1" aria-label="网站导航">
-                  <ul class="flex space-x-2">
-                    ${navItemsHtml}
-                  </ul>
-                </nav>
-                 -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
-                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
-                </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
-                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
-                </button>
-              </div>
-            </header>
-            <main class="mt-8 sm:mt-10 relative">
-              ${articlesHtml}
-            </main>
-            
-            <!-- 分页导航 -->
-            ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
-          </section>
+        <!-- 固定在左上角的网站信息和控制按钮 -->
+        <header class="fixed-header">
+          <a href="/" class="site-title" aria-label="返回首页">${siteName}</a>
+          <div class="control-buttons">
+            <a href="/rss.xml" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300/30 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+              <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
+            </a>
+            <button id="theme-toggle" class="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300/30 text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 focus:outline-none transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+              <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- fullPage.js 主容器 -->
+        <div id="fullpage">
+          ${articlesHtml}
         </div>
 
-        <button 
-          id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
-          aria-label="返回顶部"
-        >
-          <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
-        </button>
-        
         <!-- 图片预览模态框 -->
         <div 
           id="imageModal" 
@@ -351,6 +363,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </div>
         </div>
 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js"></script>
         <script>
           ${clientScript}
         </script>
@@ -410,109 +423,160 @@ const clientStyle = `
     font-family: 'Noto Sans SC', sans-serif;
   }
   
-  /* 改进阴影效果 */
-  .shadow-lg {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
-                0 8px 10px -6px rgba(0, 0, 0, 0.03);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  /* fullPage.js 相关样式 */
+  #fullpage {
+    width: 100%;
+    height: 100vh;
+    position: relative;
   }
   
-  .shadow-lg:hover {
-    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
-                0 10px 20px -5px rgba(0, 0, 0, 0.07);
+  .section {
+    width: 100%;
+    height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
-  /* 文章样式与动画 */
-  article {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  .article-container {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 1rem;
+    padding: 2rem;
+    max-width: 800px;
+    width: 90%;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+    max-height: 85vh;
+    overflow-y: auto;
   }
   
-  /* article的before伪元素样式 */
-  article::before {
-    content: '';
-    width: 17px;
-    height: 17px;
-    background-color: white;
-    border: 1px solid #4e5ed3;
-    border-radius: 50%;
-    position: absolute;
-    left: -9px;
-    top: 0;
-    box-shadow: 3px 3px 0px #bab5f8;
+  .dark .article-container {
+    background: rgba(31, 41, 55, 0.95);
+    color: #e5e7eb;
+  }
+  
+  .article-container article {
+    border-left: none;
+    margin-left: 0;
+    padding-left: 0;
+  }
+  
+  /* 导航按钮样式 */
+  .navigation-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2rem;
+  }
+  
+  .nav-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(to right, #4e5ed3, #3854a7);
+    color: white;
+    border-radius: 2rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(78, 94, 211, 0.25);
+  }
+  
+  .nav-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 15px rgba(78, 94, 211, 0.3);
+  }
+  
+  .nav-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: linear-gradient(to right, #a0a0a0, #787878);
+    box-shadow: none;
+    transform: none;
+  }
+  
+  .prev-btn {
+    margin-right: auto;
+  }
+  
+  .next-btn {
+    margin-left: auto;
+  }
+  
+  /* fullPage.js 导航样式 */
+  #fp-nav ul li a span, 
+  .fp-slidesNav ul li a span {
+    background: rgba(78, 94, 211, 0.7);
+  }
+  
+  #fp-nav ul li a.active span, 
+  .fp-slidesNav ul li a.active span {
+    background: rgb(78, 94, 211);
+    transform: scale(1.5);
+  }
+  
+  .fp-watermark {
+    display: none !important;
+  }
+  
+  /* 固定在左上角的标题和控制按钮 */
+  .fixed-header {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
   }
   
-  .dark article::before {
-    background-color: #1f2937;
-    border-color: #818cf8;
-    box-shadow: 3px 3px 0px #6366f1;
+  .dark .fixed-header {
+    background: rgba(31, 41, 55, 0.9);
   }
   
-  article:hover::before {
-    transform: scale(1.1);
-    box-shadow: 4px 4px 0px #bab5f8;
+  .site-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    margin-right: 1rem;
+    padding: 0;
+    background-image: linear-gradient(to right, #4776E6, #8E54E9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
   
-  .dark article:hover::before {
-    box-shadow: 4px 4px 0px #6366f1;
-  }
-  
-  /* 按钮动画效果 */
-  button, .pagination a {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  }
-  
-  button:hover, .pagination a:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  button:active, .pagination a:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .image-modal.active {
+  .control-buttons {
     display: flex;
-    opacity: 1;
+    gap: 0.5rem;
   }
-
-  .image-modal-content img.loaded {
-    opacity: 1;
-  }
-
-  .back-to-top.visible {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  .article-content img, .mt-4 img {
-    cursor: pointer;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-    background-color: #0c7cd51c;
-    opacity: 0.5;
-    will-change: opacity, transform;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  }
-
-  .article-content img.loaded, .mt-4 img.loaded {
-    opacity: 1;
-  }
-
-  .article-content img:hover, .mt-4 img:hover {
-    opacity: 0.95;
-    transform: scale(1.01);
-  }
-
-  .image-placeholder {
-    opacity: 1;
-    transition: opacity 0.3s ease;
-    will-change: opacity;
-  }
-
-  div.loaded .image-placeholder {
-    opacity: 0;
+  
+  /* 响应式调整 */
+  @media (max-width: 768px) {
+    .article-container {
+      padding: 1.5rem;
+      width: 95%;
+    }
+    
+    .fixed-header {
+      padding: 0.5rem;
+    }
+    
+    .site-title {
+      font-size: 1rem;
+      margin-right: 0.5rem;
+    }
+    
+    .control-buttons {
+      gap: 0.25rem;
+    }
   }
   
   /* 链接过渡效果 */
@@ -570,19 +634,10 @@ const clientStyle = `
     to { opacity: 1; transform: translateY(0); }
   }
   
-  main {
-    animation: fadeIn 0.6s ease-out;
-  }
-  
-  article {
+  .article-container article {
     animation: fadeIn 0.6s ease-out;
     animation-fill-mode: both;
   }
-  
-  article:nth-child(2) { animation-delay: 0.1s; }
-  article:nth-child(3) { animation-delay: 0.2s; }
-  article:nth-child(4) { animation-delay: 0.3s; }
-  article:nth-child(5) { animation-delay: 0.4s; }
 `;
 
 const clientScript = `
@@ -662,33 +717,6 @@ const clientScript = `
       mediaQueryList.addEventListener('change', handleSystemPreferenceChange);
     }
 
-    // 返回顶部功能
-    function initBackToTop() {
-      const backToTopBtn = document.getElementById('back-to-top');
-      if (!backToTopBtn) return;
-
-      const pageTopSentinel = document.createElement('div');
-      Object.assign(pageTopSentinel.style, {
-        position: 'absolute', top: '0', left: '0', width: '1px', height: '1px', pointerEvents: 'none'
-      });
-      document.body.appendChild(pageTopSentinel);
-
-      const observer = new IntersectionObserver((entries) => {
-        safeDomUpdate(() => {
-          backToTopBtn.classList.toggle('visible', !entries[0].isIntersecting);
-        });
-      }, {
-        threshold: 0,
-        rootMargin: '300px 0px 0px 0px'
-      });
-
-      observer.observe(pageTopSentinel);
-
-      backToTopBtn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
-    }
-
     // 图片预览功能
     function initImageViewer() {
       const modal = document.getElementById('imageModal');
@@ -697,302 +725,272 @@ const clientScript = `
       const prevBtn = modal?.querySelector('.image-modal-prev');
       const nextBtn = modal?.querySelector('.image-modal-next');
       const loadingIndicator = modal?.querySelector('.image-loading');
-
-      if (!modal || !modalImg || !closeBtn || !prevBtn || !nextBtn || !loadingIndicator) {
-        console.warn('Image viewer elements not found. Skipping initialization.');
-        return;
-      }
-
-      let currentArticleImages = [];
+      
+      if (!modal || !modalImg) return;
+      
+      let currentGallery = [];
       let currentIndex = 0;
-      let isModalActive = false;
-
-      const lazyLoadObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
+      
+      // 加载图片
+      function loadImage(src) {
+        modalImg.style.opacity = '0';
+        loadingIndicator.style.display = 'flex';
+        
+        modalImg.src = src;
+        modalImg.onload = function() {
+          setTimeout(() => {
+            modalImg.style.opacity = '1';
+            loadingIndicator.style.display = 'none';
+          }, 200);
+        };
+        modalImg.onerror = function() {
+          loadingIndicator.style.display = 'none';
+          alert('图片加载失败');
+        };
+      }
+      
+      // 显示预览图片
+      function showImagePreview(event) {
+        if (event.target.tagName !== 'IMG' || !event.target.dataset.preview) return;
+        
+        // 阻止默认行为
+        event.preventDefault();
+        
+        // 获取当前图片组
+        const galleryContainer = event.target.closest('figure');
+        if (galleryContainer) {
+          currentGallery = Array.from(galleryContainer.querySelectorAll('img[data-preview]'));
+          currentIndex = currentGallery.indexOf(event.target);
+          
+          // 显示/隐藏前后导航按钮
+          prevBtn.style.display = currentGallery.length > 1 ? 'flex' : 'none';
+          nextBtn.style.display = currentGallery.length > 1 ? 'flex' : 'none';
+        } else {
+          currentGallery = [event.target];
+          currentIndex = 0;
+          
+          // 隐藏前后导航按钮
+          prevBtn.style.display = 'none';
+          nextBtn.style.display = 'none';
+        }
+        
+        // 显示模态框
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          modal.classList.add('active');
+          loadImage(event.target.src);
+        }, 10);
+        
+        // 显示关闭按钮
+        closeBtn.classList.remove('hidden');
+        closeBtn.style.display = 'block';
+        
+        // 阻止滚动
+        document.body.style.overflow = 'hidden';
+      }
+      
+      // 关闭预览
+      function closeImagePreview() {
+        modal.classList.remove('active');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+          modalImg.src = '';
+        }, 300);
+        
+        document.body.style.overflow = '';
+      }
+      
+      // 上一张图片
+      function prevImage() {
+        if (currentGallery.length <= 1) return;
+        currentIndex = (currentIndex - 1 + currentGallery.length) % currentGallery.length;
+        loadImage(currentGallery[currentIndex].src);
+      }
+      
+      // 下一张图片
+      function nextImage() {
+        if (currentGallery.length <= 1) return;
+        currentIndex = (currentIndex + 1) % currentGallery.length;
+        loadImage(currentGallery[currentIndex].src);
+      }
+      
+      // 绑定事件
+      document.addEventListener('click', showImagePreview);
+      closeBtn.addEventListener('click', closeImagePreview);
+      prevBtn.addEventListener('click', prevImage);
+      nextBtn.addEventListener('click', nextImage);
+      
+      // 键盘导航
+      document.addEventListener('keydown', function(event) {
+        if (modal.classList.contains('active')) {
+          switch (event.key) {
+            case 'Escape':
+              closeImagePreview();
+              break;
+            case 'ArrowLeft':
+              prevImage();
+              break;
+            case 'ArrowRight':
+              nextImage();
+              break;
+          }
+        }
+      });
+      
+      // 点击模态框背景关闭
+      modal.addEventListener('click', function(event) {
+        if (event.target === modal) {
+          closeImagePreview();
+        }
+      });
+    }
+    
+    // 初始化 fullPage.js
+    function initFullPage() {
+      // 动态创建anchor链接
+      const sections = document.querySelectorAll('.section');
+      const anchors = [];
+      
+      sections.forEach((section, index) => {
+        const anchor = 'page' + (index + 1);
+        anchors.push(anchor);
+        section.setAttribute('data-anchor', anchor);
+      });
+      
+      // 初始化fullPage
+      const fullPageInstance = new fullpage('#fullpage', {
+        // 常规选项
+        licenseKey: 'gplv3-license', // 使用GPL开源协议
+        autoScrolling: true,
+        scrollHorizontally: false,
+        anchors: anchors,
+        navigation: true,
+        navigationPosition: 'right',
+        showActiveTooltip: true,
+        verticalCentered: true,
+        
+        // 特殊选项
+        // 使用CSS3转换
+        css3: true,
+        
+        // 设置自动高度的最后一个section
+        // fp-auto-height 类用于底部导航
+        
+        // 滚动速度
+        scrollingSpeed: 700,
+        
+        // 惯性滚动效果
+        easingcss3: 'ease',
+        
+        // 自适应高度
+        responsiveWidth: 768,
+        responsiveHeight: 600,
+        
+        // 回调函数
+        afterLoad: function(origin, destination, direction) {
+          // 页面加载后更新导航按钮状态
+          updateNavigationButtons(destination.index, sections.length);
+        },
+        
+        afterRender: function() {
+          // 初始化导航按钮
+          initNavigationButtons();
+          
+          // 加载图片
+          lazyLoadImages();
+        }
+      });
+      
+      // 将fullPage实例存储在全局变量中
+      window.fullPageInstance = fullPageInstance;
+      
+      return fullPageInstance;
+    }
+    
+    // 初始化导航按钮
+    function initNavigationButtons() {
+      const prevBtn = document.getElementById('prev-page');
+      const nextBtn = document.getElementById('next-page');
+      const sections = document.querySelectorAll('.section');
+      
+      if (!prevBtn || !nextBtn) return;
+      
+      updateNavigationButtons(0, sections.length);
+      
+      prevBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        fullpage_api.moveSectionUp();
+      });
+      
+      nextBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        fullpage_api.moveSectionDown();
+      });
+    }
+    
+    // 更新导航按钮状态
+    function updateNavigationButtons(currentIndex, totalSections) {
+      const prevBtn = document.getElementById('prev-page');
+      const nextBtn = document.getElementById('next-page');
+      
+      if (!prevBtn || !nextBtn) return;
+      
+      // 在第一页时禁用上一页按钮
+      if (currentIndex === 0) {
+        prevBtn.classList.add('disabled');
+      } else {
+        prevBtn.classList.remove('disabled');
+      }
+      
+      // 在最后一页时禁用下一页按钮
+      if (currentIndex === totalSections - 1) {
+        nextBtn.classList.add('disabled');
+      } else {
+        nextBtn.classList.remove('disabled');
+      }
+    }
+    
+    // 延迟加载图片
+    function lazyLoadImages() {
+      const images = document.querySelectorAll('img[data-preview]');
+      
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
           if (entry.isIntersecting) {
             const img = entry.target;
-            const dataSrc = img.getAttribute('data-src');
-            if (dataSrc) {
-              img.src = dataSrc;
-              img.removeAttribute('data-src');
-            }
-            lazyLoadObserver.unobserve(img);
-          }
-        });
-      }, { rootMargin: '200px' });
-
-      function loadImageIntoModal(imgElement) {
-        loadingIndicator.style.display = 'flex';
-        modalImg.classList.remove('loaded');
-        
-        // 隐藏所有控制按钮
-        closeBtn.style.display = 'none';
-        prevBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
-
-        modalImg.src = imgElement.currentSrc || imgElement.src;
-        modalImg.alt = imgElement.alt || '预览图片';
-
-        modalImg.onload = null;
-        modalImg.onerror = null;
-
-        const handleLoad = () => {
-          modalImg.classList.add('loaded');
-          loadingIndicator.style.display = 'none';
-          
-          // 显示关闭按钮
-          closeBtn.style.display = 'flex';
-          
-          // 根据图片数量决定是否显示导航按钮
-          const hasMultipleImages = currentArticleImages.length > 1;
-          prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
-          nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
-        };
-        const handleError = () => {
-          loadingIndicator.style.display = 'none';
-          closeBtn.style.display = 'flex'; // 图片加载错误时也显示关闭按钮
-          console.error('Modal image failed to load:', modalImg.src);
-        };
-
-        if (modalImg.complete && modalImg.naturalWidth > 0) {
-          handleLoad();
-        } else {
-          modalImg.onload = handleLoad;
-          modalImg.onerror = handleError;
-        }
-      }
-
-      function updateNavigationButtons() {
-        const hasMultipleImages = currentArticleImages.length > 1;
-        safeDomUpdate(() => {
-          prevBtn.style.display = hasMultipleImages ? 'flex' : 'none';
-          nextBtn.style.display = hasMultipleImages ? 'flex' : 'none';
-        });
-      }
-
-      function showImageInModal(img, index) {
-        if (isModalActive) return;
-
-        isModalActive = true;
-        currentIndex = index;
-
-        safeDomUpdate(() => {
-          loadImageIntoModal(img);
-          modal.classList.add('active');
-          document.body.style.overflow = 'hidden';
-          // 不再需要调用updateNavigationButtons，因为这个逻辑已经在loadImageIntoModal中处理了
-        });
-      }
-
-      function navigateImages(direction) { 
-        if (currentArticleImages.length <= 1) return;
-
-        currentIndex = (currentIndex + direction + currentArticleImages.length) % currentArticleImages.length;
-        const targetImg = currentArticleImages[currentIndex];
-
-        if (targetImg) {
-          loadImageIntoModal(targetImg);
-        }
-      }
-
-      function closeModal() {
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-        isModalActive = false;
-        
-        // 关闭模态框时隐藏所有控制按钮
-        closeBtn.style.display = 'none';
-        prevBtn.style.display = 'none';
-        nextBtn.style.display = 'none';
-
-        currentArticleImages = [];
-        currentIndex = 0;
-      }
-
-      function getAllPreviewImages() {
-        return Array.from(document.querySelectorAll('[data-preview="true"]'));
-      }
-
-      function getImagesInContext(triggerImg) {
-        const article = triggerImg.closest('article');
-        return article ? Array.from(article.querySelectorAll('[data-preview="true"]')) : getAllPreviewImages();
-      }
-
-      function setupPageImages() {
-        getAllPreviewImages().forEach(img => {
-          if (!img.dataset.src && img.src && !img.src.startsWith('data:image/svg+xml')) {
-            img.setAttribute('data-src', img.src);
-            img.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"%3E%3C/svg%3E';
-          }
-          lazyLoadObserver.observe(img);
-
-          if (!img.classList.contains('loaded')) {
-            const handleLoad = () => {
-              if (img.complete && img.naturalWidth > 0) {
+            img.onload = function() {
+              safeDomUpdate(() => {
                 img.classList.add('loaded');
-                if (img.parentNode) img.parentNode.classList.add('loaded');
-              }
-              img.removeEventListener('load', handleLoad); 
-              img.removeEventListener('error', handleError);
-            };
-            const handleError = () => {
-              console.error('Image failed to load:', img.src);
-              img.removeEventListener('load', handleLoad);
-              img.removeEventListener('error', handleError);
-            };
-
-            if (img.complete) {
-              if (img.naturalWidth > 0) {
-                handleLoad();
-              } else {
-                handleError();
-              }
-            } else {
-              img.addEventListener('load', handleLoad);
-              img.addEventListener('error', handleError);
-            }
-          }
-        });
-      }
-
-      closeBtn.addEventListener('click', closeModal);
-      prevBtn.addEventListener('click', () => navigateImages(-1));
-      nextBtn.addEventListener('click', () => navigateImages(1));
-
-      modal.addEventListener('click', (e) => {
-        if (e.target === modal) { // Clicked on modal background
-          closeModal();
-        }
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (!modal.classList.contains('active')) return;
-        switch(e.key) {
-          case 'Escape': closeModal(); break;
-          case 'ArrowLeft': navigateImages(-1); break;
-          case 'ArrowRight': navigateImages(1); break;
-        }
-      });
-
-      document.addEventListener('click', (e) => {
-        const targetImg = e.target.closest('[data-preview="true"]');
-        if (targetImg) {
-          e.preventDefault();
-          currentArticleImages = getImagesInContext(targetImg);
-          const index = currentArticleImages.indexOf(targetImg);
-          if (index !== -1) {
-            showImageInModal(targetImg, index);
-          }
-        }
-      }, { passive: false });
-
-      const observer = new MutationObserver((mutations) => {
-        let hasNewPreviewImages = false;
-        for (const mutation of mutations) {
-          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE && (node.querySelector('[data-preview="true"]') || node.matches('[data-preview="true"]'))) {
-                hasNewPreviewImages = true;
-                break;
-              }
-            }
-            if (hasNewPreviewImages) break;
-          }
-        }
-        if (hasNewPreviewImages) {
-          setupPageImages();
-        }
-      });
-
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      setupPageImages();
-    }
-
-    // 初始化代码复制功能
-    function initCodeCopyButtons() {
-      // Helper to update button state after copy operation
-      function updateCopyButtonUI(button, success) {
-        button.innerHTML = success ? '<i class="ri-check-line"></i>' : '<i class="ri-error-warning-line"></i>';
-        button.classList.add('copied');
-        setTimeout(() => {
-          button.innerHTML = '<i class="ri-file-copy-line"></i>';
-          button.classList.remove('copied');
-        }, 2000);
-      }
-
-      document.querySelectorAll('.code-block').forEach(block => {
-        const button = block.querySelector('.copy-btn');
-        if (!button) return;
-
-        if (button.dataset.hasCopyListener === 'true') return;
-        button.dataset.hasCopyListener = 'true';
-
-        button.addEventListener('click', () => {
-          const originalCode = block.getAttribute('data-original-code');
-          const codeText = originalCode ? decodeURIComponent(originalCode) : (block.querySelector('code')?.textContent || '');
-
-          navigator.clipboard.writeText(codeText)
-            .then(() => updateCopyButtonUI(button, true))
-            .catch(() => {
-              const textarea = document.createElement('textarea');
-              textarea.value = codeText;
-              Object.assign(textarea.style, {
-                position: 'fixed', opacity: '0', top: '0', left: '0' 
+                const parent = img.parentNode;
+                if (parent) {
+                  parent.classList.add('loaded');
+                }
               });
-              document.body.appendChild(textarea);
-              textarea.select();
-
-              try {
-                const successful = document.execCommand('copy');
-                updateCopyButtonUI(button, successful);
-              } catch (err) {
-                console.error('Failed to copy via execCommand:', err);
-                updateCopyButtonUI(button, false);
-              } finally {
-                document.body.removeChild(textarea);
-              }
-            });
-        });
-      });
-    }
-
-    // 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化)
-    function enhanceMarkdown() {
-      const observer = new MutationObserver((mutations) => {
-        let hasNewCodeBlocks = false;
-        for (const mutation of mutations) {
-          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE && (node.querySelector('.code-block') || node.matches('.code-block'))) {
-                hasNewCodeBlocks = true;
-                break;
-              }
-            }
-            if (hasNewCodeBlocks) break;
+            };
+            img.src = img.src;
+            observer.unobserve(img);
           }
-        }
-        if (hasNewCodeBlocks) {
-          initCodeCopyButtons();
-        }
+        });
+      }, { threshold: 0.1 });
+      
+      images.forEach((img) => {
+        observer.observe(img);
       });
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      initCodeCopyButtons();
     }
-
-    // 页面加载完成后初始化所有功能
-    document.addEventListener('DOMContentLoaded', () => {
+    
+    // 初始化所有功能
+    function init() {
       initThemeToggle();
       initImageViewer();
-      enhanceMarkdown(); // Handles code copy buttons
-
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(initBackToTop);
-      } else {
-        setTimeout(initBackToTop, 200);
-      }
-    });
+      initFullPage();
+    }
+    
+    // 在DOM加载完成后初始化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
   })();
 `;
 
