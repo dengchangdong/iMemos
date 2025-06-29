@@ -564,8 +564,8 @@ const clientStyle = `
   
   /* 文章发布日期样式 */
   .memo-time {
-    position: absolute;
-    left: 20px;
+    position: fixed;
+    left: 5vw;
     top: 50%;
     transform: translateY(-50%);
     font-size: 4rem;
@@ -575,6 +575,8 @@ const clientStyle = `
     text-orientation: mixed;
     opacity: 0.8;
     font-family: 'Poppins', sans-serif;
+    transition: opacity 0.3s ease;
+    z-index: 10;
   }
   
   /* 文章内容样式 */
@@ -1117,8 +1119,23 @@ const clientScript = `
       articles.forEach(article => {
         const timeElement = article.querySelector('.memo-time');
         if (timeElement) {
-          // 保留原始位置，确保样式应用正确
-          timeElement.style.position = 'absolute';
+          // 确保时间元素位于视口左侧边缘
+          timeElement.style.position = 'fixed';
+          timeElement.style.left = '5vw';
+          timeElement.style.opacity = '0';
+          
+          // 当文章进入视图时显示对应的时间元素
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                timeElement.style.opacity = '0.8';
+              } else {
+                timeElement.style.opacity = '0';
+              }
+            });
+          }, { threshold: 0.5 });
+          
+          observer.observe(article);
         }
       });
     }
