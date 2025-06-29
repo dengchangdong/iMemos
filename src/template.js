@@ -55,7 +55,7 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content, isHomePage = true) {
   const articleClass = isHomePage 
-    ? "pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0" 
+    ? "pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-transparent last:pb-0" 
     : "pb-8 last:pb-0 single-article";
   return utils.createHtml`
     <article class="${articleClass}">
