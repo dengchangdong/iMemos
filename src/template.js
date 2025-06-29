@@ -94,7 +94,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all">${formattedTime}</time>
         </a>
       </div>
     `;
