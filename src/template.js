@@ -261,13 +261,16 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+        <!-- 站点标题（竖排） -->
+        <div class="fixed left-4 top-4 z-40 writing-vertical-rl">
+          <h1 class="text-base md:text-xl lg:text-2xl xl:text-4xl 2xl:text-6xl font-semibold font-poppins tracking-wide text-transparent bg-clip-text bg-gradient-to-b from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">${siteName}</h1>
+        </div>
+        
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
+          <section class="bg-white/50 dark:bg-gray-800/50 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
-                <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">${siteName}</h1>
-                </a>
+                <!-- 移除原标题，因为已在左侧固定显示 -->
               </div>
               <div class="flex items-center space-x-4">
                 <!-- 网站导航
@@ -277,12 +280,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
-                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
-                </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
-                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
-                </button>
               </div>
             </header>
             <main class="mt-8 sm:mt-10 relative">
@@ -294,13 +291,28 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </section>
         </div>
 
-        <button 
-          id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
-          aria-label="返回顶部"
-        >
-          <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
-        </button>
+        <!-- 右下角操作按钮组 -->
+        <div class="fixed bottom-6 right-6 flex flex-col space-y-4 z-50">
+          <button 
+            id="back-to-top" 
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
+            aria-label="返回顶部"
+          >
+            <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
+          </button>
+          
+          <a href="/rss.xml" class="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg" aria-label="RSS订阅" title="RSS订阅">
+            <i class="ri-rss-fill text-xl" aria-hidden="true"></i>
+          </a>
+          
+          <button 
+            id="theme-toggle" 
+            class="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg" 
+            aria-label="切换主题"
+          >
+            <i class="ri-sun-fill text-xl" id="theme-icon" aria-hidden="true"></i>
+          </button>
+        </div>
         
         <!-- 图片预览模态框 -->
         <div 
@@ -367,6 +379,13 @@ const clientStyle = `
     height: 8px;
     background: rgba(255, 255, 255, 0);
     border-radius: 10px;
+  }
+
+  /* 竖排文字样式 */
+  .writing-vertical-rl {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    white-space: nowrap;
   }
 
   /* 移除按钮和链接的焦点边框 */
@@ -675,7 +694,18 @@ const clientScript = `
 
       const observer = new IntersectionObserver((entries) => {
         safeDomUpdate(() => {
-          backToTopBtn.classList.toggle('visible', !entries[0].isIntersecting);
+          if (!entries[0].isIntersecting) {
+            backToTopBtn.classList.remove('invisible', 'opacity-0');
+            backToTopBtn.classList.add('opacity-100');
+          } else {
+            backToTopBtn.classList.remove('opacity-100');
+            backToTopBtn.classList.add('opacity-0');
+            setTimeout(() => {
+              if (!backToTopBtn.classList.contains('opacity-100')) {
+                backToTopBtn.classList.add('invisible');
+              }
+            }, 300);
+          }
         });
       }, {
         threshold: 0,
