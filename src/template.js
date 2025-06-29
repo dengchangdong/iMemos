@@ -55,12 +55,12 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content, isHomePage = true) {
   const articleClass = isHomePage 
-    ? "mb-10 pb-8 border-b border-gray-200 dark:border-gray-700 last:border-transparent last:pb-0" 
-    : "pb-8 single-article";
+    ? "pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-transparent last:pb-0" 
+    : "pb-8 last:pb-0 single-article";
   return utils.createHtml`
     <article class="${articleClass}">
-      <header class="mb-4">${header}</header>
-      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-2 md:text-base text-sm article-content">
+      <header>${header}</header>
+      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
       </section>
     </article>
@@ -81,19 +81,7 @@ export function renderMemo(memo, isHomePage = false) {
     
     const formattedTime = utils.formatTime(timestamp)
     const content = memo.content || ''
-    
-    // 提取第一行作为标题
-    let title = '';
-    let parsedContent = '';
-    
-    const contentLines = content.split('\n');
-    if (contentLines.length > 0) {
-      title = contentLines[0].replace(/^#+\s*/, ''); // 移除标题中的 # 符号
-      parsedContent = simpleMarkdown(contentLines.slice(1).join('\n').trim());
-    } else {
-      parsedContent = simpleMarkdown(content);
-    }
-    
+    const parsedContent = simpleMarkdown(content)
     const resources = memo.resources || memo.resourceList || []
     
     // 创建图片资源HTML
@@ -104,13 +92,10 @@ export function renderMemo(memo, isHomePage = false) {
     
     // 创建文章头部
     const header = utils.createHtml`
-      <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-        <a href="${articleUrl}" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-          ${title || '无标题笔记'}
+      <div class="flex">
+        <a class="block" href="${articleUrl}">
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
         </a>
-      </h3>
-      <div class="flex items-center text-gray-500 dark:text-gray-400 text-sm">
-        <time datetime="${new Date(timestamp).toISOString()}" class="font-normal">${formattedTime}</time>
       </div>
     `;
     
@@ -124,7 +109,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -139,14 +124,11 @@ const renderImageItem = (resource, itemClass) => {
   );
 
   return utils.createHtml`
-    <div class="${itemClass}">
-      <img 
-        src="${transformedLink}" 
-        alt="${resource.filename || '图片'}" 
-        class="rounded-lg w-full h-auto object-cover shadow-sm hover:shadow-md transition-shadow duration-200" 
-        loading="lazy" 
-        data-preview="true"
-      />
+    <div class="${itemClass} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
+      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-lg w-full h-full object-cover transition-all duration-300 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
+      <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 image-placeholder">
+        <i class="ri-image-line text-2xl animate-pulse"></i>
+      </div>
     </div>
   `;
 };
@@ -161,19 +143,15 @@ function createResourcesHtml(resources) {
   const layoutConfig = {
     1: { 
       container: '',                 
-      item: 'w-full' 
-    },
-    2: { 
-      container: 'grid grid-cols-2 gap-4', 
       item: 'w-full aspect-video' 
     },
-    3: {
-      container: 'grid grid-cols-1 md:grid-cols-3 gap-4',
-      item: 'w-full'
+    2: { 
+      container: 'flex flex-wrap gap-1', 
+      item: 'w-[calc(50%-2px)] aspect-square' 
     },
     default: { 
-      container: 'grid grid-cols-2 md:grid-cols-3 gap-4', 
-      item: 'w-full' 
+      container: 'grid grid-cols-3 gap-1', 
+      item: 'aspect-square' 
     },
   };
 
@@ -189,7 +167,7 @@ function createResourcesHtml(resources) {
     : imagesHtml;
 
   return utils.createHtml`
-    <figure class="my-6">
+    <figure class="mt-4">
       ${content}
     </figure>
   `;
@@ -206,13 +184,13 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none transition-colors";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-blue-500 to-blue-600 text-white no-underline border-none cursor-pointer hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
-      <div class="pagination flex justify-center items-center mt-12">
+      <div class="pagination flex justify-center items-center mt-8">
         <a href="/page/2" class="${buttonClass}">
-          查看更多
+          <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
         </a>
       </div>
     `;
@@ -222,13 +200,13 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
   const nextPageLink = `/page/${currentPage + 1}`;
 
   return utils.createHtml`
-    <div class="pagination flex flex-wrap justify-between items-center mt-12 gap-4">
+    <div class="pagination flex justify-between items-center mt-8">
       <a href="${prevPageLink}" class="${buttonClass}">
-        <i class="ri-arrow-left-line mr-1"></i> 上一页
+        <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <span class="text-sm text-gray-500 dark:text-gray-400">第 ${currentPage} 页</span>
+      <span class="text-sm bg-blue-100/70 dark:bg-blue-900/30 px-4 py-1.5 rounded-full text-blue-700 dark:text-blue-300 font-medium">第 ${currentPage} 页</span>
       <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
-        下一页 <i class="ri-arrow-right-line ml-1"></i>
+        下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
     </div>
   `;
@@ -239,7 +217,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-orange-200 text-orange-500 hover:text-orange-700 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -252,11 +230,11 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName}">
-        <meta name="theme-color" content="#ffffff">
+        <meta name="theme-color" content="#209cff">
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <link rel="alternate" type="application/rss+xml" title="${siteName}" href="/rss.xml" />
         <script src="https://cdn.tailwindcss.com"></script>
@@ -265,23 +243,17 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             darkMode: 'class',
             theme: {
               extend: {
+                backgroundImage: {
+                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                },
                 colors: {
-                  primary: {
-                    50: '#f0f9ff',
-                    100: '#e0f2fe',
-                    200: '#bae6fd',
-                    300: '#7dd3fc',
-                    400: '#38bdf8',
-                    500: '#0ea5e9',
-                    600: '#0284c7',
-                    700: '#0369a1',
-                    800: '#075985',
-                    900: '#0c4a6e',
-                    950: '#082f49'
-                  },
+                  'indigo-timeline': '#4e5ed3',
+                  'indigo-shadow': '#bab5f8',
                 },
                 fontFamily: {
-                  'sans': ['Inter', 'sans-serif'],
+                  'sans': ['Noto Sans SC', 'sans-serif'],
+                  'poppins': ['Poppins', 'sans-serif'],
                 }
               }
             }
@@ -291,42 +263,43 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="bg-white dark:bg-gray-900 min-h-screen font-sans antialiased text-gray-800 dark:text-gray-200">
-        <header class="border-b border-gray-100 dark:border-gray-800 py-6">
-          <div class="container max-w-3xl mx-auto px-4 sm:px-6">
-            <nav class="flex justify-between items-center">
-              <a href="/" class="text-xl font-bold text-gray-900 dark:text-white">
-                ${siteName}
-              </a>
-              <div class="flex items-center space-x-1">
-                ${navItemsHtml ? `<ul class="hidden md:flex space-x-1">${navItemsHtml}</ul>` : ''}
-                <a href="/rss.xml" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" aria-label="RSS订阅" title="RSS订阅">
-                  <i class="ri-rss-fill text-lg"></i>
+      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
+          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
+            <header class="flex items-center justify-between">
+              <div class="flex items-center">
+                <a href="/" class="flex items-center" aria-label="返回首页">
+                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">${siteName}</h1>
                 </a>
-                <button id="theme-toggle" class="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" aria-label="切换主题">
-                  <i class="ri-sun-fill text-lg" id="theme-icon"></i>
+              </div>
+              <div class="flex items-center space-x-4">
+                <!-- 网站导航
+                <nav class="mr-1" aria-label="网站导航">
+                  <ul class="flex space-x-2">
+                    ${navItemsHtml}
+                  </ul>
+                </nav>
+                 -->
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
+                </a>
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
-            </nav>
-          </div>
-        </header>
-        
-        <main class="container max-w-3xl mx-auto px-4 sm:px-6 py-12">
-          ${articlesHtml}
-          
-          <!-- 分页导航 -->
-          ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
-        </main>
-        
-        <footer class="border-t border-gray-100 dark:border-gray-800 py-6 mt-12">
-          <div class="container max-w-3xl mx-auto px-4 sm:px-6 text-center text-gray-500 dark:text-gray-400 text-sm">
-            <p>© ${new Date().getFullYear()} ${siteName}. 保留所有权利。</p>
-          </div>
-        </footer>
+            </header>
+            <main class="mt-8 sm:mt-10 relative">
+              ${articlesHtml}
+            </main>
+            
+            <!-- 分页导航 -->
+            ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
+          </section>
+        </div>
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-primary-500 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-primary-600 hover:scale-110 hover:shadow-lg"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -393,22 +366,10 @@ const clientStyle = `
   html::-webkit-scrollbar, 
   body::-webkit-scrollbar,
   pre::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-    background: transparent;
-  }
-
-  html::-webkit-scrollbar-thumb, 
-  body::-webkit-scrollbar-thumb,
-  pre::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 6px;
-  }
-
-  html::-webkit-scrollbar-thumb:hover, 
-  body::-webkit-scrollbar-thumb:hover,
-  pre::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.2);
+    width: 8px;
+    height: 8px;
+    background: rgba(255, 255, 255, 0);
+    border-radius: 10px;
   }
 
   /* 移除按钮和链接的焦点边框 */
@@ -417,104 +378,112 @@ const clientStyle = `
   }
 
   button:focus, a:focus {
-    outline: none;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  html::-webkit-scrollbar-thumb, 
+  body::-webkit-scrollbar-thumb,
+  pre::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+  }
+
+  html::-webkit-scrollbar-thumb:hover, 
+  body::-webkit-scrollbar-thumb:hover,
+  pre::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.11);
+    border-radius: 10px; 
+  }
+
+  html::-webkit-scrollbar-track:hover, 
+  body::-webkit-scrollbar-track:hover,
+  pre::-webkit-scrollbar-track:hover {
+    background: rgba(0, 0, 0, 0);
+    border-radius: 10px; 
   }
   
-  /* 字体和排版 */
+  /* 新增字体样式 */
   body {
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 0.015em;
   }
   
   h1, h2, h3, h4, h5, h6 {
-    line-height: 1.3;
-    margin: 2em 0 0.5em;
-  }
-
-  h1:first-child, h2:first-child, h3:first-child, h4:first-child {
-    margin-top: 0;
+    font-family: 'Noto Sans SC', sans-serif;
   }
   
-  h1 {
-    font-size: 1.875rem;
-    font-weight: 700;
+  /* 改进阴影效果 */
+  .shadow-lg {
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
+                0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
+  .shadow-lg:hover {
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
+                0 10px 20px -5px rgba(0, 0, 0, 0.07);
   }
   
-  h3 {
-    font-size: 1.25rem;
-    font-weight: 600;
+  /* 文章样式与动画 */
+  article {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
-  p {
-    margin: 1em 0;
-    line-height: 1.7;
-  }
-
-  blockquote {
-    border-left: 3px solid #e5e7eb;
-    padding-left: 1rem;
-    margin: 1.5em 0;
-    font-style: italic;
-    color: #6b7280;
-  }
-  
-  .dark blockquote {
-    border-color: #374151;
-    color: #9ca3af;
-  }
-
-  article a {
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 2px;
-    text-decoration-color: #d1d5db;
-    color: #111827;
-    transition: all 0.15s ease;
-  }
-
-  .dark article a {
-    color: #f3f4f6;
-    text-decoration-color: #4b5563;
-  }
-
-  article a:hover {
-    color: #2563eb;
-    text-decoration-color: #2563eb;
-  }
-
-  .dark article a:hover {
-    color: #3b82f6;
-    text-decoration-color: #3b82f6;
+  /* article的before伪元素样式 */
+  article::before {
+    content: '';
+    width: 17px;
+    height: 17px;
+    background-color: white;
+    border: 1px solid #4e5ed3;
+    border-radius: 50%;
+    position: absolute;
+    left: -9px;
+    top: 0;
+    box-shadow: 3px 3px 0px #bab5f8;
+    transition: all 0.3s ease;
   }
   
-  /* 按钮样式 */
-  button {
-    transition: all 0.15s ease;
+  /* 单篇文章不显示before伪元素和左侧间距 */
+  .single-article::before {
+    content: none;
   }
   
-  .back-to-top.visible {
-    opacity: 1;
-    visibility: visible;
+  .single-article {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
   }
-
-  /* 图片样式 */
-  .article-content img, .mt-4 img {
-    border-radius: 0.5rem;
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 1.5em 0;
-    background-color: #f3f4f6;
-  }
-
-  .dark .article-content img, .dark .mt-4 img {
+  
+  .dark article::before {
     background-color: #1f2937;
+    border-color: #818cf8;
+    box-shadow: 3px 3px 0px #6366f1;
+  }
+  
+  article:hover::before {
+    transform: scale(1.1);
+    box-shadow: 4px 4px 0px #bab5f8;
+    background-color: #4e5ed3;
+  }
+  
+  .dark article:hover::before {
+    box-shadow: 4px 4px 0px #6366f1;
+  }
+  
+  /* 按钮动画效果 */
+  button, .pagination a {
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  }
+  
+  button:hover, .pagination a:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  button:active, .pagination a:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .image-modal.active {
@@ -526,37 +495,89 @@ const clientStyle = `
     opacity: 1;
   }
 
-  /* 代码块样式 */
-  code {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 0.875rem;
+  .back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
   }
 
-  p code, li code {
-    background-color: #f3f4f6;
-    padding: 0.15em 0.3em;
-    border-radius: 0.25rem;
-    font-size: 0.875em;
+  .article-content img, .mt-4 img {
+    cursor: pointer;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    background-color: #0c7cd51c;
+    opacity: 0.5;
+    will-change: opacity, transform;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   }
 
-  .dark p code, .dark li code {
-    background-color: #1f2937;
+  .article-content img.loaded, .mt-4 img.loaded {
+    opacity: 1;
   }
 
-  pre {
-    background-color: #f9fafb;
-    border-radius: 0.375rem;
-    padding: 1rem;
-    overflow-x: auto;
+  .article-content img:hover, .mt-4 img:hover {
+    opacity: 0.95;
+    transform: scale(1.01);
+  }
+
+  .image-placeholder {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+    will-change: opacity;
+  }
+
+  div.loaded .image-placeholder {
+    opacity: 0;
+  }
+  
+  /* 链接过渡效果 */
+  a {
+    transition: color 0.3s ease;
+    position: relative;
+  }
+  
+  a:not(.pagination a):hover {
+    text-decoration: none;
+  }
+  
+  a:not(.pagination a):after {
+    content: none;
+  }
+  
+  /* 代码块优化 */
+  .code-block {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     margin: 1.5em 0;
-    border: 1px solid #e5e7eb;
+    overflow: hidden;
   }
-
-  .dark pre {
-    background-color: #111827;
-    border-color: #374151;
+  
+  pre {
+    border-radius: 8px;
+    margin: 1.5em 0;
+    box-shadow: none;
   }
-
+  
+  .code-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    box-shadow: none;
+  }
+  
+  .code-header + pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin-top: 0;
+    box-shadow: none;
+  }
+  
+  .code-block pre {
+    margin: 0;
+  }
+  
+  code {
+    font-family: 'Roboto Mono', monospace;
+  }
+  
   /* 页面加载动画 */
   @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
@@ -564,11 +585,11 @@ const clientStyle = `
   }
   
   main {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.6s ease-out;
   }
   
   article {
-    animation: fadeIn 0.5s ease-out;
+    animation: fadeIn 0.6s ease-out;
     animation-fill-mode: both;
   }
   
