@@ -14,13 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
-        <div class="article-content text-white">
-          <time class="memo-time">错误</time>
-          <p class="text-red-400 dark:text-red-400 font-medium">加载失败</p>
-          <p class="text-sm text-white">${error.message}</p>
-          <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
-        </div>
+        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-sm">${error.message}</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
       `
     );
   },
@@ -31,13 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
-        <div class="article-content text-white">
-          <time class="memo-time">404</time>
-          <h2 class="font-medium text-white">未找到内容</h2>
-          <p class="text-white">您访问的内容不存在或已被删除</p>
-          <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
-        </div>
+        <h2 class="font-medium">未找到内容</h2>
+        <p>您访问的内容不存在或已被删除</p>
+        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
       `
     );
   }
@@ -57,10 +53,11 @@ export function parseNavLinks(linksStr) {
 }
 
 // 创建文章结构
-function createArticleStructure(content) {
+function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 relative pl-5 last:pb-0 flex flex-col justify-center items-center h-full">
-      <section class="leading-relaxed md:text-base text-sm max-w-3xl mx-auto px-6 article-section">
+    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+      <header>${header}</header>
+      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
       </section>
     </article>
@@ -87,22 +84,30 @@ export function renderMemo(memo, isHomePage = false) {
     // 创建图片资源HTML
     const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
     
-    // 创建文章内容
-    const articleContent = utils.createHtml`
-      <div class="article-content text-white">
-        <time datetime="${new Date(timestamp).toISOString()}" class="memo-time">${formattedTime}</time>
-        ${parsedContent}
-        ${resourcesHtml}
+    // 文章URL
+    const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
+    
+    // 创建文章头部
+    const header = utils.createHtml`
+      <div class="flex">
+        <a class="block" href="${articleUrl}">
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
+        </a>
       </div>
     `;
     
-    return createArticleStructure(articleContent);
+    // 创建文章内容
+    const articleContent = utils.createHtml`
+      ${parsedContent}
+      ${resourcesHtml}
+    `;
+    
+    return createArticleStructure(header, articleContent);
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<div class="article-content text-white">
-        <p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>
-      </div>`
+      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
 }
@@ -176,13 +181,13 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white shadow-md";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-blue-500 to-blue-600 text-white no-underline border-none cursor-pointer hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
-      <div class="pagination flex justify-center items-center">
-        <a href="/page/2" class="${buttonClass} fixed right-5 bottom-5">
-          查看更多 <i class="ri-arrow-right-line text-xl ml-2"></i>
+      <div class="pagination flex justify-center items-center mt-8">
+        <a href="/page/2" class="${buttonClass}">
+          <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
         </a>
       </div>
     `;
@@ -192,10 +197,11 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
   const nextPageLink = `/page/${currentPage + 1}`;
 
   return utils.createHtml`
-    <div class="pagination">
+    <div class="pagination flex justify-between items-center mt-8">
       <a href="${prevPageLink}" class="${buttonClass}">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
+      <span class="text-sm bg-blue-100/70 dark:bg-blue-900/30 px-4 py-1.5 rounded-full text-blue-700 dark:text-blue-300 font-medium">第 ${currentPage} 页</span>
       <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
         下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
@@ -235,8 +241,8 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient-1': 'linear-gradient(128deg,#ff9a3f,#ff4b40)',
-                  'custom-gradient-2': 'linear-gradient(128deg,#40afff,#3f61ff)',
+                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
                 },
                 colors: {
                   'indigo-timeline': '#4e5ed3',
@@ -254,26 +260,40 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="min-h-screen m-0 p-0 font-sans">
-        <header class="fixed top-0 left-0 z-50 p-4 flex items-center">
-          <a href="/" class="flex items-center mr-4 bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white px-4 py-2 rounded-full transition-all duration-300" aria-label="返回首页">
-            <h1 class="text-base font-semibold font-poppins mb-0 tracking-wide">${siteName}</h1>
-          </a>
-          <a href="/rss.xml" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 mr-2" aria-label="RSS订阅" title="RSS订阅">
-            <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
-          </a>
-          <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="切换主题">
-            <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
-          </button>
-        </header>
-        
-        <div id="custom-fullpage">
-          ${articlesHtml}
+      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
+          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
+            <header class="flex items-center justify-between">
+              <div class="flex items-center">
+                <a href="/" class="flex items-center" aria-label="返回首页">
+                  <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">${siteName}</h1>
+                </a>
+              </div>
+              <div class="flex items-center space-x-4">
+                <!-- 网站导航
+                <nav class="mr-1" aria-label="网站导航">
+                  <ul class="flex space-x-2">
+                    ${navItemsHtml}
+                  </ul>
+                </nav>
+                 -->
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
+                </a>
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+                </button>
+              </div>
+            </header>
+            <main class="mt-8 sm:mt-10 relative">
+              ${articlesHtml}
+            </main>
+            
+            <!-- 分页导航 -->
+            ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
+          </section>
         </div>
 
-        <!-- 分页导航 -->
-        ${hasMore ? renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit }) : ''}
-        
         <button 
           id="back-to-top" 
           class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
@@ -384,8 +404,6 @@ const clientStyle = `
   body {
     font-family: 'Noto Sans SC', sans-serif;
     letter-spacing: 0.015em;
-    overflow-x: hidden;
-    overflow-y: hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -407,36 +425,36 @@ const clientStyle = `
   /* 文章样式与动画 */
   article {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    position: relative;
-    height: 100vh;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    scroll-snap-align: start;
-    overflow-y: auto;
-    padding: 2rem 0;
   }
   
-  article section {
-    max-height: 90vh;
-    overflow-y: auto;
-    padding: 1rem;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.3) transparent;
+  /* article的before伪元素样式 */
+  article::before {
+    content: '';
+    width: 17px;
+    height: 17px;
+    background-color: white;
+    border: 1px solid #4e5ed3;
+    border-radius: 50%;
+    position: absolute;
+    left: -9px;
+    top: 0;
+    box-shadow: 3px 3px 0px #bab5f8;
+    transition: all 0.3s ease;
   }
   
-  article section::-webkit-scrollbar {
-    width: 5px;
+  .dark article::before {
+    background-color: #1f2937;
+    border-color: #818cf8;
+    box-shadow: 3px 3px 0px #6366f1;
   }
   
-  article section::-webkit-scrollbar-track {
-    background: transparent;
+  article:hover::before {
+    transform: scale(1.1);
+    box-shadow: 4px 4px 0px #bab5f8;
   }
   
-  article section::-webkit-scrollbar-thumb {
-    background-color: rgba(255,255,255,0.3);
-    border-radius: 10px;
+  .dark article:hover::before {
+    box-shadow: 4px 4px 0px #6366f1;
   }
   
   /* 按钮动画效果 */
@@ -546,102 +564,25 @@ const clientStyle = `
     font-family: 'Roboto Mono', monospace;
   }
   
-  /* 分页导航 */
-  .pagination {
-    position: fixed;
-    z-index: 100;
+  /* 页面加载动画 */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   
-  .pagination a:first-child {
-    left: 20px;
-    bottom: 20px;
-    position: fixed;
+  main {
+    animation: fadeIn 0.6s ease-out;
   }
   
-  .pagination a:last-child {
-    right: 20px;
-    bottom: 20px;
-    position: fixed;
+  article {
+    animation: fadeIn 0.6s ease-out;
+    animation-fill-mode: both;
   }
   
-  /* 自定义全屏效果 */
-  #custom-fullpage {
-    height: 100vh;
-    width: 100vw;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    scroll-behavior: smooth;
-  }
-  
-  /* 文章section滚动样式 */
-  .article-section {
-    max-height: calc(100vh - 4rem);
-    overflow-y: auto;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.3) transparent;
-    padding-right: 10px;
-  }
-  
-  /* 确保文章内容在滚动时不被遮挡 */
-  .article-content {
-    color: #fff !important;
-    width: 100%;
-    position: relative;
-    padding-bottom: 2rem;
-  }
-  
-  .article-content p,
-  .article-content h1,
-  .article-content h2,
-  .article-content h3,
-  .article-content h4,
-  .article-content h5,
-  .article-content h6,
-  .article-content ul,
-  .article-content ol,
-  .article-content li,
-  .article-content a,
-  .article-content blockquote,
-  .article-content pre,
-  .article-content code {
-    color: #fff !important;
-  }
-  
-  article:nth-child(odd) {
-    background: linear-gradient(128deg,#ff9a3f,#ff4b40);
-  }
-  
-  article:nth-child(even) {
-    background: linear-gradient(128deg,#40afff,#3f61ff);
-  }
-  
-  .dark article {
-    background: #555;
-  }
-  
-  /* 文章发布日期样式 */
-  .memo-time {
-    position: fixed;
-    left: 5vw;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: clamp(2rem, 5vw, 4rem);
-    color: rgba(255,255,255,0.3);
-    font-weight: bold;
-    writing-mode: vertical-lr;
-    text-orientation: mixed;
-    opacity: 0.8;
-    font-family: 'Poppins', sans-serif;
-    transition: opacity 0.3s ease;
-    pointer-events: none;
-  }
-  
-  @media (max-width: 768px) {
-    .memo-time {
-      font-size: clamp(1.5rem, 4vw, 2.5rem);
-      left: 2vw;
-    }
-  }
+  article:nth-child(2) { animation-delay: 0.1s; }
+  article:nth-child(3) { animation-delay: 0.2s; }
+  article:nth-child(4) { animation-delay: 0.3s; }
+  article:nth-child(5) { animation-delay: 0.4s; }
 `;
 
 const clientScript = `
@@ -839,6 +780,7 @@ const clientScript = `
           loadImageIntoModal(img);
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
+          // 不再需要调用updateNavigationButtons，因为这个逻辑已经在loadImageIntoModal中处理了
         });
       }
 
@@ -1015,247 +957,41 @@ const clientScript = `
       });
     }
 
-    // 自定义全屏滚动效果
-    function initCustomFullPage() {
-      const container = document.getElementById('custom-fullpage');
-      if (!container) return;
-
-      const articles = Array.from(container.querySelectorAll('article'));
-      if (articles.length === 0) return;
-      
-      // 设置每个文章为独立的section
-      articles.forEach((article, index) => {
-        article.dataset.index = index;
-        article.id = 'article-' + index;
-      });
-      
-      let currentIndex = 0;
-      let isScrolling = false;
-      let touchStartY = 0;
-      let touchDeltaY = 0;
-      
-      // 滚动到指定位置
-      function scrollToArticle(index) {
-        if (index < 0) index = 0;
-        if (index >= articles.length) index = articles.length - 1;
-        
-        currentIndex = index;
-        const targetArticle = articles[index];
-        
-        isScrolling = true;
-        container.scrollTo({
-          top: targetArticle.offsetTop,
-          behavior: 'smooth'
-        });
-        
-        // 动画完成后重置滚动标志
-        setTimeout(() => {
-          isScrolling = false;
-        }, 1000);
-      }
-      
-      // 滚动监听
-      const handleScroll = throttle(() => {
-        if (isScrolling) return;
-        
-        const scrollPosition = container.scrollTop;
-        const windowHeight = window.innerHeight;
-        
-        let newIndex = 0;
-        for (let i = 0; i < articles.length; i++) {
-          const article = articles[i];
-          const articleTop = article.offsetTop;
-          const articleBottom = articleTop + article.offsetHeight;
-          
-          if (scrollPosition >= articleTop - windowHeight / 3 && 
-              scrollPosition < articleBottom - windowHeight / 3) {
-            newIndex = i;
-            break;
-          }
-        }
-        
-        if (newIndex !== currentIndex) {
-          currentIndex = newIndex;
-        }
-      }, 100);
-      
-      // 键盘导航
-      function handleKeyDown(e) {
-        // 如果当前正在内容区域滚动，不处理页面滚动
-        if (isScrollingInArticle()) return;
-        
-        if (isScrolling) return;
-        
-        switch(e.key) {
-          case 'ArrowUp':
-          case 'PageUp':
-            e.preventDefault();
-            scrollToArticle(currentIndex - 1);
-            break;
-          case 'ArrowDown':
-          case 'PageDown':
-          case ' ':
-            e.preventDefault();
-            scrollToArticle(currentIndex + 1);
-            break;
-          case 'Home':
-            e.preventDefault();
-            scrollToArticle(0);
-            break;
-          case 'End':
-            e.preventDefault();
-            scrollToArticle(articles.length - 1);
-            break;
-        }
-      }
-      
-      // 检查是否在文章内容区域滚动
-      function isScrollingInArticle() {
-        const currentArticle = articles[currentIndex];
-        if (!currentArticle) return false;
-        
-        const section = currentArticle.querySelector('.article-section');
-        if (!section) return false;
-        
-        // 如果内容高度大于容器高度，且未滚动到底部或顶部，则认为在内容区域滚动
-        return section.scrollHeight > section.clientHeight && 
-               (section.scrollTop > 0 && section.scrollTop + section.clientHeight < section.scrollHeight);
-      }
-      
-      // 鼠标滚轮事件
-      function handleWheel(e) {
-        // 检查事件目标是否在文章内容区域
-        const section = e.target.closest('.article-section');
-        if (section) {
-          // 检查内容是否可滚动
-          const isScrollable = section.scrollHeight > section.clientHeight;
-          
-          // 如果内容可滚动，检查是否已经到达顶部或底部
-          if (isScrollable) {
-            const reachedTop = section.scrollTop === 0 && e.deltaY < 0;
-            const reachedBottom = section.scrollTop + section.clientHeight >= section.scrollHeight - 1 && e.deltaY > 0;
-            
-            // 如果没有到达边界，让内容自然滚动
-            if (!reachedTop && !reachedBottom) {
-              return; // 不阻止默认行为，让内容区域自然滚动
-            }
-          }
-        }
-        
-        // 如果不在内容区域或已到达内容边界，处理页面滚动
-        if (isScrolling) {
-          e.preventDefault();
-          return;
-        }
-        
-        const delta = Math.sign(e.deltaY);
-        if (delta > 0) {
-          scrollToArticle(currentIndex + 1);
-        } else if (delta < 0) {
-          scrollToArticle(currentIndex - 1);
-        }
-        
-        e.preventDefault();
-      }
-      
-      // 触摸事件处理
-      function handleTouchStart(e) {
-        touchStartY = e.touches[0].clientY;
-      }
-      
-      function handleTouchMove(e) {
-        // 检查是否在文章内容区域滚动
-        const section = e.target.closest('.article-section');
-        if (section) {
-          // 检查内容是否可滚动
-          const isScrollable = section.scrollHeight > section.clientHeight;
-          
-          if (isScrollable) {
-            // 让内容自然滚动
-            return;
-          }
-        }
-        
-        if (isScrolling) {
-          e.preventDefault();
-          return;
-        }
-        
-        touchDeltaY = touchStartY - e.touches[0].clientY;
-      }
-      
-      function handleTouchEnd() {
-        // 检查是否在文章内容区域
-        if (document.activeElement.closest('.article-section')) {
-          return;
-        }
-        
-        if (Math.abs(touchDeltaY) > 50) {
-          if (touchDeltaY > 0) {
-            scrollToArticle(currentIndex + 1);
-          } else {
-            scrollToArticle(currentIndex - 1);
-          }
-        }
-        
-        touchStartY = 0;
-        touchDeltaY = 0;
-      }
-      
-      // 节流函数
-      function throttle(func, limit) {
-        let inThrottle;
-        return function() {
-          const args = arguments;
-          const context = this;
-          if (!inThrottle) {
-            func.apply(context, args);
-            inThrottle = true;
-            setTimeout(() => inThrottle = false, limit);
-          }
-        }
-      }
-      
-      // 添加事件监听
-      container.addEventListener('scroll', handleScroll, { passive: true });
-      document.addEventListener('keydown', handleKeyDown);
-      container.addEventListener('wheel', handleWheel, { passive: false });
-      container.addEventListener('touchstart', handleTouchStart, { passive: true });
-      container.addEventListener('touchmove', handleTouchMove, { passive: false });
-      container.addEventListener('touchend', handleTouchEnd, { passive: true });
-      
-      // 处理文章中的时间元素
-      articles.forEach(article => {
-        const timeElement = article.querySelector('.memo-time');
-        if (timeElement) {
-          // 确保时间元素位于视口左侧边缘
-          timeElement.style.position = 'fixed';
-          timeElement.style.left = '5vw';
-          timeElement.style.opacity = '0';
-          
-          // 当文章进入视图时显示对应的时间元素
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                timeElement.style.opacity = '0.8';
-              } else {
-                timeElement.style.opacity = '0';
+    // 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化)
+    function enhanceMarkdown() {
+      const observer = new MutationObserver((mutations) => {
+        let hasNewCodeBlocks = false;
+        for (const mutation of mutations) {
+          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+            for (const node of mutation.addedNodes) {
+              if (node.nodeType === Node.ELEMENT_NODE && (node.querySelector('.code-block') || node.matches('.code-block'))) {
+                hasNewCodeBlocks = true;
+                break;
               }
-            });
-          }, { threshold: 0.5 });
-          
-          observer.observe(article);
+            }
+            if (hasNewCodeBlocks) break;
+          }
+        }
+        if (hasNewCodeBlocks) {
+          initCodeCopyButtons();
         }
       });
+      observer.observe(document.body, { childList: true, subtree: true });
+
+      initCodeCopyButtons();
     }
-  
+
     // 页面加载完成后初始化所有功能
     document.addEventListener('DOMContentLoaded', () => {
       initThemeToggle();
       initImageViewer();
-      initCodeCopyButtons();
-      initBackToTop();
-      initCustomFullPage();
+      enhanceMarkdown(); // Handles code copy buttons
+
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(initBackToTop);
+      } else {
+        setTimeout(initBackToTop, 200);
+      }
     });
   })();
 `;
