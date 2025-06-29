@@ -60,7 +60,7 @@ export function parseNavLinks(linksStr) {
 function createArticleStructure(content) {
   return utils.createHtml`
     <article class="pb-8 relative pl-5 last:pb-0 flex flex-col justify-center items-center h-full">
-      <section class="leading-relaxed md:text-base text-sm max-w-3xl mx-auto px-6">
+      <section class="leading-relaxed md:text-base text-sm max-w-3xl mx-auto px-6 article-section">
         ${content}
       </section>
     </article>
@@ -414,6 +414,29 @@ const clientStyle = `
     justify-content: center;
     align-items: center;
     scroll-snap-align: start;
+    overflow-y: auto;
+    padding: 2rem 0;
+  }
+  
+  article section {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+  }
+  
+  article section::-webkit-scrollbar {
+    width: 5px;
+  }
+  
+  article section::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  article section::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 10px;
   }
   
   /* 按钮动画效果 */
@@ -550,6 +573,40 @@ const clientStyle = `
     scroll-behavior: smooth;
   }
   
+  /* 文章section滚动样式 */
+  .article-section {
+    max-height: calc(100vh - 4rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.3) transparent;
+    padding-right: 10px;
+  }
+  
+  /* 确保文章内容在滚动时不被遮挡 */
+  .article-content {
+    color: #fff !important;
+    width: 100%;
+    position: relative;
+    padding-bottom: 2rem;
+  }
+  
+  .article-content p,
+  .article-content h1,
+  .article-content h2,
+  .article-content h3,
+  .article-content h4,
+  .article-content h5,
+  .article-content h6,
+  .article-content ul,
+  .article-content ol,
+  .article-content li,
+  .article-content a,
+  .article-content blockquote,
+  .article-content pre,
+  .article-content code {
+    color: #fff !important;
+  }
+  
   article:nth-child(odd) {
     background: linear-gradient(128deg,#ff9a3f,#ff4b40);
   }
@@ -584,30 +641,6 @@ const clientStyle = `
       font-size: clamp(1.5rem, 4vw, 2.5rem);
       left: 2vw;
     }
-  }
-  
-  /* 文章内容样式 */
-  .article-content {
-    color: #fff !important;
-    width: 100%;
-    position: relative;
-  }
-  
-  .article-content p,
-  .article-content h1,
-  .article-content h2,
-  .article-content h3,
-  .article-content h4,
-  .article-content h5,
-  .article-content h6,
-  .article-content ul,
-  .article-content ol,
-  .article-content li,
-  .article-content a,
-  .article-content blockquote,
-  .article-content pre,
-  .article-content code {
-    color: #fff !important;
   }
 `;
 
@@ -1048,6 +1081,9 @@ const clientScript = `
       
       // 键盘导航
       function handleKeyDown(e) {
+        // 如果当前正在内容区域滚动，不处理页面滚动
+        if (isScrollingInArticle()) return;
+        
         if (isScrolling) return;
         
         switch(e.key) {
@@ -1073,8 +1109,40 @@ const clientScript = `
         }
       }
       
+      // 检查是否在文章内容区域滚动
+      function isScrollingInArticle() {
+        const currentArticle = articles[currentIndex];
+        if (!currentArticle) return false;
+        
+        const section = currentArticle.querySelector('.article-section');
+        if (!section) return false;
+        
+        // 如果内容高度大于容器高度，且未滚动到底部或顶部，则认为在内容区域滚动
+        return section.scrollHeight > section.clientHeight && 
+               (section.scrollTop > 0 && section.scrollTop + section.clientHeight < section.scrollHeight);
+      }
+      
       // 鼠标滚轮事件
       function handleWheel(e) {
+        // 检查事件目标是否在文章内容区域
+        const section = e.target.closest('.article-section');
+        if (section) {
+          // 检查内容是否可滚动
+          const isScrollable = section.scrollHeight > section.clientHeight;
+          
+          // 如果内容可滚动，检查是否已经到达顶部或底部
+          if (isScrollable) {
+            const reachedTop = section.scrollTop === 0 && e.deltaY < 0;
+            const reachedBottom = section.scrollTop + section.clientHeight >= section.scrollHeight - 1 && e.deltaY > 0;
+            
+            // 如果没有到达边界，让内容自然滚动
+            if (!reachedTop && !reachedBottom) {
+              return; // 不阻止默认行为，让内容区域自然滚动
+            }
+          }
+        }
+        
+        // 如果不在内容区域或已到达内容边界，处理页面滚动
         if (isScrolling) {
           e.preventDefault();
           return;
@@ -1096,6 +1164,18 @@ const clientScript = `
       }
       
       function handleTouchMove(e) {
+        // 检查是否在文章内容区域滚动
+        const section = e.target.closest('.article-section');
+        if (section) {
+          // 检查内容是否可滚动
+          const isScrollable = section.scrollHeight > section.clientHeight;
+          
+          if (isScrollable) {
+            // 让内容自然滚动
+            return;
+          }
+        }
+        
         if (isScrolling) {
           e.preventDefault();
           return;
@@ -1105,6 +1185,11 @@ const clientScript = `
       }
       
       function handleTouchEnd() {
+        // 检查是否在文章内容区域
+        if (document.activeElement.closest('.article-section')) {
+          return;
+        }
+        
         if (Math.abs(touchDeltaY) > 50) {
           if (touchDeltaY > 0) {
             scrollToArticle(currentIndex + 1);
