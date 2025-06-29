@@ -259,10 +259,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           <a href="/" class="flex items-center mr-4 bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white px-4 py-2 rounded-full transition-all duration-300" aria-label="返回首页">
             <h1 class="text-base font-semibold font-poppins mb-0 tracking-wide">${siteName}</h1>
           </a>
-          <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 mr-2" aria-label="RSS订阅" title="RSS订阅">
+          <a href="/rss.xml" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 mr-2" aria-label="RSS订阅" title="RSS订阅">
             <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
           </a>
-          <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="切换主题">
+          <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="切换主题">
             <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
           </button>
         </header>
@@ -576,7 +576,6 @@ const clientStyle = `
     opacity: 0.8;
     font-family: 'Poppins', sans-serif;
     transition: opacity 0.3s ease;
-    z-index: -1;
     pointer-events: none;
   }
   
@@ -592,6 +591,23 @@ const clientStyle = `
     color: #fff !important;
     width: 100%;
     position: relative;
+  }
+  
+  .article-content p,
+  .article-content h1,
+  .article-content h2,
+  .article-content h3,
+  .article-content h4,
+  .article-content h5,
+  .article-content h6,
+  .article-content ul,
+  .article-content ol,
+  .article-content li,
+  .article-content a,
+  .article-content blockquote,
+  .article-content pre,
+  .article-content code {
+    color: #fff !important;
   }
 `;
 
