@@ -14,11 +14,13 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
-        <p class="text-red-400 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm text-white">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
+        <div class="article-content text-white">
+          <time class="memo-time">错误</time>
+          <p class="text-red-400 dark:text-red-400 font-medium">加载失败</p>
+          <p class="text-sm text-white">${error.message}</p>
+          <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
+        </div>
       `
     );
   },
@@ -29,11 +31,13 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
-        <h2 class="font-medium text-white">未找到内容</h2>
-        <p class="text-white">您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
+        <div class="article-content text-white">
+          <time class="memo-time">404</time>
+          <h2 class="font-medium text-white">未找到内容</h2>
+          <p class="text-white">您访问的内容不存在或已被删除</p>
+          <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
+        </div>
       `
     );
   }
@@ -53,11 +57,10 @@ export function parseNavLinks(linksStr) {
 }
 
 // 创建文章结构
-function createArticleStructure(header, content) {
+function createArticleStructure(content) {
   return utils.createHtml`
     <article class="pb-8 relative pl-5 last:pb-0 flex flex-col justify-center items-center h-full">
-      <header>${header}</header>
-      <section class="leading-relaxed mt-4 md:text-base text-sm max-w-3xl mx-auto px-6">
+      <section class="leading-relaxed md:text-base text-sm max-w-3xl mx-auto px-6">
         ${content}
       </section>
     </article>
@@ -84,30 +87,22 @@ export function renderMemo(memo, isHomePage = false) {
     // 创建图片资源HTML
     const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
     
-    // 文章URL
-    const articleUrl = ''
-    
-    // 创建文章头部
-    const header = utils.createHtml`
-      <div class="flex">
-        <time datetime="${new Date(timestamp).toISOString()}" class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">${formattedTime}</time>
-      </div>
-    `;
-    
     // 创建文章内容
     const articleContent = utils.createHtml`
       <div class="article-content text-white">
+        <time datetime="${new Date(timestamp).toISOString()}" class="memo-time">${formattedTime}</time>
         ${parsedContent}
         ${resourcesHtml}
       </div>
     `;
     
-    return createArticleStructure(header, articleContent);
+    return createArticleStructure(articleContent);
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
-      utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
+      utils.createHtml`<div class="article-content text-white">
+        <p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>
+      </div>`
     );
   }
 }
@@ -233,9 +228,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <link rel="alternate" type="application/rss+xml" title="${siteName}" href="/rss.xml" />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js"></script>
         <script>
           tailwind.config = {
             darkMode: 'class',
@@ -274,7 +267,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </button>
         </header>
         
-        <div id="fullpage">
+        <div id="custom-fullpage">
           ${articlesHtml}
         </div>
 
@@ -391,6 +384,8 @@ const clientStyle = `
   body {
     font-family: 'Noto Sans SC', sans-serif;
     letter-spacing: 0.015em;
+    overflow-x: hidden;
+    overflow-y: hidden;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -412,6 +407,13 @@ const clientStyle = `
   /* 文章样式与动画 */
   article {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    scroll-snap-align: start;
   }
   
   /* 按钮动画效果 */
@@ -539,25 +541,29 @@ const clientStyle = `
     position: fixed;
   }
   
-  /* fullPage.js 自定义样式 */
-  .section {
-    position: relative;
+  /* 自定义全屏效果 */
+  #custom-fullpage {
+    height: 100vh;
+    width: 100vw;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
   }
   
-  .section:nth-child(odd) {
+  article:nth-child(odd) {
     background: linear-gradient(128deg,#ff9a3f,#ff4b40);
   }
   
-  .section:nth-child(even) {
+  article:nth-child(even) {
     background: linear-gradient(128deg,#40afff,#3f61ff);
   }
   
-  .dark .section {
+  .dark article {
     background: #555;
   }
   
   /* 文章发布日期样式 */
-  .article-date {
+  .memo-time {
     position: absolute;
     left: 20px;
     top: 50%;
@@ -568,11 +574,14 @@ const clientStyle = `
     writing-mode: vertical-lr;
     text-orientation: mixed;
     opacity: 0.8;
+    font-family: 'Poppins', sans-serif;
   }
   
   /* 文章内容样式 */
   .article-content {
     color: #fff !important;
+    width: 100%;
+    position: relative;
   }
 `;
 
@@ -947,118 +956,180 @@ const clientScript = `
       });
     }
 
-    // 初始化 fullPage.js
-    function initFullPage() {
-      if (typeof fullpage === 'undefined') {
-        console.error('fullPage.js not found');
-        return;
+    // 自定义全屏滚动效果
+    function initCustomFullPage() {
+      const container = document.getElementById('custom-fullpage');
+      if (!container) return;
+
+      const articles = Array.from(container.querySelectorAll('article'));
+      if (articles.length === 0) return;
+      
+      // 设置每个文章为独立的section
+      articles.forEach((article, index) => {
+        article.dataset.index = index;
+        article.id = 'article-' + index;
+      });
+      
+      let currentIndex = 0;
+      let isScrolling = false;
+      let touchStartY = 0;
+      let touchDeltaY = 0;
+      
+      // 滚动到指定位置
+      function scrollToArticle(index) {
+        if (index < 0) index = 0;
+        if (index >= articles.length) index = articles.length - 1;
+        
+        currentIndex = index;
+        const targetArticle = articles[index];
+        
+        isScrolling = true;
+        container.scrollTo({
+          top: targetArticle.offsetTop,
+          behavior: 'smooth'
+        });
+        
+        // 动画完成后重置滚动标志
+        setTimeout(() => {
+          isScrolling = false;
+        }, 1000);
       }
       
-      new fullpage('#fullpage', {
-        licenseKey: 'OPEN-SOURCE-GPLV3-LICENSE',
-        autoScrolling: true,
-        scrollHorizontally: true,
-        navigation: false,
-        css3: true,
-        scrollingSpeed: 800,
-        verticalCentered: true,
-        responsiveWidth: 900,
-        afterResponsive: function(isResponsive) {
-          // 响应式处理
-        },
-        afterRender: function() {
-          // 格式化文章日期
-          const articles = document.querySelectorAll('article');
-          articles.forEach(article => {
-            const timeElement = article.querySelector('time');
-            if (timeElement) {
-              // 提取时间元素，将其移动到文章外部
-              const dateText = timeElement.textContent;
-              const dateElement = document.createElement('div');
-              dateElement.className = 'article-date';
-              dateElement.textContent = dateText;
-              
-              // 把时间元素从原来的位置移除链接功能
-              const parent = timeElement.parentElement;
-              if (parent.tagName === 'A') {
-                const grandParent = parent.parentElement;
-                grandParent.appendChild(timeElement);
-                parent.remove();
-              }
-              
-              // 将新的日期元素添加到section中
-              const section = article.closest('.section');
-              if (section) {
-                section.appendChild(dateElement);
-              }
-            }
-            
-            // 修改文章内容的颜色
-            const contentSection = article.querySelector('.article-content');
-            if (contentSection) {
-              contentSection.classList.add('text-white');
-            }
-          });
-        }
-      });
-    }
-
-    // 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化)
-    function enhanceMarkdown() {
-      const observer = new MutationObserver((mutations) => {
-        let hasNewCodeBlocks = false;
-        for (const mutation of mutations) {
-          if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-            for (const node of mutation.addedNodes) {
-              if (node.nodeType === Node.ELEMENT_NODE && (node.querySelector('.code-block') || node.matches('.code-block'))) {
-                hasNewCodeBlocks = true;
-                break;
-              }
-            }
-            if (hasNewCodeBlocks) break;
+      // 滚动监听
+      const handleScroll = throttle(() => {
+        if (isScrolling) return;
+        
+        const scrollPosition = container.scrollTop;
+        const windowHeight = window.innerHeight;
+        
+        let newIndex = 0;
+        for (let i = 0; i < articles.length; i++) {
+          const article = articles[i];
+          const articleTop = article.offsetTop;
+          const articleBottom = articleTop + article.offsetHeight;
+          
+          if (scrollPosition >= articleTop - windowHeight / 3 && 
+              scrollPosition < articleBottom - windowHeight / 3) {
+            newIndex = i;
+            break;
           }
         }
-        if (hasNewCodeBlocks) {
-          initCodeCopyButtons();
+        
+        if (newIndex !== currentIndex) {
+          currentIndex = newIndex;
+        }
+      }, 100);
+      
+      // 键盘导航
+      function handleKeyDown(e) {
+        if (isScrolling) return;
+        
+        switch(e.key) {
+          case 'ArrowUp':
+          case 'PageUp':
+            e.preventDefault();
+            scrollToArticle(currentIndex - 1);
+            break;
+          case 'ArrowDown':
+          case 'PageDown':
+          case ' ':
+            e.preventDefault();
+            scrollToArticle(currentIndex + 1);
+            break;
+          case 'Home':
+            e.preventDefault();
+            scrollToArticle(0);
+            break;
+          case 'End':
+            e.preventDefault();
+            scrollToArticle(articles.length - 1);
+            break;
+        }
+      }
+      
+      // 鼠标滚轮事件
+      function handleWheel(e) {
+        if (isScrolling) {
+          e.preventDefault();
+          return;
+        }
+        
+        const delta = Math.sign(e.deltaY);
+        if (delta > 0) {
+          scrollToArticle(currentIndex + 1);
+        } else if (delta < 0) {
+          scrollToArticle(currentIndex - 1);
+        }
+        
+        e.preventDefault();
+      }
+      
+      // 触摸事件处理
+      function handleTouchStart(e) {
+        touchStartY = e.touches[0].clientY;
+      }
+      
+      function handleTouchMove(e) {
+        if (isScrolling) {
+          e.preventDefault();
+          return;
+        }
+        
+        touchDeltaY = touchStartY - e.touches[0].clientY;
+      }
+      
+      function handleTouchEnd() {
+        if (Math.abs(touchDeltaY) > 50) {
+          if (touchDeltaY > 0) {
+            scrollToArticle(currentIndex + 1);
+          } else {
+            scrollToArticle(currentIndex - 1);
+          }
+        }
+        
+        touchStartY = 0;
+        touchDeltaY = 0;
+      }
+      
+      // 节流函数
+      function throttle(func, limit) {
+        let inThrottle;
+        return function() {
+          const args = arguments;
+          const context = this;
+          if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+          }
+        }
+      }
+      
+      // 添加事件监听
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      document.addEventListener('keydown', handleKeyDown);
+      container.addEventListener('wheel', handleWheel, { passive: false });
+      container.addEventListener('touchstart', handleTouchStart, { passive: true });
+      container.addEventListener('touchmove', handleTouchMove, { passive: false });
+      container.addEventListener('touchend', handleTouchEnd, { passive: true });
+      
+      // 处理文章中的时间元素
+      articles.forEach(article => {
+        const timeElement = article.querySelector('.memo-time');
+        if (timeElement) {
+          // 保留原始位置，确保样式应用正确
+          timeElement.style.position = 'absolute';
         }
       });
-      observer.observe(document.body, { childList: true, subtree: true });
-
-      initCodeCopyButtons();
     }
-
-    // 转换文章为section
-    function transformArticlesToSections() {
-      const articles = document.querySelectorAll('article');
-      articles.forEach((article, index) => {
-        // 创建section元素包装文章
-        const section = document.createElement('div');
-        section.className = 'section';
-        
-        // 获取文章的父元素
-        const parent = article.parentNode;
-        
-        // 在文章的原位置插入section
-        parent.insertBefore(section, article);
-        
-        // 将文章移动到section内部
-        section.appendChild(article);
-      });
-    }
-
+  
     // 页面加载完成后初始化所有功能
     document.addEventListener('DOMContentLoaded', () => {
-      transformArticlesToSections();
       initThemeToggle();
       initImageViewer();
-      enhanceMarkdown(); // Handles code copy buttons
-      initFullPage();
-
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(initBackToTop);
-      } else {
-        setTimeout(initBackToTop, 200);
-      }
+      initCodeCopyButtons();
+      initBackToTop();
+      initCustomFullPage();
     });
   })();
 `;
