@@ -55,8 +55,8 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content, isHomePage = true) {
   const articleClass = isHomePage 
-    ? "pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-transparent last:pb-0" 
-    : "pb-8 last:pb-0 single-article";
+    ? "pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-transparent last:pb-0 animate-fade-in" 
+    : "pb-8 last:pb-0 single-article animate-fade-in";
   return utils.createHtml`
     <article class="${articleClass}">
       <header>${header}</header>
@@ -250,10 +250,39 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 colors: {
                   'indigo-timeline': '#4e5ed3',
                   'indigo-shadow': '#bab5f8',
+                  'blue-light-hover': '#0c7cd51c',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
                   'poppins': ['Poppins', 'sans-serif'],
+                  'code': ['Roboto Mono', 'monospace'],
+                },
+                animation: {
+                  'fade-in': 'fadeIn 0.6s ease-out forwards',
+                  'fade-in-delay-1': 'fadeIn 0.6s ease-out 0.1s forwards',
+                  'fade-in-delay-2': 'fadeIn 0.6s ease-out 0.2s forwards',
+                  'fade-in-delay-3': 'fadeIn 0.6s ease-out 0.3s forwards',
+                  'fade-in-delay-4': 'fadeIn 0.6s ease-out 0.4s forwards',
+                },
+                keyframes: {
+                  fadeIn: {
+                    'from': { opacity: 0, transform: 'translateY(10px)' },
+                    'to': { opacity: 1, transform: 'translateY(0)' }
+                  }
+                },
+                boxShadow: {
+                  'article-dot': '3px 3px 0px #bab5f8',
+                  'article-dot-hover': '4px 4px 0px #bab5f8',
+                  'article-dot-dark': '3px 3px 0px #6366f1',
+                  'article-dot-dark-hover': '4px 4px 0px #6366f1',
+                  'img': '0 4px 10px rgba(0, 0, 0, 0.05)',
+                  'code': '0 4px 12px rgba(0, 0, 0, 0.08)',
+                },
+                borderRadius: {
+                  'code': '8px'
+                },
+                margin: {
+                  'code': '1.5em 0'
                 }
               }
             }
@@ -288,7 +317,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                 </button>
               </div>
             </header>
-            <main class="mt-8 sm:mt-10 relative">
+            <main class="mt-8 sm:mt-10 relative animate-fade-in">
               ${articlesHtml}
             </main>
             
@@ -363,6 +392,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 }
 
 const clientStyle = `
+  /* 滚动条样式，无法用Tailwind替代 */
   html::-webkit-scrollbar, 
   body::-webkit-scrollbar,
   pre::-webkit-scrollbar {
@@ -403,34 +433,7 @@ const clientStyle = `
     border-radius: 10px; 
   }
   
-  /* 新增字体样式 */
-  body {
-    font-family: 'Noto Sans SC', sans-serif;
-    letter-spacing: 0.015em;
-  }
-  
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Noto Sans SC', sans-serif;
-  }
-  
-  /* 改进阴影效果 */
-  .shadow-lg {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 
-                0 8px 10px -6px rgba(0, 0, 0, 0.03);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-  }
-  
-  .shadow-lg:hover {
-    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
-                0 10px 20px -5px rgba(0, 0, 0, 0.07);
-  }
-  
-  /* 文章样式与动画 */
-  article {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-  }
-  
-  /* article的before伪元素样式 */
+  /* article的before伪元素样式 - 无法完全用Tailwind替代 */
   article::before {
     content: '';
     width: 17px;
@@ -470,22 +473,8 @@ const clientStyle = `
   .dark article:hover::before {
     box-shadow: 4px 4px 0px #6366f1;
   }
-  
-  /* 按钮动画效果 */
-  button, .pagination a {
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
-  }
-  
-  button:hover, .pagination a:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  button:active, .pagination a:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
 
+  /* 模态框显示状态 */
   .image-modal.active {
     display: flex;
     opacity: 1;
@@ -500,6 +489,7 @@ const clientStyle = `
     visibility: visible;
   }
 
+  /* 图片加载状态 */
   .article-content img, .mt-4 img {
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
@@ -529,38 +519,36 @@ const clientStyle = `
     opacity: 0;
   }
   
-  /* 链接过渡效果 */
-  a {
-    transition: color 0.3s ease;
-    position: relative;
-  }
+  /* 文章排序延迟动画 */
+  article:nth-child(2) { animation-delay: 0.1s; }
+  article:nth-child(3) { animation-delay: 0.2s; }
+  article:nth-child(4) { animation-delay: 0.3s; }
+  article:nth-child(5) { animation-delay: 0.4s; }
   
-  a:not(.pagination a):hover {
-    text-decoration: none;
-  }
-  
+  /* Tailwind无法处理的特殊伪类选择器 */
   a:not(.pagination a):after {
     content: none;
   }
   
-  /* 代码块优化 */
+  /* 代码块样式 */
   .code-block {
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    margin: 1.5em 0;
-    overflow: hidden;
+    @apply rounded-code shadow-code my-code overflow-hidden;
   }
   
   pre {
-    border-radius: 8px;
-    margin: 1.5em 0;
-    box-shadow: none;
+    @apply rounded-code my-code shadow-none font-code;
   }
   
   .code-header {
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    box-shadow: none;
+    @apply rounded-t-code shadow-none;
+  }
+  
+  .code-block pre {
+    @apply m-0;
+  }
+  
+  code {
+    font-family: 'Roboto Mono', monospace;
   }
   
   .code-header + pre {
@@ -569,34 +557,6 @@ const clientStyle = `
     margin-top: 0;
     box-shadow: none;
   }
-  
-  .code-block pre {
-    margin: 0;
-  }
-  
-  code {
-    font-family: 'Roboto Mono', monospace;
-  }
-  
-  /* 页面加载动画 */
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  
-  main {
-    animation: fadeIn 0.6s ease-out;
-  }
-  
-  article {
-    animation: fadeIn 0.6s ease-out;
-    animation-fill-mode: both;
-  }
-  
-  article:nth-child(2) { animation-delay: 0.1s; }
-  article:nth-child(3) { animation-delay: 0.2s; }
-  article:nth-child(4) { animation-delay: 0.3s; }
-  article:nth-child(5) { animation-delay: 0.4s; }
 `;
 
 const clientScript = `
