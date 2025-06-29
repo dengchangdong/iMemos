@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-green-600 dark:text-green-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
         <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
         <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-green-600 dark:text-green-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
         <h2 class="font-medium">未找到内容</h2>
         <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">返回首页</a></p>
       `
     );
   }
@@ -55,8 +55,8 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content, isHomePage = true) {
   const articleClass = isHomePage 
-    ? "pb-8 border-l border-green-300 relative pl-5 ml-3 last:border-transparent last:pb-0" 
-    : "pb-8 last:pb-0 single-article";
+    ? "pb-8 border-l border-green-300 relative pl-5 ml-3 last:border-transparent last:pb-0 bg-white/50 dark:bg-gray-800/50 p-4 rounded-lg mb-6" 
+    : "pb-8 last:pb-0 single-article bg-white/50 dark:bg-gray-800/50 p-6 rounded-lg";
   return utils.createHtml`
     <article class="${articleClass}">
       <header>${header}</header>
@@ -109,7 +109,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-green-600 dark:text-green-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -244,14 +244,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #2ecc71, #82d280)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #27ae60, #156f39)',
+                  'custom-gradient': 'linear-gradient(45deg, #4CAF50, #8BC34A)',
+                  'custom-gradient-dark': 'linear-gradient(45deg, #2E7D32, #558B2F)',
                 },
                 colors: {
-                  'eco-primary': '#2ecc71',
-                  'eco-secondary': '#27ae60',
-                  'eco-accent': '#3d8b40',
-                  'eco-shadow': '#a5d6a7',
+                  'indigo-timeline': '#4CAF50',
+                  'indigo-shadow': '#A5D6A7',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
@@ -266,11 +264,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </style>
       </head>
       <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
-        <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg border-l-4 border-eco-primary dark:border-eco-secondary w-full backdrop-blur-sm transition-all duration-300">
-            <header class="flex items-center justify-between mb-8 border-b border-green-200 dark:border-green-900 pb-4">
+        <div class="container w-full max-w-2xl [@media(min-width:1921px)]:max-w-3xl mx-auto px-4 py-8 sm:py-16">
+          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-2xl shadow-lg w-full backdrop-blur-sm transition-all duration-300 border-t-4 border-green-500">
+            <header class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-6 mb-6">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
+                  <i class="ri-leaf-fill mr-2 text-green-500 dark:text-green-400 text-xl"></i>
                   <h1 class="text-2xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-green-700 dark:from-green-400 dark:to-green-600">${siteName}</h1>
                 </a>
               </div>
@@ -282,10 +281,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-green-100 dark:bg-green-700/30 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-green-200 text-green-600 hover:text-green-700 dark:text-green-700 dark:hover:text-green-800 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-green-100 dark:bg-green-700/30 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-green-200 text-green-600 hover:text-green-700 dark:text-green-700 dark:hover:text-green-800 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -296,6 +295,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             
             <!-- 分页导航 -->
             ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
+            
+            <!-- 环保页脚 -->
+            <footer class="mt-10 pt-6 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-500 dark:text-gray-400">
+              <p class="flex items-center justify-center">
+                <i class="ri-leaf-line mr-2 text-green-500"></i>
+                绿色环保，从我做起
+              </p>
+            </footer>
           </section>
         </div>
 
@@ -430,34 +437,20 @@ const clientStyle = `
   /* 文章样式与动画 */
   article {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    margin-bottom: 1.5rem;
-    border-radius: 0.375rem;
-    padding: 1.25rem;
-    border-left: 3px solid transparent;
-    position: relative;
   }
   
-  article:hover {
-    border-left-color: #2ecc71;
-    background-color: rgba(46, 204, 113, 0.05);
-  }
-  
-  .dark article:hover {
-    background-color: rgba(46, 204, 113, 0.1);
-  }
-
-  /* article的before伪元素样式 - 时间轴样式 */
-  article.pb-8.border-l.border-green-300::before {
+  /* article的before伪元素样式 */
+  article::before {
     content: '';
     width: 17px;
     height: 17px;
     background-color: white;
-    border: 1px solid #2ecc71;
+    border: 1px solid #4CAF50;
     border-radius: 50%;
     position: absolute;
     left: -9px;
     top: 0;
-    box-shadow: 3px 3px 0px #a5d6a7;
+    box-shadow: 3px 3px 0px #A5D6A7;
     transition: all 0.3s ease;
   }
   
@@ -471,53 +464,20 @@ const clientStyle = `
     margin-left: 0 !important;
   }
   
-  .dark article.pb-8.border-l::before {
+  .dark article::before {
     background-color: #1f2937;
-    border-color: #27ae60;
-    box-shadow: 3px 3px 0px #3d8b40;
+    border-color: #4CAF50;
+    box-shadow: 3px 3px 0px #2E7D32;
   }
   
-  article.pb-8.border-l:hover::before {
+  article:hover::before {
     transform: scale(1.1);
-    box-shadow: 4px 4px 0px #a5d6a7;
-    background-color: #2ecc71;
+    box-shadow: 4px 4px 0px #A5D6A7;
+    background-color: #4CAF50;
   }
   
-  .dark article.pb-8.border-l:hover::before {
-    box-shadow: 4px 4px 0px #3d8b40;
-  }
-
-  /* 标题样式 */
-  .article-content h1, 
-  .article-content h2, 
-  .article-content h3, 
-  .article-content h4, 
-  .article-content h5, 
-  .article-content h6 {
-    color: #2ecc71;
-    font-weight: 600;
-    margin-top: 1.5rem;
-    margin-bottom: 1rem;
-    line-height: 1.3;
-    letter-spacing: -0.01em;
-  }
-  
-  .dark .article-content h1, 
-  .dark .article-content h2, 
-  .dark .article-content h3, 
-  .dark .article-content h4, 
-  .dark .article-content h5, 
-  .dark .article-content h6 {
-    color: #27ae60;
-  }
-  
-  .article-content h1 { font-size: 1.75rem; }
-  .article-content h2 { font-size: 1.5rem; }
-  .article-content h3 { font-size: 1.25rem; }
-  
-  .article-content p {
-    margin-bottom: 1rem;
-    line-height: 1.75;
+  .dark article:hover::before {
+    box-shadow: 4px 4px 0px #2E7D32;
   }
   
   /* 按钮动画效果 */
@@ -646,6 +606,18 @@ const clientStyle = `
   article:nth-child(3) { animation-delay: 0.2s; }
   article:nth-child(4) { animation-delay: 0.3s; }
   article:nth-child(5) { animation-delay: 0.4s; }
+  
+  /* 新增分隔线样式 */
+  hr {
+    border: none;
+    height: 1px;
+    background-image: linear-gradient(to right, rgba(76, 175, 80, 0), rgba(76, 175, 80, 0.5), rgba(76, 175, 80, 0));
+    margin: 2rem 0;
+  }
+  
+  .dark hr {
+    background-image: linear-gradient(to right, rgba(46, 125, 50, 0), rgba(46, 125, 50, 0.5), rgba(46, 125, 50, 0));
+  }
 `;
 
 const clientScript = `
