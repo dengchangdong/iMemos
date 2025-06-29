@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
-        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="text-red-400 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-sm text-white">${error.message}</p>
+        <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
-        <h2 class="font-medium">未找到内容</h2>
-        <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <h2 class="font-medium text-white">未找到内容</h2>
+        <p class="text-white">您访问的内容不存在或已被删除</p>
+        <p class="mt-4"><a href="/" class="text-white/70 hover:text-white dark:hover:text-white">返回首页</a></p>
       `
     );
   }
@@ -55,9 +55,9 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="pb-8 relative pl-5 last:pb-0 flex flex-col justify-center items-center h-full">
       <header>${header}</header>
-      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
+      <section class="leading-relaxed mt-4 md:text-base text-sm max-w-3xl mx-auto px-6">
         ${content}
       </section>
     </article>
@@ -85,24 +85,28 @@ export function renderMemo(memo, isHomePage = false) {
     const resourcesHtml = resources.length > 0 ? createResourcesHtml(resources) : ''
     
     // 文章URL
-    const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
+    const articleUrl = ''
     
-    // 创建文章头部 - 日期不再是链接
+    // 创建文章头部
     const header = utils.createHtml`
-      <time datetime="${new Date(timestamp).toISOString()}" class="text-gray-400 font-poppins font-semibold block text-2xl">${formattedTime}</time>
+      <div class="flex">
+        <time datetime="${new Date(timestamp).toISOString()}" class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">${formattedTime}</time>
+      </div>
     `;
     
     // 创建文章内容
     const articleContent = utils.createHtml`
-      ${parsedContent}
-      ${resourcesHtml}
+      <div class="article-content text-white">
+        ${parsedContent}
+        ${resourcesHtml}
+      </div>
     `;
     
     return createArticleStructure(header, articleContent);
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-gray-400 font-poppins font-semibold block text-2xl">错误</time>`,
+      utils.createHtml`<time class="text-white/70 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -177,13 +181,13 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-blue-500 to-blue-600 text-white no-underline border-none cursor-pointer hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
-      <div class="pagination flex justify-center items-center mt-8">
-        <a href="/page/2" class="${buttonClass}">
-          <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
+      <div class="pagination flex justify-center items-center">
+        <a href="/page/2" class="${buttonClass} fixed right-5 bottom-5">
+          查看更多 <i class="ri-arrow-right-line text-xl ml-2"></i>
         </a>
       </div>
     `;
@@ -193,11 +197,10 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
   const nextPageLink = `/page/${currentPage + 1}`;
 
   return utils.createHtml`
-    <div class="pagination flex justify-between items-center mt-8">
+    <div class="pagination">
       <a href="${prevPageLink}" class="${buttonClass}">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <span class="text-sm bg-blue-100/70 dark:bg-blue-900/30 px-4 py-1.5 rounded-full text-blue-700 dark:text-blue-300 font-medium">第 ${currentPage} 页</span>
       <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
         下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
@@ -215,9 +218,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
     : '';
 
   const articlesHtml = Array.isArray(content) ? content.join('') : content;
-  
-  // 检查是否需要分页导航
-  const hasPagination = (isHomePage || tag) && (hasMore || memosCount >= pageLimit);
 
   return utils.createHtml`
     <!DOCTYPE html>
@@ -233,13 +233,22 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Poppins:wght@500&family=Roboto&display=swap" rel="stylesheet">
         <link href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.min.css" rel="stylesheet">
         <link rel="alternate" type="application/rss+xml" title="${siteName}" href="/rss.xml" />
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/3.1.2/fullpage.min.css" integrity="sha512-4rPgyv5iG0PZw8E+oRdfN/Gq+yilzt9rQ8Yci2jJ15rAyBmF0HBE4wFjBkoB72cxBeg63uobaj1UcNt/scV93w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.css" rel="stylesheet">
         <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/4.0.20/fullpage.min.js"></script>
         <script>
           tailwind.config = {
             darkMode: 'class',
             theme: {
               extend: {
+                backgroundImage: {
+                  'custom-gradient-1': 'linear-gradient(128deg,#ff9a3f,#ff4b40)',
+                  'custom-gradient-2': 'linear-gradient(128deg,#40afff,#3f61ff)',
+                },
+                colors: {
+                  'indigo-timeline': '#4e5ed3',
+                  'indigo-shadow': '#bab5f8',
+                },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
                   'poppins': ['Poppins', 'sans-serif'],
@@ -253,31 +262,28 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </style>
       </head>
       <body class="min-h-screen m-0 p-0 font-sans">
+        <header class="fixed top-0 left-0 z-50 p-4 flex items-center">
+          <a href="/" class="flex items-center mr-4 bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white px-4 py-2 rounded-full transition-all duration-300" aria-label="返回首页">
+            <h1 class="text-xl font-semibold font-poppins mb-0 tracking-wide">${siteName}</h1>
+          </a>
+          <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 mr-2" aria-label="RSS订阅" title="RSS订阅">
+            <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
+          </a>
+          <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200" aria-label="切换主题">
+            <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+          </button>
+        </header>
+        
         <div id="fullpage">
-          <header class="fixed top-0 left-0 z-50 w-full flex justify-between items-center px-6 py-4">
-            <div class="flex items-center">
-              <a href="/" class="flex items-center px-4 py-2 rounded-full bg-white/50 dark:bg-white/50 text-gray-800 dark:text-gray-800 hover:bg-black/50 hover:text-white dark:hover:bg-black/50 dark:hover:text-white transition-all duration-300" aria-label="返回首页">
-                <h1 class="text-xl font-semibold font-poppins mb-0 tracking-wide">${siteName}</h1>
-              </a>
-            </div>
-            <div class="flex items-center space-x-4">
-              <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 dark:text-gray-800 hover:bg-black/50 hover:text-white dark:hover:bg-black/50 dark:hover:text-white transition-all duration-300" aria-label="RSS订阅" title="RSS订阅">
-                <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
-              </a>
-              <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 dark:text-gray-800 hover:bg-black/50 hover:text-white dark:hover:bg-black/50 dark:hover:text-white transition-all duration-300" aria-label="切换主题">
-                <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
-              </button>
-            </div>
-          </header>
-          
           ${articlesHtml}
-          
-          ${hasPagination ? renderFullPagePagination({currentPage, hasMore, isHomePage, tag, memosCount, pageLimit}) : ''}
         </div>
 
+        <!-- 分页导航 -->
+        ${hasMore ? renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit }) : ''}
+        
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 dark:text-gray-800 hover:bg-black/50 hover:text-white dark:hover:bg-black/50 dark:hover:text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -332,7 +338,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           </div>
         </div>
 
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fullPage.js/3.1.2/fullpage.min.js" integrity="sha512-gSf3NCgs6wWEdztl1e6vUqtRP884ONnCNzCpomdoQ0xXsk06lrxJsR7jX5yM/qAGkPGsps+4bLV5IEjhOZX+gg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script>
           ${clientScript}
         </script>
@@ -341,46 +346,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   `;
 }
 
-// 更新分页导航 - 为fullPage适配
-function renderFullPagePagination({ currentPage, hasMore, isHomePage, tag = '', memosCount = 0, pageLimit = CONFIG.PAGE_LIMIT }) {
-  if (!isHomePage && !tag) {
-    return '';
-  }
-  
-  // 当文章数量少于PAGE_LIMIT配置的数量时不显示分页导航
-  if (!hasMore && memosCount < pageLimit) {
-    return '';
-  }
-
-  const buttonClass = "fixed z-40 px-4 py-2 rounded-full text-sm font-medium transition-all bg-white/50 dark:bg-white/50 text-gray-800 dark:text-gray-800 hover:bg-black/50 hover:text-white dark:hover:bg-black/50 dark:hover:text-white";
-
-  if (isHomePage && currentPage === 1) {
-    return utils.createHtml`
-      <div class="pagination fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
-        <a href="/page/2" class="${buttonClass}">
-          <i class="ri-arrow-down-line text-xl mr-2"></i> 查看更多内容
-        </a>
-      </div>
-    `;
-  }
-
-  const prevPageLink = currentPage > 2 ? `/page/${currentPage - 1}` : '/';
-  const nextPageLink = `/page/${currentPage + 1}`;
-
-  return utils.createHtml`
-    <div class="pagination">
-      <a href="${prevPageLink}" class="${buttonClass} bottom-6 left-6">
-        <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
-      </a>
-      <a href="${nextPageLink}" class="${buttonClass} bottom-6 right-6 ${hasMore ? '' : 'invisible'}">
-        下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
-      </a>
-    </div>
-  `;
-}
-
 const clientStyle = `
-  /* 滚动条样式 */
   html::-webkit-scrollbar, 
   body::-webkit-scrollbar,
   pre::-webkit-scrollbar {
@@ -441,6 +407,11 @@ const clientStyle = `
   .shadow-lg:hover {
     box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.1), 
                 0 10px 20px -5px rgba(0, 0, 0, 0.07);
+  }
+  
+  /* 文章样式与动画 */
+  article {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
   
   /* 按钮动画效果 */
@@ -550,17 +521,58 @@ const clientStyle = `
     font-family: 'Roboto Mono', monospace;
   }
   
-  /* 自定义背景色 */
-  body.light .section:nth-child(odd) {
-    background: linear-gradient(128deg, #ff9a3f, #ff4b40);
+  /* 分页导航 */
+  .pagination {
+    position: fixed;
+    z-index: 100;
   }
   
-  body.light .section:nth-child(even) {
-    background: linear-gradient(128deg, #40afff, #3f61ff);
+  .pagination a:first-child {
+    left: 20px;
+    bottom: 20px;
+    position: fixed;
   }
   
-  body.dark .section {
+  .pagination a:last-child {
+    right: 20px;
+    bottom: 20px;
+    position: fixed;
+  }
+  
+  /* fullPage.js 自定义样式 */
+  .section {
+    position: relative;
+  }
+  
+  .section:nth-child(odd) {
+    background: linear-gradient(128deg,#ff9a3f,#ff4b40);
+  }
+  
+  .section:nth-child(even) {
+    background: linear-gradient(128deg,#40afff,#3f61ff);
+  }
+  
+  .dark .section {
     background: #555;
+  }
+  
+  /* 文章发布日期样式 */
+  .article-date {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 4rem;
+    color: rgba(255,255,255,0.3);
+    font-weight: bold;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
+    opacity: 0.8;
+  }
+  
+  /* 文章内容样式 */
+  .article-content {
+    color: #fff !important;
   }
 `;
 
@@ -570,26 +582,11 @@ const clientScript = `
       requestAnimationFrame(callback);
     }
 
-    // 初始化fullPage.js
-    function initFullPage() {
-      new fullpage('#fullpage', {
-        autoScrolling: true,
-        scrollHorizontally: true,
-        navigation: true,
-        navigationPosition: 'right',
-        responsiveWidth: 768,
-        afterLoad: function(origin, destination, direction) {
-          // 这里可以添加每次滑动后的回调
-        }
-      });
-    }
-
     // 主题切换功能
     function initThemeToggle() {
       const themeToggle = document.getElementById('theme-toggle');
       const themeIcon = document.getElementById('theme-icon');
       const html = document.documentElement;
-      const body = document.body;
 
       const THEMES = ['system', 'light', 'dark'];
       let currentThemeIndex = 0; // 0: system, 1: light, 2: dark
@@ -598,32 +595,19 @@ const clientScript = `
         'light': {
           icon: 'ri-sun-fill',
           label: '切换到深色模式',
-          apply: () => { 
-            html.classList.remove('dark'); 
-            body.classList.add('light');
-            body.classList.remove('dark');
-            localStorage.theme = 'light'; 
-          }
+          apply: () => { html.classList.remove('dark'); localStorage.theme = 'light'; }
         },
         'dark': {
           icon: 'ri-moon-fill',
           label: '切换到浅色模式',
-          apply: () => { 
-            html.classList.add('dark'); 
-            body.classList.add('dark');
-            body.classList.remove('light');
-            localStorage.theme = 'dark'; 
-          }
+          apply: () => { html.classList.add('dark'); localStorage.theme = 'dark'; }
         },
         'system': {
           icon: 'ri-contrast-fill',
           label: '切换到系统模式',
           apply: () => {
             localStorage.removeItem('theme');
-            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            html.classList.toggle('dark', isDarkMode);
-            body.classList.toggle('dark', isDarkMode);
-            body.classList.toggle('light', !isDarkMode);
+            html.classList.toggle('dark', window.matchMedia('(prefers-color-scheme: dark)').matches);
           }
         }
       };
@@ -646,12 +630,8 @@ const clientScript = `
       if (storedTheme && THEMES.includes(storedTheme)) {
         applyTheme(storedTheme);
       } else {
-        const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (isDarkMode) {
+        if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
           html.classList.add('dark');
-          body.classList.add('dark');
-        } else {
-          body.classList.add('light');
         }
         updateThemeUI('system');
       }
@@ -667,8 +647,6 @@ const clientScript = `
         if (!localStorage.theme) {
           safeDomUpdate(() => {
             html.classList.toggle('dark', event.matches);
-            body.classList.toggle('dark', event.matches);
-            body.classList.toggle('light', !event.matches);
           });
         }
       };
@@ -793,7 +771,6 @@ const clientScript = `
           loadImageIntoModal(img);
           modal.classList.add('active');
           document.body.style.overflow = 'hidden';
-          // 不再需要调用updateNavigationButtons，因为这个逻辑已经在loadImageIntoModal中处理了
         });
       }
 
@@ -970,6 +947,62 @@ const clientScript = `
       });
     }
 
+    // 初始化 fullPage.js
+    function initFullPage() {
+      if (typeof fullpage === 'undefined') {
+        console.error('fullPage.js not found');
+        return;
+      }
+      
+      new fullpage('#fullpage', {
+        licenseKey: 'OPEN-SOURCE-GPLV3-LICENSE',
+        autoScrolling: true,
+        scrollHorizontally: true,
+        navigation: false,
+        css3: true,
+        scrollingSpeed: 800,
+        verticalCentered: true,
+        responsiveWidth: 900,
+        afterResponsive: function(isResponsive) {
+          // 响应式处理
+        },
+        afterRender: function() {
+          // 格式化文章日期
+          const articles = document.querySelectorAll('article');
+          articles.forEach(article => {
+            const timeElement = article.querySelector('time');
+            if (timeElement) {
+              // 提取时间元素，将其移动到文章外部
+              const dateText = timeElement.textContent;
+              const dateElement = document.createElement('div');
+              dateElement.className = 'article-date';
+              dateElement.textContent = dateText;
+              
+              // 把时间元素从原来的位置移除链接功能
+              const parent = timeElement.parentElement;
+              if (parent.tagName === 'A') {
+                const grandParent = parent.parentElement;
+                grandParent.appendChild(timeElement);
+                parent.remove();
+              }
+              
+              // 将新的日期元素添加到section中
+              const section = article.closest('.section');
+              if (section) {
+                section.appendChild(dateElement);
+              }
+            }
+            
+            // 修改文章内容的颜色
+            const contentSection = article.querySelector('.article-content');
+            if (contentSection) {
+              contentSection.classList.add('text-white');
+            }
+          });
+        }
+      });
+    }
+
     // 增强的Markdown处理 (主要用于动态内容加载后的代码复制按钮初始化)
     function enhanceMarkdown() {
       const observer = new MutationObserver((mutations) => {
@@ -994,12 +1027,32 @@ const clientScript = `
       initCodeCopyButtons();
     }
 
+    // 转换文章为section
+    function transformArticlesToSections() {
+      const articles = document.querySelectorAll('article');
+      articles.forEach((article, index) => {
+        // 创建section元素包装文章
+        const section = document.createElement('div');
+        section.className = 'section';
+        
+        // 获取文章的父元素
+        const parent = article.parentNode;
+        
+        // 在文章的原位置插入section
+        parent.insertBefore(section, article);
+        
+        // 将文章移动到section内部
+        section.appendChild(article);
+      });
+    }
+
     // 页面加载完成后初始化所有功能
     document.addEventListener('DOMContentLoaded', () => {
+      transformArticlesToSections();
       initThemeToggle();
-      initFullPage();
       initImageViewer();
       enhanceMarkdown(); // Handles code copy buttons
+      initFullPage();
 
       if ('requestIdleCallback' in window) {
         requestIdleCallback(initBackToTop);
