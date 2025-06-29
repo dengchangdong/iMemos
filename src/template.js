@@ -257,7 +257,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       <body class="min-h-screen m-0 p-0 font-sans">
         <header class="fixed top-0 left-0 z-50 p-4 flex items-center">
           <a href="/" class="flex items-center mr-4 bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white px-4 py-2 rounded-full transition-all duration-300" aria-label="返回首页">
-            <h1 class="text-xl font-semibold font-poppins mb-0 tracking-wide">${siteName}</h1>
+            <h1 class="text-base font-semibold font-poppins mb-0 tracking-wide">${siteName}</h1>
           </a>
           <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-white/50 dark:bg-white/50 text-gray-800 hover:bg-black/50 hover:text-white focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 mr-2" aria-label="RSS订阅" title="RSS订阅">
             <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
@@ -568,7 +568,7 @@ const clientStyle = `
     left: 5vw;
     top: 50%;
     transform: translateY(-50%);
-    font-size: 4rem;
+    font-size: clamp(2rem, 5vw, 4rem);
     color: rgba(255,255,255,0.3);
     font-weight: bold;
     writing-mode: vertical-lr;
@@ -576,7 +576,15 @@ const clientStyle = `
     opacity: 0.8;
     font-family: 'Poppins', sans-serif;
     transition: opacity 0.3s ease;
-    z-index: 10;
+    z-index: -1;
+    pointer-events: none;
+  }
+  
+  @media (max-width: 768px) {
+    .memo-time {
+      font-size: clamp(1.5rem, 4vw, 2.5rem);
+      left: 2vw;
+    }
   }
   
   /* 文章内容样式 */
