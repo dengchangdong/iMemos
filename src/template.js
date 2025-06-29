@@ -228,22 +228,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         </div>
       </div>
     `).join('');
-    
-    // 添加导航按钮到最后一个 section
-    articlesHtml += utils.createHtml`
-      <div class="section fp-auto-height">
-        <div class="article-container">
-          <div class="navigation-buttons">
-            <a href="#" id="prev-page" class="nav-btn prev-btn">
-              <i class="ri-arrow-left-s-line"></i> 上一页
-            </a>
-            <a href="#" id="next-page" class="nav-btn next-btn">
-              下一页 <i class="ri-arrow-right-s-line"></i>
-            </a>
-          </div>
-        </div>
-      </div>
-    `;
   } else {
     articlesHtml = utils.createHtml`
       <div class="section">
@@ -253,6 +237,18 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
       </div>
     `;
   }
+
+  // 导航按钮放在最外层，与fullpage并列
+  const navigationButtons = utils.createHtml`
+    <div class="navigation-buttons">
+      <a href="#" id="prev-page" class="nav-btn prev-btn">
+        <i class="ri-arrow-left-s-line"></i> 上一页
+      </a>
+      <a href="#" id="next-page" class="nav-btn next-btn">
+        下一页 <i class="ri-arrow-right-s-line"></i>
+      </a>
+    </div>
+  `;
 
   return utils.createHtml`
     <!DOCTYPE html>
@@ -275,14 +271,6 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             darkMode: 'class',
             theme: {
               extend: {
-                backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
-                },
-                colors: {
-                  'indigo-timeline': '#4e5ed3',
-                  'indigo-shadow': '#bab5f8',
-                },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
                   'poppins': ['Poppins', 'sans-serif'],
@@ -295,7 +283,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+      <body class="min-h-screen m-0 p-0 font-sans">
         <!-- 固定在左上角的网站信息和控制按钮 -->
         <header class="fixed-header">
           <a href="/" class="site-title" aria-label="返回首页">${siteName}</a>
@@ -313,6 +301,9 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <div id="fullpage">
           ${articlesHtml}
         </div>
+        
+        <!-- 导航按钮 -->
+        ${navigationButtons}
 
         <!-- 图片预览模态框 -->
         <div 
@@ -413,10 +404,13 @@ const clientStyle = `
     border-radius: 10px; 
   }
   
-  /* 新增字体样式 */
+  /* 字体样式 */
   body {
     font-family: 'Noto Sans SC', sans-serif;
     letter-spacing: 0.015em;
+    margin: 0;
+    padding: 0;
+    background: none !important; /* 移除全局背景 */
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -430,6 +424,18 @@ const clientStyle = `
     position: relative;
   }
   
+  /* 不同的背景色 */
+  .section:nth-child(1) { background-color: #f2f2f2; }
+  .section:nth-child(2) { background-color: #4BBFC3; }
+  .section:nth-child(3) { background-color: #7BAABE; }
+  .section:nth-child(4) { background-color: #ccddff; }
+  .section:nth-child(5) { background-color: #cfd8dc; }
+  .section:nth-child(6) { background-color: #7E8F7C; }
+  .section:nth-child(7) { background-color: #90856B; }
+  .section:nth-child(8) { background-color: #8FB98B; }
+  .section:nth-child(9) { background-color: #BFB6AA; }
+  .section:nth-child(10) { background-color: #7DB9DE; }
+  
   .section {
     width: 100%;
     height: 100vh;
@@ -439,22 +445,22 @@ const clientStyle = `
     justify-content: center;
   }
   
+  /* 移除文章背景，增大文字大小 */
   .article-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: transparent;
     border-radius: 1rem;
     padding: 2rem;
     max-width: 800px;
     width: 90%;
     margin: 0 auto;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(10px);
     transition: all 0.3s ease;
     max-height: 85vh;
     overflow-y: auto;
+    font-size: 1.1rem;
+    line-height: 1.7;
   }
   
   .dark .article-container {
-    background: rgba(31, 41, 55, 0.95);
     color: #e5e7eb;
   }
   
@@ -469,6 +475,11 @@ const clientStyle = `
     display: flex;
     justify-content: space-between;
     margin-top: 2rem;
+    width: 100%;
+    padding: 0 1rem;
+    position: absolute;
+    left: 0;
+    bottom: 2rem;
   }
   
   .nav-btn {
@@ -509,12 +520,12 @@ const clientStyle = `
   /* fullPage.js 导航样式 */
   #fp-nav ul li a span, 
   .fp-slidesNav ul li a span {
-    background: rgba(78, 94, 211, 0.7);
+    background: rgba(255, 255, 255, 0.7);
   }
   
   #fp-nav ul li a.active span, 
   .fp-slidesNav ul li a.active span {
-    background: rgb(78, 94, 211);
+    background: rgb(255, 255, 255);
     transform: scale(1.5);
   }
   
@@ -563,6 +574,7 @@ const clientStyle = `
     .article-container {
       padding: 1.5rem;
       width: 95%;
+      font-size: 1rem;
     }
     
     .fixed-header {
@@ -576,6 +588,11 @@ const clientStyle = `
     
     .control-buttons {
       gap: 0.25rem;
+    }
+    
+    .navigation-buttons {
+      padding: 0 0.5rem;
+      bottom: 1rem;
     }
   }
   
@@ -637,6 +654,23 @@ const clientStyle = `
   .article-container article {
     animation: fadeIn 0.6s ease-out;
     animation-fill-mode: both;
+  }
+  
+  /* 文章内容样式优化 */
+  .article-content {
+    font-size: 1.15rem;
+    line-height: 1.8;
+  }
+  
+  .article-content h1, 
+  .article-content h2, 
+  .article-content h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+  }
+  
+  .article-content p {
+    margin-bottom: 1.2em;
   }
 `;
 
@@ -847,15 +881,9 @@ const clientScript = `
     
     // 初始化 fullPage.js
     function initFullPage() {
-      // 动态创建anchor链接
+      // 获取所有section元素
       const sections = document.querySelectorAll('.section');
-      const anchors = [];
-      
-      sections.forEach((section, index) => {
-        const anchor = 'page' + (index + 1);
-        anchors.push(anchor);
-        section.setAttribute('data-anchor', anchor);
-      });
+      const sectionsCount = sections.length;
       
       // 初始化fullPage
       const fullPageInstance = new fullpage('#fullpage', {
@@ -863,59 +891,45 @@ const clientScript = `
         licenseKey: 'gplv3-license', // 使用GPL开源协议
         autoScrolling: true,
         scrollHorizontally: false,
-        anchors: anchors,
         navigation: true,
         navigationPosition: 'right',
         showActiveTooltip: true,
         verticalCentered: true,
         
-        // 特殊选项
         // 使用CSS3转换
         css3: true,
-        
-        // 设置自动高度的最后一个section
-        // fp-auto-height 类用于底部导航
         
         // 滚动速度
         scrollingSpeed: 700,
         
-        // 惯性滚动效果
-        easingcss3: 'ease',
-        
-        // 自适应高度
-        responsiveWidth: 768,
-        responsiveHeight: 600,
+        // 滚动效果
+        easingcss3: 'cubic-bezier(0.645, 0.045, 0.355, 1.000)',
         
         // 回调函数
         afterLoad: function(origin, destination, direction) {
           // 页面加载后更新导航按钮状态
-          updateNavigationButtons(destination.index, sections.length);
-        },
-        
-        afterRender: function() {
-          // 初始化导航按钮
-          initNavigationButtons();
-          
-          // 加载图片
-          lazyLoadImages();
+          updateNavigationButtons(destination.index, sectionsCount);
         }
       });
       
       // 将fullPage实例存储在全局变量中
       window.fullPageInstance = fullPageInstance;
       
+      // 初始化导航按钮
+      initNavigationButtons(sectionsCount);
+      
       return fullPageInstance;
     }
     
     // 初始化导航按钮
-    function initNavigationButtons() {
+    function initNavigationButtons(sectionsCount) {
       const prevBtn = document.getElementById('prev-page');
       const nextBtn = document.getElementById('next-page');
-      const sections = document.querySelectorAll('.section');
       
       if (!prevBtn || !nextBtn) return;
       
-      updateNavigationButtons(0, sections.length);
+      // 初始状态 - 禁用上一页按钮
+      updateNavigationButtons(0, sectionsCount);
       
       prevBtn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -943,7 +957,7 @@ const clientScript = `
       }
       
       // 在最后一页时禁用下一页按钮
-      if (currentIndex === totalSections - 1) {
+      if (currentIndex >= totalSections - 1) {
         nextBtn.classList.add('disabled');
       } else {
         nextBtn.classList.remove('disabled');
@@ -954,28 +968,37 @@ const clientScript = `
     function lazyLoadImages() {
       const images = document.querySelectorAll('img[data-preview]');
       
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            img.onload = function() {
-              safeDomUpdate(() => {
-                img.classList.add('loaded');
-                const parent = img.parentNode;
-                if (parent) {
-                  parent.classList.add('loaded');
-                }
-              });
-            };
-            img.src = img.src;
-            observer.unobserve(img);
-          }
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const img = entry.target;
+              
+              img.onload = function() {
+                safeDomUpdate(() => {
+                  img.style.opacity = '1';
+                  const placeholder = img.parentNode.querySelector('.image-placeholder');
+                  if (placeholder) {
+                    placeholder.style.display = 'none';
+                  }
+                });
+              };
+              
+              img.src = img.src;
+              observer.unobserve(img);
+            }
+          });
+        }, { threshold: 0.1 });
+        
+        images.forEach((img) => {
+          observer.observe(img);
         });
-      }, { threshold: 0.1 });
-      
-      images.forEach((img) => {
-        observer.observe(img);
-      });
+      } else {
+        // 不支持 IntersectionObserver 的浏览器回退方案
+        images.forEach((img) => {
+          img.style.opacity = '1';
+        });
+      }
     }
     
     // 初始化所有功能
@@ -983,6 +1006,7 @@ const clientScript = `
       initThemeToggle();
       initImageViewer();
       initFullPage();
+      lazyLoadImages();
     }
     
     // 在DOM加载完成后初始化
