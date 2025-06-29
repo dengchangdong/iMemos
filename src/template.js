@@ -464,6 +464,7 @@ const clientStyle = `
   article:hover::before {
     transform: scale(1.1);
     box-shadow: 4px 4px 0px #bab5f8;
+    background-color: #4e5ed3;
   }
   
   .dark article:hover::before {
