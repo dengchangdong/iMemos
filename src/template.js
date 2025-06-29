@@ -55,7 +55,7 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content) {
   return utils.createHtml`
-    <article class="pb-8 border-l border-[rgba(0,0,0,.05)] relative pl-5 ml-3 last:border-0 last:pb-0">
+    <article class="pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-0 last:pb-0">
       <header>${header}</header>
       <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
@@ -91,7 +91,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-[#ff4500] font-poppins font-semibold block md:text-sm text-xs hover:text-[#ff4500]/80 transition-all hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -181,7 +181,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 text-sm font-medium transition-all bg-gradient-to-r from-[#ff4500] to-[#ff6347] text-white no-underline border-none cursor-pointer hover:from-[#ff6347] hover:to-[#ff7f50] hover:-translate-y-0.5";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-blue-500 to-blue-600 text-white no-underline border-none cursor-pointer hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
@@ -201,7 +201,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
       <a href="${prevPageLink}" class="${buttonClass}">
         <i class="ri-arrow-left-line text-xl mr-2"></i> 上一页
       </a>
-      <span class="text-sm bg-[#ff4500]/10 px-4 py-1.5 text-[#ff4500] font-medium">第 ${currentPage} 页</span>
+      <span class="text-sm bg-blue-100/70 dark:bg-blue-900/30 px-4 py-1.5 rounded-full text-blue-700 dark:text-blue-300 font-medium">第 ${currentPage} 页</span>
       <a href="${nextPageLink}" class="${buttonClass} ${hasMore ? '' : 'invisible'}">
         下一页 <i class="ri-arrow-right-line text-xl ml-2"></i>
       </a>
@@ -260,9 +260,9 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="min-h-screen bg-[#f4f1ec] m-0 p-0 font-sans">
+      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="border border-solid border-gray-300 p-6 sm:p-12 w-full transition-all duration-300">
+          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
@@ -277,10 +277,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-grey-200 dark:bg-[#ff4500]/20 text-[#ff4500] hover:text-[#ff4500]/80 dark:text-[#ff4500] dark:hover:text-[#ff4500]/80 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 transform hover:scale-110 active:scale-100" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center bg-gray-100 hover:bg-grey-200 dark:bg-[#ff4500]/20 text-[#ff4500] hover:text-[#ff4500]/80 dark:text-[#ff4500] dark:hover:text-[#ff4500]/80 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 transform hover:scale-110 active:scale-100" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -296,7 +296,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center bg-gradient-to-r from-[#ff4500] to-[#ff6347] text-white cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-[#ff6347] hover:to-[#ff7f50] hover:scale-110"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -336,14 +336,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </figure>
             
             <button 
-              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
               aria-label="上一张"
             >
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
             </button>
             
             <button 
-              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
               aria-label="下一张"
             >
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
@@ -433,33 +433,43 @@ const clientStyle = `
     width: 17px;
     height: 17px;
     background-color: white;
-    border: 1px solid #ff4500;
+    border: 1px solid #4e5ed3;
+    border-radius: 50%;
     position: absolute;
     left: -9px;
     top: 0;
+    box-shadow: 3px 3px 0px #bab5f8;
     transition: all 0.3s ease;
   }
   
   .dark article::before {
     background-color: #1f2937;
-    border-color: #ff4500;
+    border-color: #818cf8;
+    box-shadow: 3px 3px 0px #6366f1;
   }
   
   article:hover::before {
     transform: scale(1.1);
+    box-shadow: 4px 4px 0px #bab5f8;
+  }
+  
+  .dark article:hover::before {
+    box-shadow: 4px 4px 0px #6366f1;
   }
   
   /* 按钮动画效果 */
   button, .pagination a {
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
   }
   
   button:hover, .pagination a:hover{
     transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   button:active, .pagination a:active {
     transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   .image-modal.active {
@@ -482,6 +492,8 @@ const clientStyle = `
     background-color: #0c7cd51c;
     opacity: 0.5;
     will-change: opacity, transform;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   }
 
   .article-content img.loaded, .mt-4 img.loaded {
@@ -519,20 +531,29 @@ const clientStyle = `
   
   /* 代码块优化 */
   .code-block {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     margin: 1.5em 0;
     overflow: hidden;
   }
   
   pre {
+    border-radius: 8px;
     margin: 1.5em 0;
+    box-shadow: none;
   }
   
   .code-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
     box-shadow: none;
   }
   
   .code-header + pre {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
     margin-top: 0;
+    box-shadow: none;
   }
   
   .code-block pre {
