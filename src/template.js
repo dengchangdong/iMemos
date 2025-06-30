@@ -14,11 +14,11 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
-        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+        <p class="text-red-500 dark:text-red-400 font-medium">加载失败</p>
         <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">返回首页</a></p>
       `
     );
   },
@@ -29,11 +29,11 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
         <h2 class="font-medium">未找到内容</h2>
         <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300">返回首页</a></p>
+        <p class="mt-4"><a href="/" class="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200">返回首页</a></p>
       `
     );
   }
@@ -55,12 +55,12 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content, isHomePage = true) {
   const articleClass = isHomePage 
-    ? "pb-8 border-l border-indigo-300 relative pl-5 ml-3 last:border-transparent last:pb-0 animate-fade-in" 
+    ? "pb-8 border-l border-gray-300 dark:border-gray-600 relative pl-5 ml-3 last:border-transparent last:pb-0 animate-fade-in" 
     : "pb-8 last:pb-0 single-article animate-fade-in";
   return utils.createHtml`
     <article class="${articleClass}">
       <header>${header}</header>
-      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
+      <section class="text-gray-800 dark:text-gray-200 leading-relaxed mt-4 md:text-base text-sm article-content">
         ${content}
       </section>
     </article>
@@ -94,7 +94,7 @@ export function renderMemo(memo, isHomePage = false) {
     const header = utils.createHtml`
       <div class="flex">
         <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-blue-600 dark:text-blue-400 font-poppins font-semibold block md:text-sm text-xs hover:text-blue-800 dark:hover:text-blue-300 transition-all hover:scale-105">${formattedTime}</time>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs hover:text-gray-800 dark:hover:text-gray-200 transition-all hover:scale-105">${formattedTime}</time>
         </a>
       </div>
     `;
@@ -109,7 +109,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-indigo-600 dark:text-indigo-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-gray-600 dark:text-gray-400 font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -124,9 +124,9 @@ const renderImageItem = (resource, itemClass) => {
   );
 
   return utils.createHtml`
-    <div class="${itemClass} relative bg-blue-50/30 dark:bg-gray-700/30 rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
-      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-lg w-full h-full object-cover transition-all duration-300 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
-      <div class="absolute inset-0 flex items-center justify-center text-blue-400 dark:text-blue-300 image-placeholder">
+    <div class="${itemClass} relative bg-gray-50 dark:bg-gray-700/30 rounded-md overflow-hidden">
+      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-md w-full h-full object-cover transition-all duration-300 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
+      <div class="absolute inset-0 flex items-center justify-center text-gray-400 dark:text-gray-500 image-placeholder">
         <i class="ri-image-line text-2xl animate-pulse"></i>
       </div>
     </div>
@@ -184,7 +184,7 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium transition-all bg-gradient-to-r from-blue-500 to-blue-600 text-white no-underline border-none cursor-pointer hover:from-blue-600 hover:to-blue-700 hover:-translate-y-0.5 hover:shadow-lg shadow-md";
+  const buttonClass = "inline-flex items-center px-4 py-1.5 rounded-md text-sm font-medium transition-all bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 no-underline border-none cursor-pointer hover:bg-gray-300 dark:hover:bg-gray-600 hover:-translate-y-0.5";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
@@ -244,13 +244,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             theme: {
               extend: {
                 backgroundImage: {
-                  'custom-gradient': 'linear-gradient(45deg, #209cff, #68e0cf)',
-                  'custom-gradient-dark': 'linear-gradient(45deg, #0f4c81, #2c7873)',
+                  'custom-gradient': 'none',
+                  'custom-gradient-dark': 'none',
                 },
                 colors: {
-                  'indigo-timeline': '#4e5ed3',
-                  'indigo-shadow': '#bab5f8',
-                  'blue-light-hover': '#0c7cd51c',
+                  'indigo-timeline': '#9ca3af',
+                  'indigo-shadow': 'transparent',
+                  'blue-light-hover': '#f3f4f6',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
@@ -271,12 +271,12 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   }
                 },
                 boxShadow: {
-                  'article-dot': '3px 3px 0px #bab5f8',
-                  'article-dot-hover': '4px 4px 0px #bab5f8',
-                  'article-dot-dark': '3px 3px 0px #6366f1',
-                  'article-dot-dark-hover': '4px 4px 0px #6366f1',
-                  'img': '0 4px 10px rgba(0, 0, 0, 0.05)',
-                  'code': '0 4px 12px rgba(0, 0, 0, 0.08)',
+                  'article-dot': '0px 0px 0px transparent',
+                  'article-dot-hover': '0px 0px 0px transparent', 
+                  'article-dot-dark': '0px 0px 0px transparent',
+                  'article-dot-dark-hover': '0px 0px 0px transparent',
+                  'img': '0 0 0 transparent',
+                  'code': '0 0 0 transparent',
                 },
                 borderRadius: {
                   'code': '8px'
@@ -292,13 +292,13 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="min-h-screen bg-custom-gradient dark:bg-custom-gradient-dark bg-fixed m-0 p-0 font-sans">
+      <body class="min-h-screen bg-gray-100 dark:bg-gray-900 bg-fixed m-0 p-0 font-sans">
         <div class="container w-full max-w-xl [@media(min-width:1921px)]:max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <section class="bg-white/95 dark:bg-gray-800/95 p-6 sm:p-12 rounded-xl shadow-lg w-full backdrop-blur-sm transition-all duration-300">
+          <section class="bg-white/98 dark:bg-gray-800/98 p-6 sm:p-12 rounded-lg w-full backdrop-blur-sm transition-all duration-300">
             <header class="flex items-center justify-between">
               <div class="flex items-center">
                 <a href="/" class="flex items-center" aria-label="返回首页">
-                  <h1 class="text-xl font-semibold font-poppins mb-0 tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400">${siteName}</h1>
+                  <h1 class="text-xl font-semibold font-poppins mb-0 tracking-wide text-gray-800 dark:text-gray-200">${siteName}</h1>
                 </a>
               </div>
               <div class="flex items-center space-x-4">
@@ -309,10 +309,10 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   </ul>
                 </nav>
                  -->
-                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="RSS订阅" title="RSS订阅">
+                <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-md bg-gray-100 hover:bg-grey-200 dark:bg-gray-700 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 transform hover:scale-105 active:scale-100" aria-label="RSS订阅" title="RSS订阅">
                   <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
                 </a>
-                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-blue-300 text-blue-500 hover:text-blue-700 dark:text-blue-700 dark:hover:text-blue-700 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 shadow-sm transform hover:scale-110 hover:shadow-md active:scale-100 active:shadow-sm" aria-label="切换主题">
+                <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-md bg-gray-100 hover:bg-grey-200 dark:bg-gray-700 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 transform hover:scale-105 active:scale-100" aria-label="切换主题">
                   <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
                 </button>
               </div>
@@ -328,7 +328,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:from-blue-600 hover:to-blue-700 hover:scale-110 hover:shadow-lg"
+          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-md bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-gray-300 dark:hover:bg-gray-600 hover:scale-105"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
@@ -337,7 +337,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <!-- 图片预览模态框 -->
         <div 
           id="imageModal" 
-          class="image-modal fixed inset-0 w-full h-full bg-black/90 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden backdrop-blur-sm"
+          class="image-modal fixed inset-0 w-full h-full bg-black/80 z-[100] justify-center items-center opacity-0 transition-opacity duration-300 ease-in-out will-change-opacity hidden backdrop-blur-sm"
           aria-modal="true" 
           aria-label="图片预览"
         >
@@ -368,14 +368,14 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             </figure>
             
             <button 
-              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-prev absolute top-1/2 -translate-y-1/2 left-2.5 bg-black/40 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-md hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/60"
               aria-label="上一张"
             >
               <i class="ri-arrow-left-s-line" aria-hidden="true"></i>
             </button>
             
             <button 
-              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/50 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-full hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/70 hover:scale-110"
+              class="image-modal-next absolute top-1/2 -translate-y-1/2 right-2.5 bg-black/40 text-white border-none text-2xl cursor-pointer w-10 h-10 rounded-md hidden items-center justify-center transition-all duration-200 will-change-transform hover:bg-black/60"
               aria-label="下一张"
             >
               <i class="ri-arrow-right-s-line" aria-hidden="true"></i>
@@ -436,15 +436,15 @@ const clientStyle = `
   /* article的before伪元素样式 - 无法完全用Tailwind替代 */
   article::before {
     content: '';
-    width: 17px;
-    height: 17px;
+    width: 14px;
+    height: 14px;
     background-color: white;
-    border: 1px solid #4e5ed3;
+    border: 1px solid #ccc;
     border-radius: 50%;
     position: absolute;
-    left: -9px;
+    left: -7px;
     top: 0;
-    box-shadow: 3px 3px 0px #bab5f8;
+    box-shadow: none;
     transition: all 0.3s ease;
   }
   
@@ -460,18 +460,18 @@ const clientStyle = `
   
   .dark article::before {
     background-color: #1f2937;
-    border-color: #818cf8;
-    box-shadow: 3px 3px 0px #6366f1;
+    border-color: #4b5563;
+    box-shadow: none;
   }
   
   article:hover::before {
     transform: scale(1.1);
-    box-shadow: 4px 4px 0px #bab5f8;
-    background-color: #4e5ed3;
+    box-shadow: none;
+    background-color: #6b7280;
   }
   
   .dark article:hover::before {
-    box-shadow: 4px 4px 0px #6366f1;
+    box-shadow: none;
   }
 
   /* 模态框显示状态 */
@@ -493,11 +493,11 @@ const clientStyle = `
   .article-content img, .mt-4 img {
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.3s ease;
-    background-color: #0c7cd51c;
+    background-color: #f3f4f6;
     opacity: 0.5;
     will-change: opacity, transform;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+    box-shadow: none;
   }
 
   .article-content img.loaded, .mt-4 img.loaded {
@@ -532,19 +532,19 @@ const clientStyle = `
   
   /* 代码块样式 */
   .code-block {
-    @apply rounded-code shadow-code my-code overflow-hidden;
+    @apply rounded-md bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 overflow-hidden;
   }
   
   pre {
-    @apply rounded-code my-code shadow-none font-code;
+    @apply rounded-md bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700 font-code;
   }
   
   .code-header {
-    @apply rounded-t-code shadow-none;
+    @apply rounded-t-md bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700;
   }
   
   .code-block pre {
-    @apply m-0;
+    @apply m-0 border-0;
   }
   
   code {
@@ -556,6 +556,25 @@ const clientStyle = `
     border-top-right-radius: 0;
     margin-top: 0;
     box-shadow: none;
+  }
+
+  /* 链接样式 */
+  a {
+    color: #4b5563;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  a:hover {
+    color: #000000;
+  }
+  
+  .dark a {
+    color: #9ca3af;
+  }
+  
+  .dark a:hover {
+    color: #ffffff;
   }
 `;
 
