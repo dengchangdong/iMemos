@@ -64,12 +64,32 @@ export const CONFIG = {
   /** @type {Object} CSS类名配置 */
   CSS: {
     /** @type {string} 卡片样式 */
-    CARD: 'bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden',
+    CARD: 'bg-white shadow-sm rounded-xl px-6 py-4 mb-6 relative overflow-hidden hover:shadow-md transition-shadow duration-300',
     /** @type {string} 文章内容样式 */
     PROSE: 'prose dark:prose-invert max-w-none',
     /** @type {string} 链接样式 */
-    LINK: 'text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors',
+    LINK: 'text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium transition-colors',
     /** @type {string} 嵌入容器样式 */
-    EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800'
+    EMBED_CONTAINER: 'my-4 rounded-lg overflow-hidden bg-gray-50 dark:bg-gray-800',
+    /** @type {string} 高亮文本样式 */
+    HIGHLIGHT: 'text-teal-600 font-bold',
+    /** @type {string} 导航箭头样式 */
+    NAV_ARROW: 'absolute bottom-4 right-5 text-lg',
+    /** @type {string} 卡片装饰元素 */
+    CARD_DECORATION: 'absolute -bottom-6 -right-6 w-20 h-20 rounded-full bg-teal-100 dark:bg-teal-900/30 opacity-50'
+  },
+  
+  /** @type {Object} 颜色主题配置 */
+  THEME: {
+    /** @type {string} 主要强调色 */
+    PRIMARY: 'teal',
+    /** @type {string} 次要强调色 */
+    SECONDARY: 'indigo',
+    /** @type {string} 卡片背景色 */
+    CARD_BG: 'white',
+    /** @type {string} 暗色模式卡片背景色 */
+    CARD_BG_DARK: 'gray-900',
+    /** @type {string} 年份标记前缀 */
+    YEAR_PREFIX: ''
   }
 }; 
