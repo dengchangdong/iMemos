@@ -14,11 +14,17 @@ export const htmlTemplates = {
    */
   errorPage(error) {
     return createArticleStructure(
-      utils.createHtml`<time class="text-${CONFIG.THEME.PRIMARY}-600 dark:text-${CONFIG.THEME.PRIMARY}-400 font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-brand-red font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`
-        <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
-        <p class="text-sm">${error.message}</p>
-        <p class="mt-4"><a href="/" class="text-${CONFIG.THEME.PRIMARY}-600 dark:text-${CONFIG.THEME.PRIMARY}-400 hover:text-${CONFIG.THEME.PRIMARY}-700 dark:hover:text-${CONFIG.THEME.PRIMARY}-300">返回首页</a></p>
+        <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border-l-4 border-brand-red">
+          <p class="text-red-600 dark:text-red-400 font-medium">加载失败</p>
+          <p class="text-sm mt-2">${error.message}</p>
+        </div>
+        <div class="mt-6 flex">
+          <a href="/" class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all bg-brand-red text-white hover:brightness-110 transform hover:-translate-y-0.5 hover:shadow-md">
+            <i class="ri-home-line mr-2"></i> 返回首页
+          </a>
+        </div>
       `
     );
   },
@@ -29,11 +35,17 @@ export const htmlTemplates = {
    */
   notFoundPage() {
     return createArticleStructure(
-      utils.createHtml`<time class="text-${CONFIG.THEME.PRIMARY}-600 dark:text-${CONFIG.THEME.PRIMARY}-400 font-semibold block md:text-sm text-xs">404</time>`,
+      utils.createHtml`<time class="text-brand-red font-poppins font-semibold block md:text-sm text-xs">404</time>`,
       utils.createHtml`
-        <h2 class="font-medium">未找到内容</h2>
-        <p>您访问的内容不存在或已被删除</p>
-        <p class="mt-4"><a href="/" class="text-${CONFIG.THEME.PRIMARY}-600 dark:text-${CONFIG.THEME.PRIMARY}-400 hover:text-${CONFIG.THEME.PRIMARY}-700 dark:hover:text-${CONFIG.THEME.PRIMARY}-300">返回首页</a></p>
+        <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border-l-4 border-brand-navy">
+          <h2 class="font-medium text-brand-navy dark:text-gray-200">未找到内容</h2>
+          <p class="mt-2 text-gray-600 dark:text-gray-400">您访问的内容不存在或已被删除</p>
+        </div>
+        <div class="mt-6 flex">
+          <a href="/" class="inline-flex items-center px-4 py-2 rounded-md text-sm font-medium transition-all bg-brand-red text-white hover:brightness-110 transform hover:-translate-y-0.5 hover:shadow-md">
+            <i class="ri-home-line mr-2"></i> 返回首页
+          </a>
+        </div>
       `
     );
   }
@@ -55,16 +67,15 @@ export function parseNavLinks(linksStr) {
 // 创建文章结构
 function createArticleStructure(header, content, isHomePage = true) {
   const articleClass = isHomePage 
-    ? "relative mb-6 animate-fade-in" 
-    : "pb-6 last:pb-0 single-article animate-fade-in";
+    ? "mb-10 px-4 py-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 relative animate-fade-in" 
+    : "mb-8 px-4 py-6 bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-300 single-article animate-fade-in";
+  
   return utils.createHtml`
-    <article class="${CONFIG.CSS.CARD} ${articleClass}">
-      <header>${header}</header>
-      <section class="text-gray-700 dark:text-gray-300 leading-relaxed mt-4 md:text-base text-sm article-content">
+    <article class="${articleClass}">
+      <header class="mb-4 border-b border-gray-100 dark:border-gray-700 pb-3">${header}</header>
+      <section class="text-gray-700 dark:text-gray-300 leading-relaxed md:text-base text-sm article-content">
         ${content}
       </section>
-      <div class="${CONFIG.CSS.CARD_DECORATION}"></div>
-      <i class="ri-arrow-right-line ${CONFIG.CSS.NAV_ARROW}"></i>
     </article>
   `;
 }
@@ -92,22 +103,24 @@ export function renderMemo(memo, isHomePage = false) {
     // 文章URL
     const articleUrl = isHomePage ? `/post/${memo.name}` : '#'
     
-    // 获取年份
-    const year = new Date(timestamp).getFullYear()
-    
     // 创建文章头部
     const header = utils.createHtml`
       <div class="flex items-center">
-        <span class="text-gray-400 text-xs mr-2">${CONFIG.THEME.YEAR_PREFIX}${year}</span>
-        <a class="block" href="${articleUrl}">
-          <time datetime="${new Date(timestamp).toISOString()}" class="text-${CONFIG.THEME.PRIMARY}-600 font-semibold block md:text-base text-sm hover:text-${CONFIG.THEME.PRIMARY}-700 transition-all">${formattedTime}</time>
+        <a class="block group relative" href="${articleUrl}">
+          <div class="absolute -left-2 top-0 bottom-0 w-1 bg-brand-red rounded-r transform origin-left group-hover:scale-y-110 transition-transform duration-300"></div>
+          <time datetime="${new Date(timestamp).toISOString()}" class="text-brand-red font-poppins font-semibold block md:text-base text-sm hover:text-red-700 transition-colors pl-2">${formattedTime}</time>
         </a>
+        <div class="ml-auto flex items-center space-x-1">
+          ${memo.tags ? memo.tags.map(tag => `<a href="/tag/${tag}" class="text-xs px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300 transition-colors">#${tag}</a>`).join('') : ''}
+        </div>
       </div>
     `;
     
     // 创建文章内容
     const articleContent = utils.createHtml`
-      ${parsedContent}
+      <div class="prose dark:prose-invert max-w-none">
+        ${parsedContent}
+      </div>
       ${resourcesHtml}
     `;
     
@@ -115,7 +128,7 @@ export function renderMemo(memo, isHomePage = false) {
   } catch (error) {
     console.error('渲染 memo 失败:', error)
     return createArticleStructure(
-      utils.createHtml`<time class="text-${CONFIG.THEME.PRIMARY}-600 dark:text-${CONFIG.THEME.PRIMARY}-400 font-semibold block md:text-sm text-xs">错误</time>`,
+      utils.createHtml`<time class="text-brand-red font-poppins font-semibold block md:text-sm text-xs">错误</time>`,
       utils.createHtml`<p class="text-red-500 dark:text-red-400">渲染失败: ${error.message}</p>`
     );
   }
@@ -130,9 +143,9 @@ const renderImageItem = (resource, itemClass) => {
   );
 
   return utils.createHtml`
-    <div class="${itemClass} relative bg-${CONFIG.THEME.PRIMARY}-50/50 dark:bg-${CONFIG.THEME.PRIMARY}-900/20 rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md">
-      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-lg w-full h-full object-cover transition-all duration-300 absolute inset-0 z-10 hover:scale-105 opacity-0" loading="lazy" data-preview="true"/>
-      <div class="absolute inset-0 flex items-center justify-center text-${CONFIG.THEME.PRIMARY}-400 dark:text-${CONFIG.THEME.PRIMARY}-300 image-placeholder">
+    <div class="${itemClass} relative bg-gray-100 dark:bg-gray-700/50 rounded-lg overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md group">
+      <img src="${transformedLink}" alt="${resource.filename || '图片'}" class="rounded-lg w-full h-full object-cover transition-all duration-500 absolute inset-0 z-10 opacity-0 group-hover:scale-105" loading="lazy" data-preview="true"/>
+      <div class="absolute inset-0 flex items-center justify-center text-brand-red dark:text-brand-red image-placeholder">
         <i class="ri-image-line text-2xl animate-pulse"></i>
       </div>
     </div>
@@ -152,11 +165,19 @@ function createResourcesHtml(resources) {
       item: 'w-full aspect-video' 
     },
     2: { 
-      container: 'flex flex-wrap gap-1', 
-      item: 'w-[calc(50%-2px)] aspect-square' 
+      container: 'flex flex-wrap gap-2', 
+      item: 'w-[calc(50%-4px)] aspect-square' 
+    },
+    3: { 
+      container: 'grid grid-cols-3 gap-2', 
+      item: 'aspect-square' 
+    },
+    4: { 
+      container: 'grid grid-cols-2 gap-2', 
+      item: 'aspect-square' 
     },
     default: { 
-      container: 'grid grid-cols-3 gap-1', 
+      container: 'grid grid-cols-3 gap-2', 
       item: 'aspect-square' 
     },
   };
@@ -173,7 +194,7 @@ function createResourcesHtml(resources) {
     : imagesHtml;
 
   return utils.createHtml`
-    <figure class="mt-4">
+    <figure class="mt-6">
       ${content}
     </figure>
   `;
@@ -190,13 +211,13 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
     return '';
   }
 
-  const buttonClass = `inline-flex items-center px-6 py-2 rounded-full text-sm font-medium transition-all bg-${CONFIG.THEME.PRIMARY}-500 text-white no-underline border-none cursor-pointer hover:bg-${CONFIG.THEME.PRIMARY}-600 hover:-translate-y-0.5 hover:shadow-lg shadow-md`;
+  const buttonClass = "inline-flex items-center px-5 py-2.5 rounded-md text-sm font-medium transition-all bg-brand-red text-white no-underline border-none cursor-pointer hover:brightness-110 transform hover:-translate-y-0.5 hover:shadow-lg shadow-md";
 
   if (isHomePage && currentPage === 1) {
     return utils.createHtml`
-      <div class="pagination flex justify-center items-center mt-8 mb-12">
+      <div class="pagination flex justify-center items-center mt-10">
         <a href="/page/2" class="${buttonClass}">
-          查看更多
+          <i class="ri-arrow-down-line text-lg mr-2"></i> 查看更多内容
         </a>
       </div>
     `;
@@ -204,13 +225,39 @@ function renderPagination({ currentPage, hasMore, isHomePage, tag = '', memosCou
 
   const prevPageLink = currentPage > 2 ? `/page/${currentPage - 1}` : '/';
   const nextPageLink = `/page/${currentPage + 1}`;
-  
+
+  if (!hasMore && currentPage === 1) {
+    return '';
+  }
+
+  if (!hasMore) {
+    return utils.createHtml`
+      <div class="pagination flex justify-center items-center gap-4 mt-10">
+        <a href="${prevPageLink}" class="${buttonClass}">
+          <i class="ri-arrow-left-line text-lg mr-2"></i> 上一页
+        </a>
+      </div>
+    `;
+  }
+
+  if (currentPage === 1) {
+    return utils.createHtml`
+      <div class="pagination flex justify-center items-center gap-4 mt-10">
+        <a href="${nextPageLink}" class="${buttonClass}">
+          下一页 <i class="ri-arrow-right-line text-lg ml-2"></i>
+        </a>
+      </div>
+    `;
+  }
+
   return utils.createHtml`
-    <div class="pagination flex justify-center items-center space-x-4 mt-8 mb-12">
+    <div class="pagination flex justify-center items-center gap-4 mt-10">
       <a href="${prevPageLink}" class="${buttonClass}">
-        上一页
+        <i class="ri-arrow-left-line text-lg mr-2"></i> 上一页
       </a>
-      ${hasMore ? `<a href="${nextPageLink}" class="${buttonClass}">下一页</a>` : ''}
+      <a href="${nextPageLink}" class="${buttonClass}">
+        下一页 <i class="ri-arrow-right-line text-lg ml-2"></i>
+      </a>
     </div>
   `;
 }
@@ -220,7 +267,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
   const navItems = parseNavLinks(navLinks)
   const navItemsHtml = navItems.length > 0 
     ? navItems.map(item => utils.createHtml`
-        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-${CONFIG.THEME.PRIMARY}-100 text-${CONFIG.THEME.PRIMARY}-600 hover:text-${CONFIG.THEME.PRIMARY}-700">${item.text}</a></li>
+        <li><a href="${item.url}" class="px-3 py-1.5 rounded-md transition-all block text-sm font-medium hover:bg-red-100 text-red-500 hover:text-red-700 hover:scale-105">${item.text}</a></li>
       `).join('')
     : '';
 
@@ -233,7 +280,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="${siteName}">
-        <meta name="theme-color" content="#14b8a6">
+        <meta name="theme-color" content="#FF5733">
         <title>${title}</title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -246,20 +293,18 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             darkMode: 'class',
             theme: {
               extend: {
+                backgroundImage: {
+                  'custom-gradient': 'linear-gradient(to right, #6dd5ed, #2193b0)',
+                  'custom-gradient-dark': 'linear-gradient(to right, #243949, #517fa4)',
+                  'fashion-gradient': 'linear-gradient(to right, #00b4db, #0083b0)',
+                },
                 colors: {
-                  teal: {
-                    50: '#f0fdfa',
-                    100: '#ccfbf1',
-                    200: '#99f6e4',
-                    300: '#5eead4',
-                    400: '#2dd4bf',
-                    500: '#14b8a6',
-                    600: '#0d9488',
-                    700: '#0f766e',
-                    800: '#115e59',
-                    900: '#134e4a',
-                    950: '#042f2e',
-                  },
+                  'brand-red': '#FF3A2D',
+                  'brand-teal': '#4ECDC4',
+                  'brand-navy': '#112D4E',
+                  'fashion-bg': '#4ECDC4',
+                  'fashion-text': '#112D4E',
+                  'fashion-accent': '#FF3A2D',
                 },
                 fontFamily: {
                   'sans': ['Noto Sans SC', 'sans-serif'],
@@ -272,11 +317,16 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
                   'fade-in-delay-2': 'fadeIn 0.6s ease-out 0.2s forwards',
                   'fade-in-delay-3': 'fadeIn 0.6s ease-out 0.3s forwards',
                   'fade-in-delay-4': 'fadeIn 0.6s ease-out 0.4s forwards',
+                  'slide-in': 'slideIn 0.5s ease-out forwards',
                 },
                 keyframes: {
                   fadeIn: {
                     'from': { opacity: 0, transform: 'translateY(10px)' },
                     'to': { opacity: 1, transform: 'translateY(0)' }
+                  },
+                  slideIn: {
+                    'from': { opacity: 0, transform: 'translateX(-20px)' },
+                    'to': { opacity: 1, transform: 'translateX(0)' }
                   }
                 },
               }
@@ -287,41 +337,45 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
           ${clientStyle}
         </style>
       </head>
-      <body class="min-h-screen bg-white m-0 p-0 font-sans">
-        <div class="container w-full max-w-2xl mx-auto px-4 py-8 sm:py-12">
-          <header class="flex items-center justify-between mb-10">
-            <div class="flex items-center">
-              <a href="/" class="flex items-center" aria-label="返回首页">
-                <h1 class="text-2xl font-bold mb-0 text-${CONFIG.THEME.PRIMARY}-600">${siteName}</h1>
-              </a>
-            </div>
-            <div class="flex items-center space-x-4">
-              ${navItems.length > 0 ? `
-                <nav class="mr-1" aria-label="网站导航">
+      <body class="min-h-screen bg-[#F5FDFF] dark:bg-gray-900 m-0 p-0 font-sans">
+        <div class="container w-full max-w-5xl mx-auto px-4 py-8 sm:py-12">
+          <section class="bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-lg w-full transition-all duration-300">
+            <header class="flex flex-col sm:flex-row items-center justify-between mb-8">
+              <div class="flex items-center relative mb-4 sm:mb-0">
+                <a href="/" class="flex items-center group" aria-label="返回首页">
+                  <div class="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-brand-red rounded-r-sm transform -skew-y-12 group-hover:h-14 transition-all duration-300"></div>
+                  <h1 class="text-2xl md:text-3xl font-bold mb-0 tracking-wide text-fashion-text dark:text-gray-100">
+                    ${siteName}
+                    <span class="text-brand-red font-bold">.</span>
+                  </h1>
+                </a>
+              </div>
+              <div class="flex items-center space-x-4">
+                <nav class="flex mr-2" aria-label="网站导航">
                   <ul class="flex space-x-2">
                     ${navItemsHtml}
                   </ul>
                 </nav>
-              ` : ''}
-              <a href="/rss.xml" class="w-9 h-9 flex items-center justify-center rounded-full bg-${CONFIG.THEME.PRIMARY}-100 text-${CONFIG.THEME.PRIMARY}-600 hover:bg-${CONFIG.THEME.PRIMARY}-200 hover:text-${CONFIG.THEME.PRIMARY}-700 transition-all duration-200 shadow-sm transform hover:scale-105" aria-label="RSS订阅" title="RSS订阅">
-                <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
-              </a>
-              <button id="theme-toggle" class="w-9 h-9 flex items-center justify-center rounded-full bg-${CONFIG.THEME.PRIMARY}-100 text-${CONFIG.THEME.PRIMARY}-600 hover:bg-${CONFIG.THEME.PRIMARY}-200 hover:text-${CONFIG.THEME.PRIMARY}-700 transition-all duration-200 shadow-sm transform hover:scale-105" aria-label="切换主题">
-                <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
-              </button>
-            </div>
-          </header>
-          <main class="relative">
-            ${articlesHtml}
-          </main>
-          
-          <!-- 分页导航 -->
-          ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
+                <a href="/rss.xml" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-gray-700 text-brand-red hover:text-red-700 dark:text-gray-200 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 transform hover:scale-110 hover:shadow-md active:scale-100" aria-label="RSS订阅" title="RSS订阅">
+                  <i class="ri-rss-fill text-lg" aria-hidden="true"></i>
+                </a>
+                <button id="theme-toggle" class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-grey-200 dark:bg-gray-700 text-brand-navy hover:text-gray-900 dark:text-gray-200 focus:outline-none focus:ring-0 focus:border-0 transition-all duration-200 transform hover:scale-110 hover:shadow-md active:scale-100" aria-label="切换主题">
+                  <i class="ri-sun-fill text-lg" id="theme-icon" aria-hidden="true"></i>
+                </button>
+              </div>
+            </header>
+            <main class="mt-8 relative animate-fade-in">
+              ${articlesHtml}
+            </main>
+            
+            <!-- 分页导航 -->
+            ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
+          </section>
         </div>
 
         <button 
           id="back-to-top" 
-          class="back-to-top fixed bottom-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-${CONFIG.THEME.PRIMARY}-600 text-white shadow-md cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:bg-${CONFIG.THEME.PRIMARY}-700 hover:scale-110 hover:shadow-lg"
+          class="back-to-top fixed bottom-6 right-6 w-12 h-12 flex items-center justify-center rounded-full bg-brand-red text-white shadow-lg cursor-pointer z-50 opacity-0 invisible transition-all duration-300 ease-in-out transform hover:scale-110 hover:brightness-110"
           aria-label="返回顶部"
         >
           <i class="ri-arrow-up-line text-xl" aria-hidden="true"></i>
