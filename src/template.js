@@ -289,7 +289,7 @@ export function renderBaseHtml(title, content, navLinks, siteName, currentPage =
             ${renderPagination({ currentPage, hasMore, isHomePage, tag, memosCount, pageLimit })}
           </main>
           
-          <aside class="fixed right-0 top-0 h-full flex flex-col justify-between py-10 px-6 w-[80px]" style="right: 40px;">
+          <aside class="fixed top-0 h-full flex flex-col justify-between py-10 px-6 w-[80px]" style="left: calc(50% + var(--main-width)/2 + 40px)">
             <div class="writing-vertical-rl text-transparent bg-clip-text bg-gradient-to-b from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 flex items-center justify-center">
               <h1 class="text-[clamp(16px,8vw,64px)] font-semibold font-poppins tracking-wide mb-0">${siteName}</h1>
             </div>
@@ -377,6 +377,37 @@ const clientStyle = `
     height: 8px;
     background: rgba(255, 255, 255, 0);
     border-radius: 10px;
+  }
+
+  /* 定义主区域宽度变量，用于计算侧边栏位置 */
+  :root {
+    --main-width: 768px;
+  }
+  
+  @media (max-width: 1023px) {
+    :root {
+      --main-width: 90vw;
+    }
+  }
+  
+  @media (min-width: 1921px) {
+    :root {
+      --main-width: 1024px;
+    }
+  }
+  
+  /* 侧边栏响应式定位 */
+  @media (max-width: 768px) {
+    aside {
+      position: fixed;
+      right: 10px !important;
+      left: auto !important;
+      width: 60px !important;
+    }
+    
+    aside h1 {
+      font-size: clamp(14px, 6vw, 24px) !important;
+    }
   }
 
   /* 移除按钮和链接的焦点边框 */
@@ -561,6 +592,15 @@ const clientScript = `
   (function() {
     function safeDomUpdate(callback) {
       requestAnimationFrame(callback);
+    }
+
+    // 更新main元素宽度变量
+    function updateMainWidth() {
+      const mainElement = document.querySelector('main');
+      if (mainElement) {
+        const mainWidth = mainElement.offsetWidth;
+        document.documentElement.style.setProperty('--main-width', mainWidth + 'px');
+      }
     }
 
     // 主题切换功能
@@ -955,6 +995,7 @@ const clientScript = `
 
     // 页面加载完成后初始化所有功能
     document.addEventListener('DOMContentLoaded', () => {
+      updateMainWidth(); // 初始化时计算一次
       initThemeToggle();
       initImageViewer();
       enhanceMarkdown(); // Handles code copy buttons
@@ -964,6 +1005,9 @@ const clientScript = `
       } else {
         setTimeout(initBackToTop, 200);
       }
+      
+      // 监听窗口大小变化，更新main元素宽度
+      window.addEventListener('resize', updateMainWidth);
     });
   })();
 `;
