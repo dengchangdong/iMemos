@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="一个美观的 Memo 展示应用">
+  <meta name="theme-color" content="#3b82f6">
+  <link rel="icon" href="/favicon.ico">
+  <title>%SITE_NAME% - Memos</title>
+  
+  <!-- 预连接关键域名以提高性能 -->
+  <link rel="preconnect" href="%API_HOST%">
+  
+  <!-- 在客户端初始化应用之前注入服务端传递的配置 -->
+  <script>
+    window.__APP_CONFIG__ = {
+      siteName: "%SITE_NAME%",
+      apiHost: "%API_HOST%",
+      pageLimit: parseInt("%PAGE_LIMIT%"),
+      navLinks: '%NAV_LINKS%'
+    };
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/client/main.js"></script>
+</body>
+</html> 

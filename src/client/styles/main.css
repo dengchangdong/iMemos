@@ -1,0 +1,108 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  body {
+    @apply bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+
+@layer components {
+  .article-content {
+    @apply text-gray-700 dark:text-gray-300 leading-relaxed;
+  }
+  
+  .article-content p {
+    @apply my-3;
+  }
+  
+  .article-content h1, 
+  .article-content h2, 
+  .article-content h3, 
+  .article-content h4, 
+  .article-content h5, 
+  .article-content h6 {
+    @apply font-bold my-4;
+  }
+  
+  .article-content h1 {
+    @apply text-2xl;
+  }
+  
+  .article-content h2 {
+    @apply text-xl;
+  }
+  
+  .article-content h3 {
+    @apply text-lg;
+  }
+  
+  .article-content a {
+    @apply text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline;
+  }
+  
+  .article-content code {
+    @apply bg-gray-100 dark:bg-gray-800 rounded px-1 py-0.5 font-mono text-sm;
+  }
+  
+  .article-content pre {
+    @apply bg-gray-100 dark:bg-gray-800 rounded p-3 overflow-x-auto my-4;
+  }
+  
+  .article-content pre code {
+    @apply bg-transparent p-0;
+  }
+  
+  .article-content ul {
+    @apply list-disc ml-5 my-3;
+  }
+  
+  .article-content ol {
+    @apply list-decimal ml-5 my-3;
+  }
+  
+  .article-content blockquote {
+    @apply border-l-4 border-gray-300 dark:border-gray-600 pl-4 italic my-4;
+  }
+  
+  .article-content img {
+    @apply max-w-full h-auto rounded-lg my-4;
+  }
+  
+  .article-content table {
+    @apply w-full border-collapse my-4;
+  }
+  
+  .article-content th,
+  .article-content td {
+    @apply border border-gray-300 dark:border-gray-700 p-2;
+  }
+  
+  .article-content th {
+    @apply bg-gray-100 dark:bg-gray-800;
+  }
+}
+
+/* 图片加载动画 */
+.image-placeholder {
+  transition: opacity 0.3s ease;
+}
+
+img[data-preview] {
+  transition: opacity 0.5s ease, transform 0.3s ease;
+}
+
+img[data-preview].loaded {
+  opacity: 1 !important;
+}
+
+img[data-preview].loaded + .image-placeholder {
+  opacity: 0;
+} 
